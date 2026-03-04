@@ -487,8 +487,8 @@ const Canvas = () => {
         nodesDraggable={true}
         panOnDrag={true}
         panActivationKeyCode="Space"
-        panOnScroll={false}
-        zoomOnScroll={true}
+        panOnScroll={true}
+        zoomOnScroll={false}
         selectionOnDrag={true}
         selectionKeyCode="Shift"
         multiSelectionKeyCode={["Meta", "Control"]}
