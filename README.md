@@ -152,7 +152,7 @@ BoardBack is local-first by design:
 To wipe the canvas and see the intro again, run in the browser console:
 
 ```js
-indexedDB.deleteDatabase('whitebroawd-db')
+indexedDB.deleteDatabase('boardback-db')
 localStorage.clear()
 location.reload()
 ```
