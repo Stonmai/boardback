@@ -310,9 +310,10 @@ const IntroModal = () => {
     const EXTENSION_ID = 'cnopkpkjbkbccgikjggidpojcjchclpe';
     const detect = (): Promise<boolean> => new Promise((resolve) => {
       try {
-        if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-          chrome.runtime.sendMessage(EXTENSION_ID, { type: 'BOARDBACK_PING' }, (response) => {
-            if (chrome.runtime.lastError) resolve(false);
+        const cr = (window as any).chrome;
+        if (cr?.runtime?.sendMessage) {
+          cr.runtime.sendMessage(EXTENSION_ID, { type: 'BOARDBACK_PING' }, (response: any) => {
+            if (cr.runtime.lastError) resolve(false);
             else resolve(!!response?.installed);
           });
         } else {
