@@ -1,136 +1,158 @@
-# whitebroawd
+# BoardBack
 
-A visual workspace for organizing browser tabs, bookmarks, and notes on an infinite canvas — powered by a Chrome extension that captures your browsing directly into the board.
+**Your bookmark. Your browser. Your board.**
 
----
-
-## What it is
-
-**whitebroawd** is a local-first, visual tab manager. Instead of piling up bookmarks or browser tabs, you drop them onto a canvas, organize them into rooms, connect them, and annotate them with sticky notes.
-
-- **Canvas** — infinite, zoomable workspace built with ReactFlow
-- **Rooms** — 4 separate spaces (Living Room, Kitchen, Bedroom, Toilet) to separate contexts
-- **Bookmarks** — captured from your browser via the Chrome extension, with screenshots and metadata
-- **Notes** — sticky notes you can paste or create freely
-- **Groups** — container frames to cluster related items
-- **Tags** — label captures for quick filtering
+BoardBack is a local-first visual workspace for organizing browser tabs and bookmarks. Capture anything from Chrome with one click, arrange it on an infinite canvas, draw connections, group ideas — all stored privately on your device with no account required.
 
 ---
 
-## Structure
+## Features
+
+- **Infinite canvas** — Drag, zoom, and arrange bookmarks and notes freely
+- **One-click capture** — Chrome extension captures the current tab or all open tabs at once
+- **Paste URLs** — Drop any link onto the canvas directly
+- **Sticky notes** — Add text notes and connect them to bookmarks
+- **Groups** — Drag items into labeled group frames; auto-arrange by domain or tags
+- **Connections** — Draw edges between any two nodes to map your thinking
+- **Tag filtering** — Color-tag bookmarks and filter the canvas instantly
+- **Undo / Redo** — Full history with Cmd+Z / Cmd+Shift+Z
+- **100% local** — Data lives in your browser via IndexedDB; no cloud, no account, no tracking
+
+---
+
+## Project Structure
+
+This is an npm workspaces monorepo with three packages:
 
 ```
-whitebroawd/
+boardback/
 ├── packages/
-│   ├── web/          # Next.js 14 app (the canvas)
-│   ├── extension/    # Chrome extension (tab capture)
+│   ├── web/          # Next.js app (the canvas)
+│   ├── extension/    # Chrome extension (capture tool)
 │   └── shared/       # Shared TypeScript types
 ```
 
 ---
 
-## Getting started
+## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
 - npm 9+
-- Google Chrome
+- Google Chrome (for the extension)
 
-### 1. Install dependencies
+### Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Run the web app
+### Run the web app (dev)
 
 ```bash
 npm run web:dev
 ```
 
-Opens at `http://localhost:3000`
+Opens at [http://localhost:3000](http://localhost:3000).
 
-### 3. Load the Chrome extension
+### Run the extension (dev)
 
-1. Open `chrome://extensions`
+```bash
+npm run extension:dev
+```
+
+Then load the extension in Chrome:
+
+1. Go to `chrome://extensions`
 2. Enable **Developer mode** (top right)
 3. Click **Load unpacked**
-4. Select the `packages/extension/dist` folder
-5. Pin **Whitebroawd Capture** to your toolbar
+4. Select `packages/extension/dist`
+5. Pin **BoardBack** to your toolbar
 
 ---
 
-## Using the extension
-
-Once installed, the extension popup appears when you click the icon in your Chrome toolbar.
+## Using the Extension
 
 | Action | What it does |
 |---|---|
-| **Capture tab** | Saves the current tab (screenshot + metadata) to the canvas |
+| **Capture Tab** | Saves the current tab (screenshot + metadata) to the canvas |
 | **Capture All** | Saves all open tabs in the current window |
-| **Open App** | Opens the whitebroawd canvas |
+| **Open App** | Opens the BoardBack canvas |
 
 Captured tabs appear on the canvas automatically within a few seconds.
 
 ---
 
-## Using the canvas
+## Using the Canvas
 
 | Interaction | Action |
 |---|---|
-| Drag | Pan the canvas |
-| Scroll | Zoom in/out |
+| `Space + drag` | Pan the canvas |
+| Scroll | Zoom in / out |
+| `Shift + drag` | Rubber-band select multiple nodes |
+| `Cmd/Ctrl + click` | Add node to selection |
 | Paste a URL | Creates a bookmark node |
 | Paste text | Creates a sticky note |
 | Drag node into group | Attaches it to the group |
-| `Ctrl+Z` / `Cmd+Z` | Undo |
-| `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo |
-
-Use the **toolbar** at the bottom to switch rooms, add notes, auto-arrange nodes, and more.
+| `Cmd/Ctrl + Z` | Undo |
+| `Cmd/Ctrl + Shift + Z` | Redo |
+| `Cmd/Ctrl + C / X / V` | Copy / Cut / Paste nodes |
+| `Cmd/Ctrl + +/-` | Zoom in / out |
 
 ---
 
-## Tech stack
+## Tech Stack
 
-| Layer | Tech |
+| Layer | Technology |
 |---|---|
-| Web app | Next.js 14, React 18, TypeScript |
-| Canvas | ReactFlow 11 |
-| State | Zustand (persisted to localStorage) |
-| Styling | Tailwind CSS, Outfit font |
-| Extension | Webpack 5, React 18, Chrome Manifest v3 |
+| Web app | Next.js 14, React, TypeScript |
+| Canvas | @xyflow/react v12 (React Flow) |
+| State | Zustand |
+| Storage | Dexie (IndexedDB) |
+| Extension | React, Webpack, Chrome MV3 |
+| Styling | Tailwind CSS |
 
 ---
 
-## Build
+## Build for Production
 
 ```bash
-# Build the web app
 npm run web:build
-
-# Build the extension
 npm run extension:build
 ```
 
 After building the extension, reload it in `chrome://extensions`.
 
+The web app is deployed at [boardback-web.vercel.app](https://boardback-web.vercel.app).
+
+> **Note:** After deploying to a new domain, update `content_scripts.matches` in `packages/extension/public/manifest.json` to include your production URL, then rebuild the extension.
+
 ---
 
-## Development notes
+## Privacy
 
-- All data is stored locally in `localStorage` — no backend, no account needed
+BoardBack is local-first by design:
+
+- All data is stored in your browser's IndexedDB
+- No data is sent to any server
+- No analytics, no telemetry, no account required
+- The extension only communicates with the BoardBack web app (localhost or your configured domain)
+
+---
+
+## Development Notes
+
 - The extension communicates with the web app via custom DOM events (`WHITEBOARD_SYNC_REQUEST` / `WHITEBOARD_SYNC_RESPONSE`)
-- Extension detection works by the content script setting `data-whiteboard-ext="true"` on the `<html>` element — the web app reads this on first load to show install status in the intro screen
-- The intro screen only appears once per browser (tracked via `hasSeenIntro` in localStorage)
+- Extension detection works by the content script setting `data-whiteboard-ext="true"` on `<html>` — the web app reads this on load to show install status in the intro screen
+- The intro screen only appears once (tracked via `hasSeenIntro` in the persisted store)
 
----
+### Reset all data
 
-## Reset
-
-To reset all data and see the intro again, run in the browser console:
+To wipe the canvas and see the intro again, run in the browser console:
 
 ```js
-localStorage.removeItem('whitebroawd-storage')
+indexedDB.deleteDatabase('whitebroawd-db')
+localStorage.clear()
 location.reload()
 ```
