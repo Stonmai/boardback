@@ -473,7 +473,7 @@ const Canvas = () => {
   return (
     <div className="w-full h-screen overflow-hidden relative" style={{ background: '#0d0e1a' }}>
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes as unknown as Node[]}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}

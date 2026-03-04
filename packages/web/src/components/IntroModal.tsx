@@ -5,13 +5,48 @@ import { useStore } from '@/store/useStore';
 
 // ── Illustrations ──────────────────────────────────────────────────────────────
 
+const WelcomeIllustration = () => (
+  <svg viewBox="0 0 400 190" fill="none" style={{ width: '100%', height: '100%' }}>
+    <rect width="400" height="190" fill="#0d0e1a" rx="14" />
+    {/* Dot grid */}
+    {[0,1,2,3,4,5,6].map(r => [0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(c => (
+      <circle key={`${r}-${c}`} cx={16+c*27} cy={14+r*26} r="1" fill="rgba(255,255,255,0.07)" />
+    )))}
+    {/* Device body */}
+    <rect x="120" y="20" width="160" height="110" rx="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
+    <rect x="132" y="34" width="136" height="82" rx="8" fill="rgba(13,14,26,0.9)" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+    {/* Mini canvas inside device */}
+    <rect x="140" y="42" width="52" height="34" rx="6" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.28)" strokeWidth="0.8" />
+    <rect x="148" y="50" width="28" height="3" rx="1.5" fill="rgba(59,130,246,0.7)" />
+    <rect x="148" y="57" width="36" height="2" rx="1" fill="rgba(255,255,255,0.15)" />
+    <rect x="200" y="42" width="52" height="34" rx="6" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.28)" strokeWidth="0.8" />
+    <rect x="208" y="50" width="28" height="3" rx="1.5" fill="rgba(168,85,247,0.7)" />
+    <rect x="208" y="57" width="36" height="2" rx="1" fill="rgba(255,255,255,0.15)" />
+    <rect x="140" y="84" width="52" height="26" rx="6" fill="rgba(200,241,53,0.1)" stroke="rgba(200,241,53,0.22)" strokeWidth="0.8" />
+    <rect x="148" y="91" width="36" height="3" rx="1.5" fill="rgba(200,241,53,0.6)" />
+    <rect x="148" y="98" width="26" height="2" rx="1" fill="rgba(255,255,255,0.15)" />
+    <rect x="200" y="84" width="52" height="26" rx="6" fill="rgba(16,185,129,0.1)" stroke="rgba(16,185,129,0.22)" strokeWidth="0.8" />
+    <rect x="208" y="91" width="28" height="3" rx="1.5" fill="rgba(16,185,129,0.6)" />
+    <rect x="208" y="98" width="36" height="2" rx="1" fill="rgba(255,255,255,0.15)" />
+    {/* Lock shield — local only */}
+    <circle cx="200" cy="155" r="22" fill="rgba(200,241,53,0.1)" stroke="rgba(200,241,53,0.35)" strokeWidth="1.5" />
+    <rect x="193" y="152" width="14" height="10" rx="3" fill="rgba(200,241,53,0.25)" stroke="rgba(200,241,53,0.5)" strokeWidth="1" />
+    <path d="M196 152 V149 A4 4 0 0 1 204 149 V152" stroke="rgba(200,241,53,0.7)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <circle cx="200" cy="157.5" r="1.8" fill="rgba(200,241,53,0.9)" />
+    {/* "Stays here" arrows from device to lock */}
+    <path d="M200 132 L200 132" stroke="rgba(200,241,53,0.5)" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M200 132 L200 142" stroke="rgba(200,241,53,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 2" />
+    {/* "On device" label */}
+    <text x="200" y="182" textAnchor="middle" fill="rgba(200,241,53,0.55)" fontSize="9" fontWeight="700" letterSpacing="0.08em">DATA STAYS ON YOUR DEVICE</text>
+  </svg>
+);
+
 const CanvasIllustration = () => (
   <svg viewBox="0 0 400 190" fill="none" style={{ width: '100%', height: '100%' }}>
     <rect width="400" height="190" fill="#0d0e1a" rx="14" />
     {[0,1,2,3,4,5,6].map(r => [0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(c => (
       <circle key={`${r}-${c}`} cx={16+c*27} cy={14+r*26} r="1.1" fill="rgba(255,255,255,0.1)" />
     )))}
-    {/* Bookmark card blue */}
     <rect x="22" y="28" width="96" height="66" rx="10" fill="rgba(59,130,246,0.13)" stroke="rgba(59,130,246,0.32)" strokeWidth="1" />
     <circle cx="38" cy="46" r="9" fill="rgba(59,130,246,0.22)" />
     <rect x="52" y="42" width="46" height="4" rx="2" fill="rgba(59,130,246,0.75)" />
@@ -19,7 +54,6 @@ const CanvasIllustration = () => (
     <rect x="30" y="67" width="60" height="2.5" rx="1.2" fill="rgba(255,255,255,0.12)" />
     <rect x="30" y="79" width="32" height="11" rx="5.5" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.3)" strokeWidth="0.8" />
     <text x="46" y="87" textAnchor="middle" fill="rgba(59,130,246,0.85)" fontSize="7" fontWeight="700">Work</text>
-    {/* Note card purple */}
     <rect x="144" y="20" width="96" height="76" rx="10" fill="rgba(168,85,247,0.11)" stroke="rgba(168,85,247,0.28)" strokeWidth="1" />
     <rect x="154" y="34" width="54" height="4" rx="2" fill="rgba(168,85,247,0.75)" />
     <rect x="154" y="44" width="76" height="2.5" rx="1.2" fill="rgba(255,255,255,0.18)" />
@@ -28,7 +62,6 @@ const CanvasIllustration = () => (
     <rect x="154" y="65" width="48" height="2.5" rx="1.2" fill="rgba(255,255,255,0.08)" />
     <rect x="154" y="79" width="36" height="11" rx="5.5" fill="rgba(168,85,247,0.15)" stroke="rgba(168,85,247,0.3)" strokeWidth="0.8" />
     <text x="172" y="87" textAnchor="middle" fill="rgba(168,85,247,0.85)" fontSize="7" fontWeight="700">Ideas</text>
-    {/* Group frame lime */}
     <rect x="258" y="16" width="124" height="108" rx="12" fill="rgba(200,241,53,0.04)" stroke="rgba(200,241,53,0.2)" strokeWidth="1" strokeDasharray="5 3" />
     <rect x="268" y="26" width="46" height="3.5" rx="1.7" fill="rgba(200,241,53,0.45)" />
     <rect x="266" y="40" width="48" height="36" rx="7" fill="rgba(200,241,53,0.08)" stroke="rgba(200,241,53,0.18)" strokeWidth="0.8" />
@@ -37,13 +70,11 @@ const CanvasIllustration = () => (
     <rect x="320" y="40" width="48" height="36" rx="7" fill="rgba(200,241,53,0.08)" stroke="rgba(200,241,53,0.18)" strokeWidth="0.8" />
     <rect x="328" y="50" width="28" height="3" rx="1.5" fill="rgba(200,241,53,0.6)" />
     <rect x="328" y="57" width="34" height="2.5" rx="1.2" fill="rgba(255,255,255,0.18)" />
-    {/* Connections */}
     <path d="M118 62 C132 62 132 56 144 54" stroke="rgba(147,120,255,0.5)" strokeWidth="1.5" fill="none" />
     <circle cx="118" cy="62" r="2.5" fill="rgba(147,120,255,0.65)" />
     <circle cx="144" cy="54" r="2.5" fill="rgba(147,120,255,0.65)" />
     <path d="M240 56 C249 56 250 44 258 40" stroke="rgba(200,241,53,0.42)" strokeWidth="1.5" fill="none" />
     <circle cx="240" cy="56" r="2.5" fill="rgba(200,241,53,0.55)" />
-    {/* Bottom row cards */}
     <rect x="28" y="116" width="82" height="54" rx="8" fill="rgba(16,185,129,0.11)" stroke="rgba(16,185,129,0.26)" strokeWidth="1" />
     <circle cx="42" cy="130" r="7" fill="rgba(16,185,129,0.22)" />
     <rect x="54" y="126" width="44" height="3.5" rx="1.7" fill="rgba(16,185,129,0.72)" />
@@ -55,7 +86,6 @@ const CanvasIllustration = () => (
     <rect x="138" y="138" width="64" height="2.5" rx="1.2" fill="rgba(255,255,255,0.16)" />
     <rect x="138" y="145" width="50" height="2.5" rx="1.2" fill="rgba(255,255,255,0.1)" />
     <path d="M110 142 C120 140 122 134 130 132" stroke="rgba(200,200,255,0.3)" strokeWidth="1.2" fill="none" strokeDasharray="3 2" />
-    {/* Right accent */}
     <circle cx="322" cy="152" r="28" fill="rgba(200,241,53,0.05)" stroke="rgba(200,241,53,0.16)" strokeWidth="1" />
     <rect x="308" y="146" width="28" height="3.5" rx="1.7" fill="rgba(200,241,53,0.38)" />
     <rect x="312" y="154" width="20" height="3" rx="1.5" fill="rgba(255,255,255,0.18)" />
@@ -65,7 +95,6 @@ const CanvasIllustration = () => (
 const BookmarkIllustration = () => (
   <svg viewBox="0 0 400 190" fill="none" style={{ width: '100%', height: '100%' }}>
     <rect width="400" height="190" fill="#0d0e1a" rx="14" />
-    {/* Browser bar */}
     <rect x="16" y="12" width="368" height="30" rx="8" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
     <circle cx="34" cy="27" r="5" fill="rgba(255,80,80,0.42)" />
     <circle cx="50" cy="27" r="5" fill="rgba(255,190,0,0.42)" />
@@ -74,27 +103,25 @@ const BookmarkIllustration = () => (
     <rect x="90" y="24" width="90" height="5" rx="2.5" fill="rgba(255,255,255,0.2)" />
     <rect x="322" y="19" width="58" height="16" rx="8" fill="rgba(200,241,53,0.18)" stroke="rgba(200,241,53,0.38)" strokeWidth="1" />
     <text x="351" y="29.5" textAnchor="middle" fill="rgba(200,241,53,0.95)" fontSize="8" fontWeight="800" letterSpacing="0.05em">CAPTURE</text>
-    {/* Arrow */}
     <path d="M200 47 L200 58" stroke="rgba(200,241,53,0.5)" strokeWidth="2" strokeLinecap="round" />
     <path d="M194 54 L200 60 L206 54" stroke="rgba(200,241,53,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    {/* 2×4 card grid */}
     {[
-      { x: 16, y: 66, c: 'rgba(59,130,246',   t: 'Research' },
-      { x: 112, y: 66, c: 'rgba(168,85,247',  t: 'Design'   },
-      { x: 208, y: 66, c: 'rgba(16,185,129',  t: 'Dev'      },
-      { x: 304, y: 66, c: 'rgba(244,114,182', t: 'Ideas'    },
-      { x: 16, y: 132, c: 'rgba(245,158,11',  t: 'Later'    },
-      { x: 112, y: 132, c: 'rgba(34,211,238', t: 'Read'     },
-      { x: 208, y: 132, c: 'rgba(163,230,53', t: 'Tools'    },
-      { x: 304, y: 132, c: 'rgba(99,120,255', t: 'Saved'    },
+      { x: 16,  y: 66,  c: 'rgba(59,130,246',   t: 'Research' },
+      { x: 112, y: 66,  c: 'rgba(168,85,247',   t: 'Design'   },
+      { x: 208, y: 66,  c: 'rgba(16,185,129',   t: 'Dev'      },
+      { x: 304, y: 66,  c: 'rgba(244,114,182',  t: 'Ideas'    },
+      { x: 16,  y: 132, c: 'rgba(245,158,11',   t: 'Later'    },
+      { x: 112, y: 132, c: 'rgba(34,211,238',   t: 'Read'     },
+      { x: 208, y: 132, c: 'rgba(163,230,53',   t: 'Tools'    },
+      { x: 304, y: 132, c: 'rgba(99,120,255',   t: 'Saved'    },
     ].map((card, i) => (
       <g key={i}>
         <rect x={card.x} y={card.y} width="88" height="56" rx="9" fill={`${card.c},0.1)`} stroke={`${card.c},0.26)`} strokeWidth="1" />
-        <rect x={card.x + 10} y={card.y + 13} width="36" height="3.5" rx="1.7" fill={`${card.c},0.82)`} />
-        <rect x={card.x + 10} y={card.y + 22} width="68" height="2.5" rx="1.2" fill="rgba(255,255,255,0.18)" />
-        <rect x={card.x + 10} y={card.y + 29} width="54" height="2.5" rx="1.2" fill="rgba(255,255,255,0.12)" />
-        <rect x={card.x + 10} y={card.y + 41} width="36" height="10" rx="5" fill={`${card.c},0.14)`} stroke={`${card.c},0.3)`} strokeWidth="0.8" />
-        <text x={card.x + 28} y={card.y + 48.5} textAnchor="middle" fill={`${card.c},0.88)`} fontSize="7" fontWeight="700">{card.t}</text>
+        <rect x={card.x+10} y={card.y+13} width="36" height="3.5" rx="1.7" fill={`${card.c},0.82)`} />
+        <rect x={card.x+10} y={card.y+22} width="68" height="2.5" rx="1.2" fill="rgba(255,255,255,0.18)" />
+        <rect x={card.x+10} y={card.y+29} width="54" height="2.5" rx="1.2" fill="rgba(255,255,255,0.12)" />
+        <rect x={card.x+10} y={card.y+41} width="36" height="10" rx="5" fill={`${card.c},0.14)`} stroke={`${card.c},0.3)`} strokeWidth="0.8" />
+        <text x={card.x+28} y={card.y+48.5} textAnchor="middle" fill={`${card.c},0.88)`} fontSize="7" fontWeight="700">{card.t}</text>
       </g>
     ))}
   </svg>
@@ -104,35 +131,31 @@ const ConnectionIllustration = () => (
   <svg viewBox="0 0 400 190" fill="none" style={{ width: '100%', height: '100%' }}>
     <rect width="400" height="190" fill="#0d0e1a" rx="14" />
     {[0,1,2,3,4,5,6].map(r => [0,1,2,3,4,5,6,7,8,9,10,11,12].map(c => (
-      <circle key={`${r}-${c}`} cx={18 + c * 30} cy={14 + r * 27} r="1.1" fill="rgba(255,255,255,0.09)" />
+      <circle key={`${r}-${c}`} cx={18+c*30} cy={14+r*27} r="1.1" fill="rgba(255,255,255,0.09)" />
     )))}
-    {/* Connection lines */}
     <path d="M200 95 C185 95 160 68 148 62" stroke="rgba(200,241,53,0.35)" strokeWidth="1.5" fill="none" />
     <path d="M200 95 C216 95 252 68 264 62" stroke="rgba(99,120,255,0.35)" strokeWidth="1.5" fill="none" />
     <path d="M200 95 C188 112 155 144 142 150" stroke="rgba(244,114,182,0.35)" strokeWidth="1.5" fill="none" />
     <path d="M200 95 C212 112 248 144 262 150" stroke="rgba(16,185,129,0.35)" strokeWidth="1.5" fill="none" />
     <path d="M148 62 C146 90 143 126 142 150" stroke="rgba(200,241,53,0.13)" strokeWidth="1" strokeDasharray="4 3" fill="none" />
     <path d="M264 62 C262 100 262 126 262 150" stroke="rgba(99,120,255,0.13)" strokeWidth="1" strokeDasharray="4 3" fill="none" />
-    {/* Center hub */}
     <circle cx="200" cy="95" r="24" fill="rgba(200,241,53,0.09)" stroke="rgba(200,241,53,0.36)" strokeWidth="1.5" />
     <circle cx="200" cy="95" r="15" fill="rgba(200,241,53,0.17)" />
     <rect x="190" y="91" width="20" height="4" rx="2" fill="rgba(200,241,53,0.9)" />
     <rect x="192" y="98" width="16" height="3" rx="1.5" fill="rgba(255,255,255,0.48)" />
-    {/* Satellite nodes */}
     {[
-      { x: 112, y: 44, c: 'rgba(59,130,246',  label: 'GitHub' },
-      { x: 228, y: 44, c: 'rgba(168,85,247',  label: 'Figma'  },
+      { x: 112, y: 44,  c: 'rgba(59,130,246',  label: 'GitHub' },
+      { x: 228, y: 44,  c: 'rgba(168,85,247',  label: 'Figma'  },
       { x: 106, y: 132, c: 'rgba(244,114,182', label: 'Notes'  },
       { x: 226, y: 132, c: 'rgba(16,185,129',  label: 'Docs'   },
     ].map((n, i) => (
       <g key={i}>
         <rect x={n.x} y={n.y} width="72" height="40" rx="8" fill={`${n.c},0.13)`} stroke={`${n.c},0.36)`} strokeWidth="1" />
-        <rect x={n.x + 9} y={n.y + 9} width="28" height="3.5" rx="1.7" fill={`${n.c},0.82)`} />
-        <rect x={n.x + 9} y={n.y + 18} width="54" height="2.5" rx="1.2" fill="rgba(255,255,255,0.18)" />
-        <rect x={n.x + 9} y={n.y + 25} width="44" height="2.5" rx="1.2" fill="rgba(255,255,255,0.12)" />
+        <rect x={n.x+9} y={n.y+9} width="28" height="3.5" rx="1.7" fill={`${n.c},0.82)`} />
+        <rect x={n.x+9} y={n.y+18} width="54" height="2.5" rx="1.2" fill="rgba(255,255,255,0.18)" />
+        <rect x={n.x+9} y={n.y+25} width="44" height="2.5" rx="1.2" fill="rgba(255,255,255,0.12)" />
       </g>
     ))}
-    {/* Edge dots */}
     <circle cx="174" cy="79" r="3" fill="rgba(200,241,53,0.6)" />
     <circle cx="228" cy="79" r="3" fill="rgba(99,120,255,0.6)" />
     <circle cx="172" cy="122" r="3" fill="rgba(244,114,182,0.6)" />
@@ -163,7 +186,8 @@ const FEATURE_PAGES = [
   },
 ];
 
-const TOTAL_PAGES = FEATURE_PAGES.length + 1; // +1 for setup
+// page 0 = welcome, pages 1..N = features, last = setup
+const TOTAL_PAGES = 1 + FEATURE_PAGES.length + 1;
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -171,6 +195,43 @@ const CheckIcon = () => (
   <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
     <path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
+);
+
+const WelcomePage = () => (
+  <div>
+    {/* Logo */}
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+      <div style={{ width: 148, height: 148, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px rgba(200,241,53,0.12)' }}>
+        <img src="/icon.png" alt="BoardBack" style={{ width: 128, height: 128, objectFit: 'contain' }} />
+      </div>
+    </div>
+
+    {/* Wordmark + tagline */}
+    <div style={{ textAlign: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 30, fontWeight: 900, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>Board</span>
+        <span style={{ fontSize: 30, fontWeight: 900, color: '#c8f135', letterSpacing: '-0.04em', lineHeight: 1 }}>Back</span>
+      </div>
+      <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.01em', lineHeight: 1.5 }}>
+        Your bookmark. Your browser. Your board.
+      </p>
+    </div>
+
+    {/* Value props */}
+    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+      {[
+        { icon: '🔒', label: 'Local Focus',       sub: 'stored on your device'  },
+        { icon: '🚫', label: 'No Account',        sub: 'zero sign-up required'  },
+        { icon: '⚡', label: 'Easy Capture',   sub: 'one-click from browser' },
+      ].map((p, i) => (
+        <div key={i} style={{ flex: '1 1 0', minWidth: 110, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '10px 12px', textAlign: 'center' }}>
+          {/*<div style={{ fontSize: 18, marginBottom: 4 }}>{p.icon}</div>*/}
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{p.label}</div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', lineHeight: 1.4 }}>{p.sub}</div>
+        </div>
+      ))}
+    </div>
+  </div>
 );
 
 const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
@@ -199,13 +260,13 @@ const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
           num: '2',
           done: false,
           title: 'Capture tabs from the popup',
-          body: 'Click the extension icon in your toolbar, then capture the current tab or all open tabs at once.',
+          body: 'Click the BoardBack icon in your toolbar, then capture the current tab or all open tabs at once.',
         },
         {
           num: '3',
           done: false,
           title: 'Organise on the canvas',
-          body: 'Drag bookmarks into rooms, paste URLs, add sticky notes, and group related items together.',
+          body: 'Drag bookmarks into groups, paste URLs, add sticky notes, and connect related items together.',
         },
       ].map((step, i) => (
         <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px' }}>
@@ -249,7 +310,8 @@ const IntroModal = () => {
 
   if (hasSeenIntro || !visible) return null;
 
-  const isSetup = page === FEATURE_PAGES.length;
+  const isWelcome = page === 0;
+  const isSetup = page === TOTAL_PAGES - 1;
   const isFirst = page === 0;
   const isLast = page === TOTAL_PAGES - 1;
 
@@ -257,7 +319,8 @@ const IntroModal = () => {
   const goNext = () => isLast ? dismissIntro() : go(page + 1);
   const goPrev = () => !isFirst && go(page - 1);
 
-  const current = FEATURE_PAGES[page];
+  // feature pages start at index 1
+  const current = !isWelcome && !isSetup ? FEATURE_PAGES[page - 1] : null;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(9,10,20,0.88)', backdropFilter: 'blur(16px)' }}>
@@ -278,9 +341,11 @@ const IntroModal = () => {
 
         {/* Page content */}
         <div key={animKey} className="intro-page" style={{ padding: '24px 24px 0' }}>
-          {isSetup ? (
+          {isWelcome ? (
+            <WelcomePage />
+          ) : isSetup ? (
             <SetupPage extInstalled={extInstalled} />
-          ) : (
+          ) : current ? (
             <>
               {/* Illustration */}
               <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', marginBottom: 22, lineHeight: 0 }}>
@@ -304,7 +369,7 @@ const IntroModal = () => {
                 {current.description}
               </p>
             </>
-          )}
+          ) : null}
         </div>
 
         {/* Navigation bar */}
@@ -332,9 +397,9 @@ const IntroModal = () => {
             )}
             <button
               onClick={goNext}
-              style={{ height: 38, padding: '0 22px', borderRadius: 12, background: isLast ? '#c8f135' : 'rgba(200,241,53,0.14)', border: isLast ? 'none' : '1px solid rgba(200,241,53,0.3)', color: isLast ? '#0b0c16' : '#c8f135', fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 0.15s ease', letterSpacing: '0.01em' }}
+              style={{ height: 38, padding: '0 22px', borderRadius: 12, background: isLast ? '#c8f135' : isWelcome ? '#c8f135' : 'rgba(200,241,53,0.14)', border: (isLast || isWelcome) ? 'none' : '1px solid rgba(200,241,53,0.3)', color: (isLast || isWelcome) ? '#0b0c16' : '#c8f135', fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 0.15s ease', letterSpacing: '0.01em' }}
             >
-              {isLast ? 'Get Started →' : 'Next →'}
+              {isLast ? 'Get Started →' : isWelcome ? 'See what\'s inside →' : 'Next →'}
             </button>
           </div>
         </div>

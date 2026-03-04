@@ -67,7 +67,7 @@ interface WhiteboardState {
 
   // Actions
   onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
+  onEdgesChange: OnEdgesChange<Edge>;
   onConnect: OnConnect;
   addNode: (node: WhiteboardNode) => void;
   deleteNode: (id: string) => void;
@@ -274,7 +274,7 @@ export const useStore = create<WhiteboardState>()(
     set({ nodes: newNodes });
   },
 
-  onEdgesChange: (changes: EdgeChange[]) => {
+  onEdgesChange: (changes: EdgeChange<Edge>[]) => {
     if (changes.some(c => c.type === 'remove')) {
       const { nodes, edges, _past } = get();
       set({ _past: [..._past.slice(-49), { nodes, edges }], _future: [] });
