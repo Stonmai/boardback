@@ -254,7 +254,8 @@ const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
           title: 'Install the Chrome extension',
           body: extInstalled
             ? 'Extension is active — you can capture tabs directly from your browser.'
-            : 'Load the extension from /packages/extension in Chrome (Developer mode).',
+            : 'Install BoardBack from the Chrome Web Store, then pin it to your toolbar.',
+          link: extInstalled ? null : { label: 'Open Chrome Web Store →', href: 'https://chromewebstore.google.com/detail/whitebroawd-capture/cnopkpkjbkbccgikjggidpojcjchclpe' },
         },
         {
           num: '2',
@@ -283,6 +284,11 @@ const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
               )}
             </div>
             <p style={{ margin: '4px 0 0', fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.38)' }}>{step.body}</p>
+            {(step as any).link && (
+              <a href={(step as any).link.href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 11, fontWeight: 700, color: '#c8f135', textDecoration: 'none' }}>
+                {(step as any).link.label}
+              </a>
+            )}
           </div>
         </div>
       ))}
@@ -301,8 +307,23 @@ const IntroModal = () => {
   const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setExtInstalled(document.documentElement.getAttribute('data-whiteboard-ext') === 'true');
+    const EXTENSION_ID = 'cnopkpkjbkbccgikjggidpojcjchclpe';
+    const detect = (): Promise<boolean> => new Promise((resolve) => {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+          chrome.runtime.sendMessage(EXTENSION_ID, { type: 'BOARDBACK_PING' }, (response) => {
+            if (chrome.runtime.lastError) resolve(false);
+            else resolve(!!response?.installed);
+          });
+        } else {
+          resolve(document.documentElement.getAttribute('data-whiteboard-ext') === 'true');
+        }
+      } catch {
+        resolve(false);
+      }
+    });
+    const timer = setTimeout(async () => {
+      setExtInstalled(await detect());
       setVisible(true);
     }, 1200);
     return () => clearTimeout(timer);

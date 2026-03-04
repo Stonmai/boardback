@@ -25,6 +25,12 @@
   "background": {
     "service_worker": "background.js"
   },
+  "externally_connectable": {
+    "matches": [
+      "https://boardback-web.vercel.app/*",
+      "http://localhost:3000/*"
+    ]
+  },
   "content_scripts": [
     {
       "matches": [

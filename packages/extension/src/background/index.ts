@@ -1,3 +1,9 @@
+chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) => {
+  if (message.type === 'BOARDBACK_PING') {
+    sendResponse({ installed: true, version: chrome.runtime.getManifest().version });
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'CAPTURE_TAB') {
     captureTab(message.tags).then(sendResponse);
