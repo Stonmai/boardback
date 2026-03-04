@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Whitebroawd Capture",
-  "version": "1.0.0",
-  "description": "Capture tabs and bookmarks to your whiteboard workspace.",
+  "name": "BoardBack Capture Tool",
+  "version": "1.0.1",
+  "description": "Capture tabs and bookmarks to your BoardBack workspace.",
   "permissions": [
     "tabs",
     "activeTab",
@@ -29,12 +29,7 @@
     {
       "matches": [
         "https://whitebroawd-web.vercel.app/*",
-        "http://localhost:3000/*",
-        "http://localhost:3001/*",
-        "http://localhost:3002/*",
-        "http://localhost:3003/*",
-        "http://localhost:3004/*",
-        "http://localhost:3005/*"
+        "http://localhost:3000/*"
       ],
       "js": ["content.js"]
     }

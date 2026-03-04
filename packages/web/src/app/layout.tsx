@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Whitebroawd",
+  title: "BoardBack",
   description: "A visual workspace for browser tabs and bookmarks",
   icons: { icon: '/icon.png' },
 };
