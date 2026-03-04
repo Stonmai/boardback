@@ -616,7 +616,7 @@ export const useStore = create<WhiteboardState>()(
   },
 }),
 {
-  name: 'whitebroawd-storage',
+  name: 'boardback-storage',
   storage: typeof window !== 'undefined'
     ? createJSONStorage(() => dexieStorage)
     : createJSONStorage(() => dummyStorage),
@@ -632,14 +632,14 @@ export const useStore = create<WhiteboardState>()(
   onRehydrateStorage: () => async (state: any) => {
     // One-time migration: copy localStorage data into Dexie then remove it
     if (typeof window !== 'undefined' && !state) {
-      const LS_KEY = 'whitebroawd-storage';
+      const LS_KEY = 'boardback-storage';
       const raw = window.localStorage.getItem(LS_KEY);
       if (raw) {
         try {
           await dexieStorage.setItem(LS_KEY, raw);
           window.localStorage.removeItem(LS_KEY);
         } catch (err) {
-          console.warn('[whitebroawd] localStorage→Dexie migration failed:', err);
+          console.warn('[boardback] localStorage→Dexie migration failed:', err);
         }
       }
       return;

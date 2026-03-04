@@ -5,19 +5,19 @@ interface KVEntry {
   value: string;
 }
 
-class WhitebroawdDB extends Dexie {
+class BoardBackDB extends Dexie {
   kv!: Table<KVEntry, string>;
 
   constructor() {
-    super('whitebroawd-db');
+    super('boardback-db');
     this.version(1).stores({ kv: '&key' });
   }
 }
 
-let _db: WhitebroawdDB | null = null;
+let _db: BoardBackDB | null = null;
 
-const getDB = (): WhitebroawdDB => {
-  if (!_db) _db = new WhitebroawdDB();
+const getDB = (): BoardBackDB => {
+  if (!_db) _db = new BoardBackDB();
   return _db;
 };
 

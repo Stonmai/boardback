@@ -63,7 +63,7 @@ const Popup = () => {
       <div className="flex items-center gap-2 mb-5">
         <img src="icon.png" alt="logo" className="w-8 h-8 rounded-lg" />
         <div>
-          <h1 className="text-sm font-bold tracking-tight" style={{ color: '#c8f135' }}>whitebroawd</h1>
+          <h1 className="text-sm font-bold tracking-tight" style={{ color: '#c8f135' }}>BoardBack</h1>
           <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>capture to your workspace</p>
         </div>
       </div>
