@@ -292,6 +292,38 @@ const Toolbar = () => {
   // ID of the room whose emoji is being edited; 'new' for add-workspace panel
   const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
   const [hoveredRoomId, setHoveredRoomId] = React.useState<string | null>(null);
+  const [draggedRoomId, setDraggedRoomId] = React.useState<string | null>(null);
+
+  const reorderRoomsAction = useStore((s) => s.reorderRooms);
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedRoomId(id);
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent ghost image
+    const img = new Image();
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    e.dataTransfer.setDragImage(img, 0, 0);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedRoomId || draggedRoomId === targetId) return;
+
+    const fromIndex = rooms.findIndex(r => r.id === draggedRoomId);
+    const toIndex = rooms.findIndex(r => r.id === targetId);
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      const newRooms = [...rooms];
+      const [moved] = newRooms.splice(fromIndex, 1);
+      newRooms.splice(toIndex, 0, moved);
+      reorderRoomsAction(newRooms);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedRoomId(null);
+  };
 
   React.useEffect(() => {
     const check = () => {
@@ -417,7 +449,7 @@ const Toolbar = () => {
 
   const handleAddGroup = () => {
     const id = uuidv4();
-    addNode({ id, type: 'group', position: center(160, 120), width: 550, height: 450, data: { title: '' }, createdAt: new Date().toISOString() });
+    addNode({ id, type: 'group', position: center(160, 120), width: 800, height: 600, data: { title: '' }, createdAt: new Date().toISOString() });
     setEditingNodeId(id);
   };
 
@@ -521,8 +553,15 @@ const Toolbar = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {rooms.map(room => {
             const active = room.id === currentRoomId;
+            const isDragging = room.id === draggedRoomId;
             return (
-              <div key={room.id} style={{ position: 'relative' }}>
+              <div key={room.id}
+                style={{ position: 'relative', opacity: isDragging ? 0.3 : 1, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)', transform: isDragging ? 'scale(0.95)' : 'scale(1)', cursor: 'grab' }}
+                draggable
+                onDragStart={(e) => handleDragStart(e, room.id)}
+                onDragOver={(e) => handleDragOver(e, room.id)}
+                onDragEnd={handleDragEnd}
+              >
                 <button onClick={() => { switchRoom(room.id); setShowRooms(false); }}
                   style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
                   <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
@@ -743,12 +782,21 @@ const Toolbar = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                   {rooms.map(room => {
                     const active = room.id === currentRoomId;
+                    const isDragging = room.id === draggedRoomId;
                     return (
-                      <button key={room.id} onClick={() => { switchRoom(room.id); setShowRooms(false); }}
-                        style={{ borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
-                        <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
-                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.name}</span>
-                      </button>
+                      <div key={room.id}
+                        style={{ position: 'relative', opacity: isDragging ? 0.3 : 1, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)', transform: isDragging ? 'scale(0.95)' : 'scale(1)', cursor: 'grab' }}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, room.id)}
+                        onDragOver={(e) => handleDragOver(e, room.id)}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <button onClick={() => { switchRoom(room.id); setShowRooms(false); }}
+                          style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+                          <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.name}</span>
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -809,9 +857,23 @@ const Toolbar = () => {
                 <div
                   key={room.id}
                   ref={pickerOpen ? emojiPickerRef : undefined}
-                  style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 2px' }}
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    margin: '0 2px',
+                    opacity: room.id === draggedRoomId ? 0.3 : 1,
+                    transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)',
+                    transform: room.id === draggedRoomId ? 'scale(0.95)' : 'scale(1)',
+                    cursor: 'grab'
+                  }}
                   onMouseEnter={() => setHoveredRoomId(room.id)}
                   onMouseLeave={() => setHoveredRoomId(null)}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, room.id)}
+                  onDragOver={(e) => handleDragOver(e, room.id)}
+                  onDragEnd={handleDragEnd}
                 >
                   {/* Emoji picker panel */}
                   {pickerOpen && renderEmojiPicker(
@@ -864,7 +926,22 @@ const Toolbar = () => {
                     {overflowRooms.map(room => {
                       const active = room.id === currentRoomId;
                       return (
-                        <div key={room.id} style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
+                        <div key={room.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginBottom: 3,
+                            opacity: room.id === draggedRoomId ? 0.3 : 1,
+                            transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)',
+                            transform: room.id === draggedRoomId ? 'scale(0.95)' : 'scale(1)',
+                            cursor: 'grab'
+                          }}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, room.id)}
+                          onDragOver={(e) => handleDragOver(e, room.id)}
+                          onDragEnd={handleDragEnd}
+                        >
                           <button onClick={() => { switchRoom(room.id); setShowOverflow(false); }}
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.03)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid transparent', color: active ? '#c8f135' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, textAlign: 'left' }}
                             onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}

@@ -205,8 +205,8 @@ const Canvas = () => {
       if (n.type === 'group') {
         return {
           ...n,
-          width: (n.style?.width as number) ?? (n.width as number) ?? 550,
-          height: (n.style?.height as number) ?? (n.height as number) ?? 450,
+          width: (n.style?.width as number) ?? (n.width as number) ?? 800,
+          height: (n.style?.height as number) ?? (n.height as number) ?? 600,
         };
       }
       if (activeTagFilters.length === 0) return n;
@@ -262,8 +262,8 @@ const Canvas = () => {
 
   // Helper: get the bounding rect of a group node in flow coordinates
   const getGroupBounds = useCallback((groupNode: Node) => {
-    const w = (groupNode.style?.width as number) ?? (groupNode.width as number) ?? 550;
-    const h = (groupNode.style?.height as number) ?? (groupNode.height as number) ?? 450;
+    const w = (groupNode.style?.width as number) ?? (groupNode.width as number) ?? 800;
+    const h = (groupNode.style?.height as number) ?? (groupNode.height as number) ?? 600;
     return {
       x: groupNode.position.x,
       y: groupNode.position.y,

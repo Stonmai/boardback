@@ -93,6 +93,7 @@ interface WhiteboardState {
   addRoom: (name: string, emoji: string) => void;
   deleteRoom: (id: string) => void;
   updateRoomEmoji: (id: string, emoji: string) => void;
+  reorderRooms: (rooms: RoomData[]) => void;
   snapshot: () => void;
   undo: () => void;
   redo: () => void;
@@ -488,6 +489,9 @@ export const useStore = create<WhiteboardState>()(
   updateRoomEmoji: (id: string, emoji: string) => {
     set({ rooms: get().rooms.map((r: RoomData) => r.id === id ? { ...r, emoji } : r) });
   },
+  reorderRooms: (rooms: RoomData[]) => {
+    set({ rooms });
+  },
 
   autoArrange: () => {
     const allNodes = get().nodes;
@@ -538,7 +542,7 @@ export const useStore = create<WhiteboardState>()(
         id: groupId,
         type: 'group',
         position: { x: 0, y: 0 },
-        style: { width: Math.max(gw, 550), height: Math.max(gh, 450) },
+        style: { width: Math.max(gw, 800), height: Math.max(gh, 600) },
         data: { title: domain.toUpperCase(), count: domNodes.length },
       });
 
@@ -599,8 +603,8 @@ export const useStore = create<WhiteboardState>()(
       })),
       ...newGroups.map((g: Node) => ({
         repId: g.id, nodes: [g],
-        w: (g.style?.width as number) ?? 550,
-        h: (g.style?.height as number) ?? 450,
+        w: (g.style?.width as number) ?? 800,
+        h: (g.style?.height as number) ?? 600,
         isGroup: true,
       })),
     ];
