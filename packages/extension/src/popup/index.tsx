@@ -32,7 +32,6 @@ const Popup = () => {
       }
     });
 
-    // Load workspaces from storage, fall back to defaults if not synced yet
     chrome.storage.local.get('boardbackRooms', ({ boardbackRooms }) => {
       if (Array.isArray(boardbackRooms) && boardbackRooms.length > 0) {
         setRooms(boardbackRooms);

@@ -1,0 +1,1 @@
+(()=>{"use strict";chrome.storage.local.get("boardbackNewTab",({boardbackNewTab:a})=>{a&&window.location.replace("https://boardback-web.vercel.app")})})();

@@ -7,6 +7,8 @@ module.exports = {
         popup: './src/popup/index.tsx',
         background: './src/background/index.ts',
         content: './src/content/index.ts',
+        newtab: './src/newtab/index.ts',
+        options: './src/options/index.tsx',
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -33,6 +35,16 @@ module.exports = {
             template: './public/popup.html',
             filename: 'popup.html',
             chunks: ['popup'],
+        }),
+        new HtmlWebpackPlugin({
+            template: './public/newtab.html',
+            filename: 'newtab.html',
+            chunks: ['newtab'],
+        }),
+        new HtmlWebpackPlugin({
+            template: './public/options.html',
+            filename: 'options.html',
+            chunks: ['options'],
         }),
         new CopyPlugin({
             patterns: [

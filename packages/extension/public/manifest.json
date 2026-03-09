@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BoardBack Capture Tool",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A local-first visual workspace for organizing browser tabs and bookmarks on an infinite canvas.",
   "permissions": [
     "tabs",
@@ -24,6 +24,10 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   },
   "externally_connectable": {
     "matches": [

@@ -234,7 +234,7 @@ const WelcomePage = () => (
   </div>
 );
 
-const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks }: { extInstalled: boolean | null; autoOpenBookmarks: boolean; setAutoOpenBookmarks: (v: boolean) => void }) => {
+const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks, newTabEnabled, onNewTabToggle }: { extInstalled: boolean | null; autoOpenBookmarks: boolean; setAutoOpenBookmarks: (v: boolean) => void; newTabEnabled: boolean; onNewTabToggle: () => void }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (url: string) => {
     navigator.clipboard.writeText(url).then(() => {
@@ -316,18 +316,42 @@ const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks }: { 
       ))}
     </div>
 
-    {/* Preference */}
-    <div style={{ marginTop: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Open bookmarks in new tab</div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>Click a preview to open it in a new browser tab</div>
+    {/* Preferences */}
+    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Open bookmarks in new tab</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>Click a preview to open it in a new browser tab</div>
+        </div>
+        <button
+          onClick={() => setAutoOpenBookmarks(!autoOpenBookmarks)}
+          style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', transition: 'background 0.2s ease', background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.12)', position: 'relative', padding: 0 }}
+        >
+          <span style={{ position: 'absolute', top: 3, left: autoOpenBookmarks ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: autoOpenBookmarks ? '#0b0c16' : 'rgba(255,255,255,0.55)', transition: 'left 0.2s ease', display: 'block' }} />
+        </button>
       </div>
-      <button
-        onClick={() => setAutoOpenBookmarks(!autoOpenBookmarks)}
-        style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', transition: 'background 0.2s ease', background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.12)', position: 'relative', padding: 0 }}
+      <div
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: extInstalled ? 1 : 0.45, cursor: extInstalled ? 'pointer' : 'default' }}
+        onClick={extInstalled ? onNewTabToggle : undefined}
       >
-        <span style={{ position: 'absolute', top: 3, left: autoOpenBookmarks ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: autoOpenBookmarks ? '#0b0c16' : 'rgba(255,255,255,0.55)', transition: 'left 0.2s ease', display: 'block' }} />
-      </button>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Open BoardBack on new tab</div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>
+            {extInstalled ? 'Replace new tab page with your workspace' : 'Requires the BoardBack extension'}
+          </div>
+          {newTabEnabled && /Vivaldi/i.test(navigator.userAgent) && (
+            <div style={{ fontSize: 11, color: 'rgba(255,190,0,0.8)', marginTop: 4 }}>
+              Vivaldi: enable "Allow extensions to redirect New Tab" in Settings → Tabs
+            </div>
+          )}
+        </div>
+        <button
+          disabled={!extInstalled}
+          style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: extInstalled ? 'pointer' : 'default', transition: 'background 0.2s ease', background: newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.12)', position: 'relative', padding: 0 }}
+        >
+          <span style={{ position: 'absolute', top: 3, left: newTabEnabled ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: newTabEnabled ? '#0b0c16' : 'rgba(255,255,255,0.55)', transition: 'left 0.2s ease', display: 'block' }} />
+        </button>
+      </div>
     </div>
   </div>
   );
@@ -341,33 +365,76 @@ const IntroModal = () => {
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
   const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
   const [extInstalled, setExtInstalled] = useState<boolean | null>(null);
+  const [newTabEnabled, setNewTabEnabled] = useState(false);
   const [visible, setVisible] = useState(false);
   const [page, setPage] = useState(0);
   const [animKey, setAnimKey] = useState(0);
 
+  const EXT_IDS = ['cnopkpkjbkbccgikjggidpojcjchclpe', 'eknaebeohhiajlpglnamkdmbgggblomb'];
+  const [activeExtIds, setActiveExtIds] = useState<string[]>([]);
+
   useEffect(() => {
-    const EXTENSION_ID = 'cnopkpkjbkbccgikjggidpojcjchclpe';
-    const detect = (): Promise<boolean> => new Promise((resolve) => {
+    const ping = (id: string): Promise<boolean> => new Promise((resolve) => {
       try {
         const cr = (window as any).chrome;
-        if (cr?.runtime?.sendMessage) {
-          cr.runtime.sendMessage(EXTENSION_ID, { type: 'BOARDBACK_PING' }, (response: any) => {
-            if (cr.runtime.lastError) resolve(false);
-            else resolve(!!response?.installed);
-          });
-        } else {
-          resolve(document.documentElement.getAttribute('data-whiteboard-ext') === 'true');
-        }
+        if (!cr?.runtime?.sendMessage) { resolve(false); return; }
+        cr.runtime.sendMessage(id, { type: 'BOARDBACK_PING' }, (response: any) => {
+          if (cr.runtime.lastError) resolve(false);
+          else resolve(!!response?.installed);
+        });
       } catch {
         resolve(false);
       }
     });
-    const timer = setTimeout(async () => {
-      setExtInstalled(await detect());
+
+    const detect = async (): Promise<string[]> => {
+      const results = await Promise.all(EXT_IDS.map(id => ping(id).then(ok => ok ? id : null)));
+      return results.filter(Boolean) as string[];
+    };
+
+    let interval: ReturnType<typeof setInterval>;
+    let stopped = false;
+
+    const poll = async () => {
+      const foundIds = await detect();
+      if (stopped) return;
+      setExtInstalled(foundIds.length > 0);
+      if (foundIds.length > 0) {
+        setActiveExtIds(foundIds);
+        const cr = (window as any).chrome;
+        cr?.runtime?.sendMessage(foundIds[0], { type: 'GET_NEW_TAB' }, (r: any) => {
+          if (!cr.runtime.lastError) setNewTabEnabled(!!r?.enabled);
+        });
+        clearInterval(interval);
+      }
+    };
+
+    const init = setTimeout(async () => {
       setVisible(true);
+      await poll();
+      if (!stopped) {
+        interval = setInterval(poll, 3500);
+      }
     }, 1200);
-    return () => clearTimeout(timer);
+
+    return () => {
+      stopped = true;
+      clearTimeout(init);
+      clearInterval(interval);
+    };
   }, []);
+
+  const handleNewTabToggle = () => {
+    if (activeExtIds.length === 0) return;
+    const next = !newTabEnabled;
+    setNewTabEnabled(next);
+    const cr = (window as any).chrome;
+    activeExtIds.forEach(id => {
+      cr?.runtime?.sendMessage(id, { type: 'SET_NEW_TAB', enabled: next }, () => {
+        void cr.runtime.lastError;
+      });
+    });
+  };
 
   if (hasSeenIntro || !visible) return null;
 
@@ -405,7 +472,7 @@ const IntroModal = () => {
           {isWelcome ? (
             <WelcomePage />
           ) : isSetup ? (
-            <SetupPage extInstalled={extInstalled} autoOpenBookmarks={autoOpenBookmarks} setAutoOpenBookmarks={setAutoOpenBookmarks} />
+            <SetupPage extInstalled={extInstalled} autoOpenBookmarks={autoOpenBookmarks} setAutoOpenBookmarks={setAutoOpenBookmarks} newTabEnabled={newTabEnabled} onNewTabToggle={handleNewTabToggle} />
           ) : current ? (
             <>
               {/* Illustration */}

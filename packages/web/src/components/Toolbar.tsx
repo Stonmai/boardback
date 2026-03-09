@@ -297,6 +297,10 @@ const Toolbar = () => {
   const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
   const [hoveredRoomId, setHoveredRoomId] = React.useState<string | null>(null);
   const [draggedRoomId, setDraggedRoomId] = React.useState<string | null>(null);
+  const [newTabEnabled, setNewTabEnabled] = React.useState(false);
+  const [extensionInstalled, setExtensionInstalled] = React.useState(false);
+  const [activeExtIds, setActiveExtIds] = React.useState<string[]>([]);
+  const EXT_IDS = ['cnopkpkjbkbccgikjggidpojcjchclpe', 'eknaebeohhiajlpglnamkdmbgggblomb'];
 
   const reorderRoomsAction = useStore((s) => s.reorderRooms);
 
@@ -359,6 +363,43 @@ const Toolbar = () => {
   const wsInputRef = React.useRef<HTMLInputElement>(null);
   // Emoji picker ref — attached to whichever tab is being edited
   const emojiPickerRef = React.useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+
+  // ── Extension: detect install + load new tab setting ─────────────────────
+  React.useEffect(() => {
+    const cr = (window as any).chrome;
+    if (!cr?.runtime?.sendMessage) return;
+    const ping = (id: string): Promise<boolean> => new Promise((resolve) => {
+      try {
+        cr.runtime.sendMessage(id, { type: 'BOARDBACK_PING' }, (res: any) => {
+          if (cr.runtime.lastError) resolve(false);
+          else resolve(!!res?.installed);
+        });
+      } catch { resolve(false); }
+    });
+    (async () => {
+      const results = await Promise.all(EXT_IDS.map(id => ping(id).then(ok => ok ? id : null)));
+      const foundIds = results.filter(Boolean) as string[];
+      if (foundIds.length > 0) {
+        setExtensionInstalled(true);
+        setActiveExtIds(foundIds);
+        cr.runtime.sendMessage(foundIds[0], { type: 'GET_NEW_TAB' }, (r: any) => {
+          if (!cr.runtime.lastError) setNewTabEnabled(!!r?.enabled);
+        });
+      }
+    })();
+  }, []);
+
+  const handleNewTabToggle = () => {
+    if (activeExtIds.length === 0) return;
+    const next = !newTabEnabled;
+    setNewTabEnabled(next);
+    const cr = (window as any).chrome;
+    activeExtIds.forEach(id => {
+      cr?.runtime?.sendMessage(id, { type: 'SET_NEW_TAB', enabled: next }, () => {
+        void cr.runtime.lastError;
+      });
+    });
+  };
 
   // ── Outside-click effects ─────────────────────────────────────────────────
   React.useEffect(() => {
@@ -703,20 +744,77 @@ const Toolbar = () => {
             background: autoOpenBookmarks ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.1)',
             border: autoOpenBookmarks ? '1px solid rgba(200,241,53,0.5)' : '1px solid rgba(255,255,255,0.15)',
             position: 'relative',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            flexShrink: 0
           }}
         >
-          <div 
-            style={{ 
+          <div
+            style={{
               position: 'absolute',
               top: 2,
-              left: autoOpenBookmarks ? 16 : 2,
+              left: autoOpenBookmarks ? 24 : 2,
               width: 12,
               height: 12,
               borderRadius: '50%',
               background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.4)',
               transition: 'all 0.2s'
             }} 
+          />
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'rgba(255,255,255,0.05)',
+          padding: '10px 12px',
+          borderRadius: 12,
+          border: '1px solid rgba(255,255,255,0.08)',
+          cursor: extensionInstalled ? 'pointer' : 'default',
+          marginTop: 8,
+          opacity: extensionInstalled ? 1 : 0.45,
+        }}
+        onClick={extensionInstalled ? handleNewTabToggle : undefined}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Open BoardBack on new tab</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+              {extensionInstalled ? 'Replace new tab page with your workspace' : 'Requires the BoardBack extension'}
+            </div>
+            {newTabEnabled && /Vivaldi/i.test(navigator.userAgent) && (
+              <div style={{ fontSize: 9, color: 'rgba(255,190,0,0.75)', fontWeight: 500, marginTop: 3 }}>
+                Vivaldi: enable "Allow extensions to redirect New Tab" in Settings → Tabs
+              </div>
+            )}
+          </div>
+        </div>
+        <div
+          style={{
+            width: 40,
+            height: 18,
+            borderRadius: 20,
+            background: newTabEnabled ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.1)',
+            border: newTabEnabled ? '1px solid rgba(200,241,53,0.5)' : '1px solid rgba(255,255,255,0.15)',
+            position: 'relative',
+            transition: 'all 0.2s',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 2,
+              left: newTabEnabled ? 24 : 2,
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              background: newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.4)',
+              transition: 'all 0.2s'
+            }}
           />
         </div>
       </div>

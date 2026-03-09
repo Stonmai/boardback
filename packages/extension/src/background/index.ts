@@ -1,6 +1,56 @@
+const NEW_TAB_PREFIXES = ['chrome://newtab', 'vivaldi://newtab', 'about:newtab'];
+
+const isVivaldi = navigator.userAgent.includes('Vivaldi');
+
+// Vivaldi exposes its internal vivaldi:// pages as chrome:// to extensions.
+// Map them back so captured URLs reflect what the user actually sees.
+const normalizeUrl = (url: string | undefined): string => {
+  if (!url) return '';
+  if (isVivaldi && url.startsWith('chrome://')) {
+    return url.replace('chrome://', 'vivaldi://');
+  }
+  return url;
+};
+
+const isNewTabUrl = (url: string) =>
+  NEW_TAB_PREFIXES.some(prefix => url.startsWith(prefix));
+
+chrome.tabs.onCreated.addListener(async (tab) => {
+  const url = tab.pendingUrl || tab.url || '';
+  // Empty URL on creation also means a fresh new tab in many Chromium browsers
+  if (url !== '' && !isNewTabUrl(url)) return;
+  const { boardbackNewTab } = await chrome.storage.local.get('boardbackNewTab');
+  if (boardbackNewTab && tab.id !== undefined) {
+    chrome.tabs.update(tab.id, { url: 'https://boardback-web.vercel.app' });
+  }
+});
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+  const url = changeInfo.url || '';
+  if (!isNewTabUrl(url)) return;
+  const { boardbackNewTab } = await chrome.storage.local.get('boardbackNewTab');
+  if (boardbackNewTab) {
+    chrome.tabs.update(tabId, { url: 'https://boardback-web.vercel.app' });
+  }
+});
+
 chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) => {
   if (message.type === 'BOARDBACK_PING') {
     sendResponse({ installed: true, version: chrome.runtime.getManifest().version });
+  }
+
+  if (message.type === 'GET_NEW_TAB') {
+    chrome.storage.local.get('boardbackNewTab', ({ boardbackNewTab }) => {
+      sendResponse({ enabled: !!boardbackNewTab });
+    });
+    return true;
+  }
+
+  if (message.type === 'SET_NEW_TAB') {
+    chrome.storage.local.set({ boardbackNewTab: message.enabled }, () => {
+      sendResponse({ ok: true });
+    });
+    return true;
   }
 });
 
@@ -57,7 +107,7 @@ async function captureTab(tags?: string[], roomId?: string) {
 
     const captureData = {
       title: tab.title,
-      url: tab.url,
+      url: normalizeUrl(tab.url),
       favicon: tab.favIconUrl,
       screenshot,
       description: metadata?.description || '',
@@ -88,16 +138,16 @@ async function captureAllTabs(roomId?: string) {
     let count = 0;
 
     for (const tab of tabs) {
-      if (!tab.url?.startsWith('http') || tab.url.includes('chrome://')) continue;
-      if (tab.url.match(/localhost:(3000|3001|3002|3003|3004|3005)/)) continue;
-      if (tab.url.includes('boardback-web.vercel.app')) continue;
-      if (tab.url.includes('whitebroawd-web.vercel.app')) continue;
+      if (!tab.url) continue;
+      const normalizedTabUrl = normalizeUrl(tab.url);
+      if (normalizedTabUrl.includes('boardback-web.vercel.app')) continue;
+      if (normalizedTabUrl.includes('whitebroawd-web.vercel.app')) continue;
 
       const metadata = await extractMetadata(tab.id!);
 
       const captureData = {
         title: tab.title,
-        url: tab.url,
+        url: normalizedTabUrl,
         favicon: tab.favIconUrl,
         description: metadata?.description || '',
         ogImage: metadata?.ogImage || '',
