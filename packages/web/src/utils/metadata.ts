@@ -1,6 +1,17 @@
 import { WhiteboardNode } from '@whiteboard/shared/types';
 
 export const fetchMetadata = async (url: string): Promise<Partial<WhiteboardNode['data']>> => {
+  // Microlink only handles http/https — skip API call for internal browser URLs
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    try {
+      const parsed = new URL(url);
+      const label = parsed.hostname || parsed.pathname.replace(/^\/+/, '') || url;
+      return { title: label.charAt(0).toUpperCase() + label.slice(1), url };
+    } catch {
+      return { title: url, url };
+    }
+  }
+
   try {
     const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=true`;
     const response = await fetch(apiUrl);

@@ -42,7 +42,7 @@ type HandlerProps = {
 };
 
 const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const addNodeToRoom = useStore(s => s.addNodeToRoom);
 
   useEffect(() => {
@@ -60,6 +60,8 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
       const originX = center.x - ((cols - 1) * COL_W) / 2;
       const originY = center.y - ((rows - 1) * ROW_H) / 2;
 
+      const addedIds: string[] = [];
+
       pendingCaptures.forEach((capture: any, index: number) => {
         const col = index % cols;
         const row = Math.floor(index / cols);
@@ -70,6 +72,7 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
           type: 'bookmark' as const,
           position: { x: originX + col * COL_W, y: originY + row * ROW_H },
           width: 180,
+          selected: true,
           data: capture,
           createdAt: new Date().toISOString(),
         };
@@ -78,15 +81,21 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
         } else {
           addNode(nodePayload);
         }
+        addedIds.push(nodeId);
         if (!capture.screenshot && capture.url) {
           fetchMetadata(capture.url).then((metadata: any) => { updateNode(nodeId, metadata); });
         }
       });
+
+      // Fit view to newly added nodes after React Flow renders them
+      setTimeout(() => {
+        fitView({ nodes: addedIds.map(id => ({ id })), padding: 0.3, duration: 0, maxZoom: 1 });
+      }, 100);
     };
 
     window.addEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
     return () => window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
-  }, [addNode, addNodeToRoom, updateNode, screenToFlowPosition]);
+  }, [addNode, addNodeToRoom, updateNode, screenToFlowPosition, fitView]);
 
   return null;
 };

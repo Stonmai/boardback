@@ -319,6 +319,7 @@ export const useStore = create<WhiteboardState>()(
       id: node.id,
       type: node.type,
       position,
+      selected: node.selected,
       data: { ...node.data, color },
       style: { width: node.width, height: node.height },
     };

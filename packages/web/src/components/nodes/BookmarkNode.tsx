@@ -205,14 +205,13 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                 </p>
               )}
 
-              {(data.screenshot || data.ogImage) && (
+              {data.url && (
                 <div
-                  className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer transition-transform hover:scale-[1.02]"
+                  className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer transition-transform hover:scale-[1.02] relative"
                   style={{ border: '1px solid rgba(255,255,255,0.08)' }}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!data.url || isEditing) return;
-                    // Open in new tab if setting is on OR user holds Cmd/Ctrl
                     if (autoOpenBookmarks || e.metaKey || e.ctrlKey) {
                       window.open(data.url as string, '_blank', 'noopener,noreferrer');
                     } else {
@@ -221,15 +220,69 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   }}
                   onDoubleClick={(e) => e.stopPropagation()}
                 >
-                  <img
-                    src={(data.screenshot || data.ogImage) as string}
-                    alt="Preview"
-                    className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-opacity"
-                    onError={(e) => {
-                      const el = (e.currentTarget as HTMLElement).parentElement;
-                      if (el) el.style.display = 'none';
+                  {(data.screenshot || data.ogImage) ? (
+                    <img
+                      src={(data.screenshot || data.ogImage) as string}
+                      alt="Preview"
+                      className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition-opacity"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        img.style.display = 'none';
+                        const fallback = img.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback placeholder — shown when no image or image fails */}
+                  <div
+                    style={{
+                      display: (data.screenshot || data.ogImage) ? 'none' : 'flex',
+                      position: 'absolute', inset: 0,
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      background: 'linear-gradient(135deg, rgb(53 53 84 / 90%) 0%, rgb(154 160 190 / 75%) 100%)',
+                      backdropFilter: 'blur(12px)',
+                      borderRadius: '8px'
                     }}
-                  />
+                  >
+                    {/* Liquid glow blobs */}
+                    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+                      <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(100,120,255,0.12) 0%, transparent 70%)', filter: 'blur(12px)' }} />
+                      <div style={{ position: 'absolute', bottom: '-15%', right: '-5%', width: '55%', height: '55%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(180,100,255,0.10) 0%, transparent 70%)', filter: 'blur(14px)' }} />
+                    </div>
+                    {/* Glass icon card */}
+                    <div style={{
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 7,
+                      padding: '12px 16px',                      
+                      WebkitBackdropFilter: 'blur(12px)',
+                    }}>
+                      {data.favicon ? (
+                        <img src={data.favicon as string} alt="" style={{ width: 26, height: 26, borderRadius: 6, opacity: 0.85, filter: 'drop-shadow(0 0 6px rgba(150,150,255,0.3))' }} onError={(e) => {
+                          const img = e.currentTarget as HTMLElement;
+                          img.style.display = 'none';
+                          const svg = img.nextElementSibling as HTMLElement;
+                          if (svg) svg.style.display = 'block';
+                        }} />
+                      ) : null}
+                      <svg
+                        width="22" height="22" viewBox="0 0 24 24" fill="none"
+                        stroke="rgba(200,210,255,0.45)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ display: data.favicon ? 'none' : 'block', filter: 'drop-shadow(0 0 5px rgba(150,160,255,0.25))' }}
+                      >
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                      </svg>
+                      <span style={{ fontSize: 8.5, color: 'rgba(200,210,255,0.4)', fontWeight: 600, letterSpacing: '0.04em', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {(() => { try { return new URL(data.url as string).hostname.replace('www.', '') || data.url; } catch { return data.url as string; } })()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
 

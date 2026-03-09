@@ -1,13 +1,14 @@
 const NEW_TAB_PREFIXES = ['chrome://newtab', 'vivaldi://newtab', 'about:newtab'];
 
-const isVivaldi = navigator.userAgent.includes('Vivaldi');
+// Detect Vivaldi via user agent OR its exclusive chrome.vivaldi API
+const isVivaldi = navigator.userAgent.includes('Vivaldi') || !!(globalThis as any).chrome?.vivaldi;
 
 // Vivaldi exposes its internal vivaldi:// pages as chrome:// to extensions.
 // Map them back so captured URLs reflect what the user actually sees.
 const normalizeUrl = (url: string | undefined): string => {
   if (!url) return '';
   if (isVivaldi && url.startsWith('chrome://')) {
-    return url.replace('chrome://', 'vivaldi://');
+    return 'vivaldi://' + url.slice('chrome://'.length);
   }
   return url;
 };
@@ -138,15 +139,17 @@ async function captureAllTabs(roomId?: string) {
     let count = 0;
 
     for (const tab of tabs) {
-      if (!tab.url) continue;
-      const normalizedTabUrl = normalizeUrl(tab.url);
+      // Some browsers (Vivaldi) return empty tab.url for internal pages — fall back to pendingUrl or title
+      const rawUrl = tab.url || tab.pendingUrl || '';
+      if (!rawUrl && !tab.title) continue;
+      const normalizedTabUrl = rawUrl ? normalizeUrl(rawUrl) : '';
       if (normalizedTabUrl.includes('boardback-web.vercel.app')) continue;
       if (normalizedTabUrl.includes('whitebroawd-web.vercel.app')) continue;
 
       const metadata = await extractMetadata(tab.id!);
 
       const captureData = {
-        title: tab.title,
+        title: tab.title || normalizedTabUrl || 'Untitled',
         url: normalizedTabUrl,
         favicon: tab.favIconUrl,
         description: metadata?.description || '',
