@@ -7,44 +7,147 @@ import { useStore, RoomData } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 
 // ── Emoji helpers ─────────────────────────────────────────────────────────────
-const EMOJI_LIST = [
-  // Home & spaces
-  '🛋️', '🍳', '🛏️', '🚿', '🏠', '🏡', '🏢', '🏗️',
-  '🏰', '🏯', '🏛️', '🕌', '🏕️', '🛖', '🏘️', '🌃',
-  // Work & productivity
-  '💼', '📝', '📌', '📎', '🔧', '⚙️', '💡', '🔑',
-  '📚', '📊', '📈', '📋', '🗂️', '📦', '📬', '🗒️',
-  '✏️', '📐', '📏', '✂️', '🔒', '📍', '🖊️', '📓',
-  '🧠', '🛠️', '🎒',
-  // Technology
-  '💻', '📱', '🖥️', '📷', '🔬', '🔭', '🧪', '🤖',
-  '🛸', '🚀', '🔌', '🔋', '💾', '🖨️', '⌨️', '🖱️',
-  // Nature & weather
-  '🌿', '🌸', '🌊', '⭐', '🌙', '☀️', '🌈', '🌲',
-  '🌳', '🌴', '🌺', '🌻', '🌹', '🍀', '🌱', '🌾',
-  '❄️', '🌧️', '⛈️', '🌤️', '🌬️', '🏔️', '🌋', '🏝️',
-  // Food & drink
-  '☕', '🍵', '🍕', '🍔', '🌮', '🍣', '🍜', '🍩',
-  '🎂', '🍺', '🥂', '🍷', '🍎', '🥗', '🧁', '🥤',
-  // Activities & sports
-  '🎯', '🏆', '🥇', '🎮', '🕹️', '🎲', '🧩', '♟️',
-  '🏀', '⚽', '🏈', '🎾', '🏋️', '🚴', '🧘', '🤸',
-  // Arts & entertainment
-  '🎨', '🎬', '🎵', '🎸', '🎹', '🎷', '🎺', '🥁',
-  '🎭', '🎪', '📸', '🎤', '🎧', '📻', '🎞️', '🎉',
-  // Animals
-  '🦊', '🐱', '🐶', '🦁', '🦋', '🐙', '🦄', '🌍',
-  '🐸', '🦜', '🦉', '🐺', '🐼', '🦘', '🐉', '🦅',
-  '🐝', '🦩', '🐬', '🦈', '🐘', '🦒', '🦓', '🦔',
-  // Travel & transport
-  '✈️', '🚂', '🚢', '🚗', '🏎️', '🚲', '🛴', '🚁',
-  // Symbols & misc
-  '💎', '👑', '🔮', '🏅', '💯', '🎗️', '🌟', '✨',
-  '🎁', '🎀', '🧸', '🪄', '🎃', '🎄', '🎆', '🔨',
-];
+const EMOJI_GROUPS = [
+{
+title: "People",
+emojis: [
+'😁','🥴','😋','🥹','😎','🥳','🤗','🤢','🥶','😷',
+'🧐','🤠','🤑','😈','🥰','🥸','🫠','🤭','🙂','😀',
+'😄','😆','😅','😂','🤣','😊','😇','😍','🤩','😘',
+'😗','😚','😙','😌','😏','😴','🤤','😪','😵','🤯',
+'🥺','😡','😱','😭','😬','😮','🤓','🥱','😤','🤥',
+'👩','🧑','👶','👼','👨','🧔','👵','👴','🧒','👧',
+'👍','👎','🫰','👏','🙌','🤝','🙏','✌️','👌','👀',
+'🫶','🤞','🖐️','✋','🫡','🤟','🤘','✊','🦾','🦶',
+'🥷','🦹','🧛','🧙','🧟','🫅','🧝','🧞'
+]
+},
+
+{
+title: "Places",
+emojis: [
+'🛋️','🍳','🛏️','🚿','🏠','🏡','🏢','🏗️',
+'🏰','🏯','🏛️','🕌','🏕️','🛖','🏘️','🌃',
+'🌆','🌇','🏙️','🏚️','🏬','🏪','🏭','💒',
+'🗼','🗽','🗿','🏟️','🏛','🏞️','🏖️','🏜️'
+]
+},
+
+{
+title: "Productivity",
+emojis: [
+'💼','📝','📌','📎','🔧','⚙️','💡','🔑',
+'📚','📊','📈','📋','🗂️','📦','📬','🗒️',
+'✏️','📐','📏','✂️','🔒','📍','🖊️','📓',
+'🧠','🛠️','🎒','📁','📂','🗃️','🗄️','📅',
+'⏰','⌛','🕒','🕓','🕔','🗓️','📑','📕',
+'📗','📘','📙'
+]
+},
+
+{
+title: "Entertainment",
+emojis: [
+'🎨','🎬','🎵','🎸','🎹','🎷','🎺','🥁',
+'🎭','🎪','📸','🎤','🎧','📻','🎞️','🎉',
+'🎻','🪕','🪘','📽️','🎟️','🎫','🎰','🎳',
+'🪩','🎯'
+]
+},
+
+{
+title: "Shopping",
+emojis: [
+'💄','💋','💅','🧧','💰','💳','🛒','🛍️',
+'👗','👠','👒','🧴','🧼','🪞','💍','⌚',
+'🧢','👟','🧥','🧦','👛','👜','🎒'
+]
+},
+
+{
+title: "Travel",
+emojis: [
+'✈️','🚂','🚢','🚗','🏎️','🚲','🛴','🚁',
+'🚤','🛶','🚕','🚓','🚑','🚒','🚜','🚚',
+'🚍','🚉','🚄','🚅','🛫','🛬'
+]
+},
+
+{
+title: "Technology",
+emojis: [
+'💻','📱','🖥️','📷','🔬','🔭','🧪','🤖',
+'🛸','🚀','🔌','🔋','💾','🖨️','⌨️','🖱️',
+'📡','📺','📻','🧭','🛰️','📀','💿','📼',
+'🧠','🧬'
+]
+},
+
+{
+title: "Animals",
+emojis: [
+'🐷','🦊','🐱','🐶','🦁','🦋','🐙','🦄',
+'🐸','🦜','🦉','🐺','🐼','🦘','🐉','🦅',
+'🐝','🦩','🐬','🦈','🐘','🦒','🦓','🦔',
+'🐢','🐍','🦎','🦖','🦕','🐓','🐇','🐿️',
+'🐕','🐈','🦔','🦦','🦥','🦬'
+]
+},
+
+{
+title: "Nature",
+emojis: [
+'🌿','🌸','🌊','⭐','🌙','☀️','🌈','🌲',
+'🌳','🌴','🌺','🌻','🪷','🌹','🍀','🌱',
+'🌾','❄️','🌧️','⛈️','🌤️','🌬️','🏔️','🌋',
+'🏝️','🪾','🪴','🪨','🌵','🌼','🌞','🌛'
+]
+},
+
+{
+title: "Food & Drink",
+emojis: [
+'☕','🍵','🍕','🍔','🌮','🍣','🍜','🍩',
+'🎂','🍺','🥂','🍷','🍎','🥗','🧁','🥤',
+'🍿','🍪','🍫','🍬','🍭','🥐','🥞','🍞',
+'🧀','🍗','🍖','🍤','🍱','🍛','🍚','🍙',
+'🍉','🍓','🍌','🍇','🍑','🍍'
+]
+},
+
+{
+title: "Activities",
+emojis: [
+'🎯','⛳️','🏆','🥇','🎮','🕹️','🎲','🧩','♟️',
+'🏀','⚽','🏈','🎾','🏋️','🚴','🧘','🤸',
+'🥊','🥋','🏊','🏄','⛹️','🤾','🎳','🏓',
+'🏸','🥏','🎣'
+]
+},
+
+{
+title: "Spaces",
+emojis: [
+'🌌','🌠','🪐','🌍','🌎','🌏','🌕','🌖',
+'🌗','🌘','🌑','🌒','🌓','🌔','☄️','🛰️',
+'🚀','🛸','⭐','✨','🌟','💫','🔭'
+]
+},
+
+{
+title: "Miscellaneous",
+emojis: [
+'💎','👑','🔮','🏅','💯','🏹','🎗️','🌟','✨',
+'🎁','🎀','🧸','🪄','🎃','🎄','🎆','🔨',
+'🏁','⚡','🔥','💥','💤','✅','❌','⭕',
+'♥️','💝','💘','💖','💗','💓','💞'
+]
+}
+]
+const EMOJI_LIST = EMOJI_GROUPS.flatMap(g => g.emojis);
 
 const FALLBACK_EMOJI: Record<string, string> = {
-  'personal':     '🏠',
+  'personal':     '😎',
   'office':       '💼',
   'social-media': '📱',
   'learning':     '🧠',
@@ -77,30 +180,92 @@ const emojiPickerStyle: React.CSSProperties = {
   width: 288,
 };
 
-// ── Emoji grid (rendered inline — no hooks, safe) ─────────────────────────────
-const renderEmojiGrid = (
-  onSelect: (e: string) => void,
-  ref?: React.RefObject<HTMLDivElement>
-) => (
-  <div ref={ref} style={emojiPickerStyle}>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, maxHeight: 200, overflowY: 'auto', overflowX: 'hidden' }}>
-      {EMOJI_LIST.map(emoji => (
-        <button
-          key={emoji}
-          onClick={() => onSelect(emoji)}
-          style={{ width: 32, height: 32, borderRadius: 7, background: 'transparent', border: 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-        >
-          {emoji}
-        </button>
-      ))}
-    </div>
-  </div>
-);
-
 // ── Toolbar ───────────────────────────────────────────────────────────────────
 const Toolbar = () => {
+  // ── Emoji picker helper ───────────────────────────────────────────────────
+  /**
+   * Renders the categorized emoji picker content.
+   * @param onSelect Callback when an emoji is clicked
+   * @param currentEmoji (Optional) Currently selected emoji for highlighting
+   * @param isInline (Optional) If true, renders without absolute positioning panel container
+   */
+  const renderEmojiPicker = (
+    onSelect: (e: string) => void,
+    currentEmoji?: string,
+    isInline = false
+  ) => {
+    const content = (
+      <div style={{ maxHeight: isInline ? 200 : 260, paddingRight: 4, overflowY: "auto", overflowX: 'hidden' }}>
+        {EMOJI_GROUPS.map(group => (
+          <div key={group.title} style={{ marginBottom: 10 }}>
+            {/* Category title */}
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.35)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                marginBottom: 5,
+                paddingLeft: 2
+              }}
+            >
+              {group.title}
+            </div>
+
+            {/* Emoji grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(8, 1fr)",
+                gap: 2
+              }}
+            >
+              {group.emojis.map(emoji => {
+                const active = emoji === currentEmoji;
+                return (
+                  <button
+                    key={emoji}
+                    onClick={() => onSelect(emoji)}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 7,
+                      background: active ? "rgba(200,241,53,0.12)" : "transparent",
+                      border: active ? "1px solid rgba(200,241,53,0.3)" : "none",
+                      fontSize: 18,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.1s"
+                    }}
+                    onMouseEnter={e => {
+                      if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                    }}
+                    onMouseLeave={e => {
+                      if (!active) e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+
+    if (isInline) return <div style={{ marginTop: 8, marginBottom: 8 }}>{content}</div>;
+
+    return (
+      <div style={emojiPickerStyle} ref={emojiPickerRef as any}>
+        {content}
+      </div>
+    );
+  };
+
   const addNode = useStore((s) => s.addNode);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
   const autoArrange = useStore((s) => s.autoArrange);
@@ -136,6 +301,7 @@ const Toolbar = () => {
   const [showAddWs, setShowAddWs] = React.useState(false);
   const [newWsName, setNewWsName] = React.useState('');
   const [newWsEmoji, setNewWsEmoji] = React.useState('📌');
+  const [activeEmojiGroup, setActiveEmojiGroup] = React.useState(0);
   // ID of the room whose emoji is being edited; 'new' for add-workspace panel
   const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
   const [hoveredRoomId, setHoveredRoomId] = React.useState<string | null>(null);
@@ -328,20 +494,13 @@ const Toolbar = () => {
         >
           <span style={{ fontSize: 22, lineHeight: 1 }}>{newWsEmoji}</span>
         </button>
-        {emojiPickerFor === 'new' && (
-          <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, maxHeight: 200, overflowY: 'auto', overflowX:'hidden' }}>
-            {EMOJI_LIST.map(emoji => (
-              <button
-                key={emoji}
-                onClick={() => { setNewWsEmoji(emoji); setEmojiPickerFor(null); }}
-                style={{ width: 32, height: 32, borderRadius: 7, background: emoji === newWsEmoji ? 'rgba(200,241,53,0.12)' : 'transparent', border: emoji === newWsEmoji ? '1px solid rgba(200,241,53,0.3)' : 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
-                onMouseEnter={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                onMouseLeave={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+        {emojiPickerFor === 'new' && renderEmojiPicker(
+          (emoji) => {
+            setNewWsEmoji(emoji);
+            setEmojiPickerFor(null);
+          },
+          newWsEmoji,
+          true
         )}
       </div>
       {/* Name input */}
@@ -418,20 +577,10 @@ const Toolbar = () => {
               style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
             />
           </div>
-          {emojiPickerFor === 'new' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, marginBottom: 10, maxHeight: 200, overflowY: 'auto' }}>
-              {EMOJI_LIST.map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => { setNewWsEmoji(emoji); setEmojiPickerFor(null); }}
-                  style={{ width: 32, height: 32, borderRadius: 7, background: emoji === newWsEmoji ? 'rgba(200,241,53,0.12)' : 'transparent', border: emoji === newWsEmoji ? '1px solid rgba(200,241,53,0.3)' : 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onMouseEnter={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                  onMouseLeave={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
+          {emojiPickerFor === 'new' && renderEmojiPicker(
+            (emoji) => { setNewWsEmoji(emoji); setEmojiPickerFor(null); },
+            newWsEmoji,
+            true
           )}
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={handleAddWorkspace} disabled={!newWsName.trim()}
@@ -636,16 +785,10 @@ const Toolbar = () => {
                         style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '7px 9px', color: '#ffffff', fontSize: 12, outline: 'none' }}
                       />
                     </div>
-                    {emojiPickerFor === 'new' && (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, marginBottom: 8, maxHeight: 200, overflowY: 'auto' }}>
-                        {EMOJI_LIST.map(emoji => (
-                          <button key={emoji} onClick={() => { setNewWsEmoji(emoji); setEmojiPickerFor(null); }}
-                            style={{ width: 30, height: 30, borderRadius: 6, background: emoji === newWsEmoji ? 'rgba(200,241,53,0.12)' : 'transparent', border: emoji === newWsEmoji ? '1px solid rgba(200,241,53,0.3)' : 'none', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            onMouseEnter={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
-                            onMouseLeave={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-                          >{emoji}</button>
-                        ))}
-                      </div>
+                    {emojiPickerFor === 'new' && renderEmojiPicker(
+                      (emoji) => { setNewWsEmoji(emoji); setEmojiPickerFor(null); },
+                      newWsEmoji,
+                      true
                     )}
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={handleAddWorkspace} disabled={!newWsName.trim()}
@@ -684,8 +827,9 @@ const Toolbar = () => {
                   onMouseLeave={() => setHoveredRoomId(null)}
                 >
                   {/* Emoji picker panel */}
-                  {pickerOpen && renderEmojiGrid(
-                    (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); }
+                  {pickerOpen && renderEmojiPicker(
+                    (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
+                    getRoomEmoji(room)
                   )}
                   {/* Tab button:
                       - inactive → switch workspace

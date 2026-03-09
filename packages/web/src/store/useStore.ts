@@ -36,7 +36,7 @@ export interface RoomData {
 }
 
 const DEFAULT_ROOMS: RoomData[] = [
-  { id: 'personal',     name: 'Personal',     emoji: '🏠', nodes: [], edges: [], groups: [] },
+  { id: 'personal',     name: 'Personal',     emoji: '😎', nodes: [], edges: [], groups: [] },
   { id: 'office',       name: 'Office',       emoji: '💼', nodes: [], edges: [], groups: [] },
   { id: 'social-media', name: 'Social Media', emoji: '📱', nodes: [], edges: [], groups: [] },
   { id: 'learning',     name: 'Learning',     emoji: '🧠', nodes: [], edges: [], groups: [] },
