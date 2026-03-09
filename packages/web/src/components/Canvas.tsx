@@ -193,6 +193,7 @@ const ZoomHandler = () => {
 
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
+  const currentRoomId = useStore(s => s.currentRoomId);
 
   const rawNodes = useStore((state) => state.nodes);
   const activeTagFilters = useStore((state) => state.activeTagFilters);
@@ -492,6 +493,7 @@ const Canvas = () => {
   return (
     <div className="w-full h-screen overflow-hidden relative" style={{ background: '#0d0e1a' }}>
       <ReactFlow
+        key={currentRoomId}
         nodes={nodes as unknown as Node[]}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -500,7 +502,7 @@ const Canvas = () => {
         onSelectionChange={({ nodes }) => useStore.getState().setSelectedNodes(nodes.map(n => n.id))}
         nodeTypes={nodeTypes as any}
         fitView
-        fitViewOptions={{ padding: 0.4, maxZoom: 1 }}
+        fitViewOptions={{ padding: 0.6, maxZoom: 1 }}
         defaultViewport={{ x: 0, y: 0, zoom: 0.55 }}
         connectionMode={'loose' as any}
         connectionRadius={40}
