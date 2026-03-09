@@ -1057,7 +1057,7 @@ const Toolbar = () => {
                 <button
                   ref={addWsBtnRef}
                   onClick={() => { setShowAddWs(v => !v); setEmojiPickerFor(null); }}
-                  style={{ width: 44, height: 35, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                  style={{ width: 44, height: 36, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
                   onMouseEnter={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
                   onMouseLeave={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; } }}
                 >
