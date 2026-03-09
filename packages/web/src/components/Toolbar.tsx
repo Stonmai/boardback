@@ -162,6 +162,8 @@ const Toolbar = () => {
   const roomsBtnRef = React.useRef<HTMLButtonElement>(null);
   const overflowRef = React.useRef<HTMLDivElement>(null);
   const addWsRef = React.useRef<HTMLDivElement>(null);
+  const addWsBtnRef = React.useRef<HTMLButtonElement>(null);
+  const tagsBtnRef = React.useRef<HTMLButtonElement>(null);
   const wsInputRef = React.useRef<HTMLInputElement>(null);
   // Emoji picker ref — attached to whichever tab is being edited
   const emojiPickerRef = React.useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
@@ -183,7 +185,11 @@ const Toolbar = () => {
   React.useEffect(() => {
     if (!showTags) return;
     const handler = (e: MouseEvent) => {
-      if (tagsRef.current && !tagsRef.current.contains(e.target as Node)) setShowTags(false);
+      const t = e.target as Node;
+      if (
+        tagsRef.current && !tagsRef.current.contains(t) &&
+        tagsBtnRef.current && !tagsBtnRef.current.contains(t)
+      ) setShowTags(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -210,7 +216,11 @@ const Toolbar = () => {
   React.useEffect(() => {
     if (!showAddWs) return;
     const handler = (e: MouseEvent) => {
-      if (addWsRef.current && !addWsRef.current.contains(e.target as Node)) {
+      const t = e.target as Node;
+      if (
+        addWsRef.current && !addWsRef.current.contains(t) &&
+        addWsBtnRef.current && !addWsBtnRef.current.contains(t)
+      ) {
         setShowAddWs(false); setNewWsName(''); setNewWsEmoji('📌'); setEmojiPickerFor(null);
       }
     };
@@ -476,7 +486,7 @@ const Toolbar = () => {
     ];
 
     return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
           {showRooms && renderRoomsPanel(220)}
@@ -533,7 +543,7 @@ const Toolbar = () => {
     ];
 
     return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
           {showRooms && renderRoomsPanel(240)}
@@ -583,7 +593,7 @@ const Toolbar = () => {
 
   // ── Desktop layout ────────────────────────────────────────────────────────
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ maxWidth: 'calc(100vw - 2rem)' }}>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ maxWidth: 'calc(100vw - 2rem)', userSelect: 'none' }}>
       <div className="flex items-center"
         style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
 
@@ -762,6 +772,7 @@ const Toolbar = () => {
               {showAddWs && renderAddWsPanel()}
               <div className="flex flex-col items-center justify-center">
                 <button
+                  ref={addWsBtnRef}
                   onClick={() => { setShowAddWs(v => !v); setEmojiPickerFor(null); }}
                   style={{ width: 44, height: 36, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
                   onMouseEnter={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
@@ -819,9 +830,10 @@ const Toolbar = () => {
         </div>
 
         {/* Tags */}
-        <div className="relative flex flex-col items-center justify-center" ref={tagsRef}>
+        <div className="relative flex flex-col items-center justify-center">
           {showTags && renderTagsPanel()}
           <button
+            ref={tagsBtnRef}
             style={{ ...mkBtnStyle(hasActiveFilters), top: '-5px' }}
             onClick={() => { setShowTags(v => !v); setShowRooms(false); }}
             onMouseEnter={e => onEnter(e, hasActiveFilters || showTags)}
