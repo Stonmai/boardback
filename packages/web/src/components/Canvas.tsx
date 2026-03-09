@@ -43,6 +43,7 @@ type HandlerProps = {
 
 const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
   const { screenToFlowPosition } = useReactFlow();
+  const addNodeToRoom = useStore(s => s.addNodeToRoom);
 
   useEffect(() => {
     const handleSyncResponse = (event: any) => {
@@ -63,14 +64,20 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
         const col = index % cols;
         const row = Math.floor(index / cols);
         const nodeId = uuidv4();
-        addNode({
+        const roomId = capture.roomId as string | undefined;
+        const nodePayload = {
           id: nodeId,
-          type: 'bookmark',
+          type: 'bookmark' as const,
           position: { x: originX + col * COL_W, y: originY + row * ROW_H },
           width: 180,
           data: capture,
           createdAt: new Date().toISOString(),
-        });
+        };
+        if (roomId) {
+          addNodeToRoom(roomId, nodePayload);
+        } else {
+          addNode(nodePayload);
+        }
         if (!capture.screenshot && capture.url) {
           fetchMetadata(capture.url).then((metadata: any) => { updateNode(nodeId, metadata); });
         }
@@ -79,8 +86,18 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
 
     window.addEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
     return () => window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
-  }, [addNode, updateNode, screenToFlowPosition]);
+  }, [addNode, addNodeToRoom, updateNode, screenToFlowPosition]);
 
+  return null;
+};
+
+// Syncs workspace list to Chrome extension storage so the popup can show a workspace picker
+const RoomsSyncer = () => {
+  const rooms = useStore(s => s.rooms);
+  useEffect(() => {
+    const roomData = rooms.map(r => ({ id: r.id, name: r.name, emoji: r.emoji }));
+    window.dispatchEvent(new CustomEvent('BOARDBACK_ROOMS_UPDATE', { detail: roomData }));
+  }, [rooms]);
   return null;
 };
 
@@ -186,12 +203,11 @@ const Canvas = () => {
       // "notInitialized" and always includes them in rubber-band selection,
       // bypassing SelectionMode.Full. Providing explicit dimensions here fixes this.
       if (n.type === 'group') {
-        const base = {
+        return {
           ...n,
-          width: (n.style?.width as number) ?? 550,
-          height: (n.style?.height as number) ?? 450,
+          width: (n.style?.width as number) ?? (n.width as number) ?? 550,
+          height: (n.style?.height as number) ?? (n.height as number) ?? 450,
         };
-        return base;
       }
       if (activeTagFilters.length === 0) return n;
       return {
@@ -246,8 +262,8 @@ const Canvas = () => {
 
   // Helper: get the bounding rect of a group node in flow coordinates
   const getGroupBounds = useCallback((groupNode: Node) => {
-    const w = (groupNode.style?.width as number) ?? 550;
-    const h = (groupNode.style?.height as number) ?? 450;
+    const w = (groupNode.style?.width as number) ?? (groupNode.width as number) ?? 550;
+    const h = (groupNode.style?.height as number) ?? (groupNode.height as number) ?? 450;
     return {
       x: groupNode.position.x,
       y: groupNode.position.y,
@@ -459,8 +475,11 @@ const Canvas = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Periodically request sync from the extension
+  // Request sync from the extension immediately on mount, then every 2 seconds.
+  // Immediate fire ensures pending captures aren't missed due to content-script
+  // auto-check race conditions on page load.
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
     const interval = setInterval(() => {
       window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
     }, 2000);
@@ -487,8 +506,8 @@ const Canvas = () => {
         nodesDraggable={true}
         panOnDrag={true}
         panActivationKeyCode="Space"
-        panOnScroll={true}
-        zoomOnScroll={false}
+        panOnScroll={false}
+        zoomOnScroll={true}
         selectionOnDrag={true}
         selectionKeyCode="Shift"
         multiSelectionKeyCode={["Meta", "Control"]}
@@ -512,6 +531,7 @@ const Canvas = () => {
         <PasteHandler addNode={addNode} updateNode={updateNode} />
         <SyncHandler addNode={addNode} updateNode={updateNode} />
         <ZoomHandler />
+        <RoomsSyncer />
       </ReactFlow>
 
       {previewNode && (

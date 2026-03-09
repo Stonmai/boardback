@@ -21,14 +21,20 @@ window.addEventListener('WHITEBOARD_SYNC_REQUEST', async () => {
   }
 });
 
-// Also check on load
-(async () => {
+// Relay workspace list updates from the web app to extension storage
+window.addEventListener('BOARDBACK_ROOMS_UPDATE', async (event: any) => {
+  if (contextInvalidated) return;
   try {
-    const response = await chrome.runtime.sendMessage({ type: 'GET_PENDING_CAPTURES' });
-    if (response && response.length > 0) {
-      window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_RESPONSE', {
-        detail: response
-      }));
+    const rooms = event.detail;
+    if (Array.isArray(rooms)) {
+      await chrome.runtime.sendMessage({ type: 'UPDATE_ROOMS', rooms });
     }
-  } catch (e) {}
-})();
+  } catch (error: any) {
+    if (error?.message?.includes('Extension context invalidated')) {
+      contextInvalidated = true;
+    }
+  }
+});
+
+// Do NOT auto-check on load — the web app drives sync via WHITEBOARD_SYNC_REQUEST
+// to avoid clearing captures before React has mounted and is ready to receive them.

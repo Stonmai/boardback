@@ -1,19 +1,60 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, Utensils, Bed, Bath, SofaIcon, X, Menu } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
-import { useStore } from '@/store/useStore';
-import { RoomType } from '@/store/useStore';
+import { useStore, RoomData } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 
-const ROOMS: { id: RoomType; label: string; icon: React.ReactNode }[] = [
-  { id: 'living-room', label: 'Living Room', icon: <SofaIcon size={22} strokeWidth={1.8} /> },
-  { id: 'kitchen',     label: 'Kitchen',     icon: <Utensils size={22} strokeWidth={1.8} /> },
-  { id: 'bedroom',     label: 'Bedroom',     icon: <Bed size={22} strokeWidth={1.8} /> },
-  { id: 'toilet',      label: 'Toilet',      icon: <Bath size={22} strokeWidth={1.8} /> },
+// ── Emoji helpers ─────────────────────────────────────────────────────────────
+const EMOJI_LIST = [
+  // Home & spaces
+  '🛋️', '🍳', '🛏️', '🚿', '🏠', '🏡', '🏢', '🏗️',
+  '🏰', '🏯', '🏛️', '🕌', '🏕️', '🛖', '🏘️', '🌃',
+  // Work & productivity
+  '💼', '📝', '📌', '📎', '🔧', '⚙️', '💡', '🔑',
+  '📚', '📊', '📈', '📋', '🗂️', '📦', '📬', '🗒️',
+  '✏️', '📐', '📏', '✂️', '🔒', '📍', '🖊️', '📓',
+  '🧠', '🛠️', '🎒',
+  // Technology
+  '💻', '📱', '🖥️', '📷', '🔬', '🔭', '🧪', '🤖',
+  '🛸', '🚀', '🔌', '🔋', '💾', '🖨️', '⌨️', '🖱️',
+  // Nature & weather
+  '🌿', '🌸', '🌊', '⭐', '🌙', '☀️', '🌈', '🌲',
+  '🌳', '🌴', '🌺', '🌻', '🌹', '🍀', '🌱', '🌾',
+  '❄️', '🌧️', '⛈️', '🌤️', '🌬️', '🏔️', '🌋', '🏝️',
+  // Food & drink
+  '☕', '🍵', '🍕', '🍔', '🌮', '🍣', '🍜', '🍩',
+  '🎂', '🍺', '🥂', '🍷', '🍎', '🥗', '🧁', '🥤',
+  // Activities & sports
+  '🎯', '🏆', '🥇', '🎮', '🕹️', '🎲', '🧩', '♟️',
+  '🏀', '⚽', '🏈', '🎾', '🏋️', '🚴', '🧘', '🤸',
+  // Arts & entertainment
+  '🎨', '🎬', '🎵', '🎸', '🎹', '🎷', '🎺', '🥁',
+  '🎭', '🎪', '📸', '🎤', '🎧', '📻', '🎞️', '🎉',
+  // Animals
+  '🦊', '🐱', '🐶', '🦁', '🦋', '🐙', '🦄', '🌍',
+  '🐸', '🦜', '🦉', '🐺', '🐼', '🦘', '🐉', '🦅',
+  '🐝', '🦩', '🐬', '🦈', '🐘', '🦒', '🦓', '🦔',
+  // Travel & transport
+  '✈️', '🚂', '🚢', '🚗', '🏎️', '🚲', '🛴', '🚁',
+  // Symbols & misc
+  '💎', '👑', '🔮', '🏅', '💯', '🎗️', '🌟', '✨',
+  '🎁', '🎀', '🧸', '🪄', '🎃', '🎄', '🎆', '🔨',
 ];
 
+const FALLBACK_EMOJI: Record<string, string> = {
+  'personal':     '🏠',
+  'office':       '💼',
+  'social-media': '📱',
+  'learning':     '🧠',
+  'favorite':     '♥️',
+};
+
+const getRoomEmoji = (room: Pick<RoomData, 'id' | 'emoji'>): string =>
+  room.emoji || FALLBACK_EMOJI[room.id] || '📌';
+
+// ── Panel base style ──────────────────────────────────────────────────────────
 const panelStyle: React.CSSProperties = {
   position: 'absolute',
   bottom: 'calc(100% + 18px)',
@@ -26,8 +67,39 @@ const panelStyle: React.CSSProperties = {
   borderRadius: 20,
   padding: 14,
   boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+  zIndex: 200,
 };
 
+const emojiPickerStyle: React.CSSProperties = {
+  ...panelStyle,
+  padding: 10,
+  borderRadius: 16,
+  width: 288,
+};
+
+// ── Emoji grid (rendered inline — no hooks, safe) ─────────────────────────────
+const renderEmojiGrid = (
+  onSelect: (e: string) => void,
+  ref?: React.RefObject<HTMLDivElement>
+) => (
+  <div ref={ref} style={emojiPickerStyle}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, maxHeight: 200, overflowY: 'auto', overflowX: 'hidden' }}>
+      {EMOJI_LIST.map(emoji => (
+        <button
+          key={emoji}
+          onClick={() => onSelect(emoji)}
+          style={{ width: 32, height: 32, borderRadius: 7, background: 'transparent', border: 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+        >
+          {emoji}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+// ── Toolbar ───────────────────────────────────────────────────────────────────
 const Toolbar = () => {
   const addNode = useStore((s) => s.addNode);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
@@ -38,6 +110,10 @@ const Toolbar = () => {
   const canRedo = useStore((s) => s._future.length > 0);
   const currentRoomId = useStore((s) => s.currentRoomId);
   const switchRoom = useStore((s) => s.switchRoom);
+  const rooms = useStore((s) => s.rooms);
+  const addRoom = useStore((s) => s.addRoom);
+  const deleteRoom = useStore((s) => s.deleteRoom);
+  const updateRoomEmoji = useStore((s) => s.updateRoomEmoji);
   const nodes = useStore((s) => s.nodes);
   const activeTagFilters = useStore((s) => s.activeTagFilters);
   const toggleTagFilter = useStore((s) => s.toggleTagFilter);
@@ -49,27 +125,48 @@ const Toolbar = () => {
     return Array.from(set).sort();
   }, [nodes]);
 
+  // ── State ─────────────────────────────────────────────────────────────────
   const [showRooms, setShowRooms] = React.useState(false);
   const [showTags, setShowTags] = React.useState(false);
   const [showMenu, setShowMenu] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
   const [isCompact, setIsCompact] = React.useState(false);
+  const [maxInlineRooms, setMaxInlineRooms] = React.useState(8);
+  const [showOverflow, setShowOverflow] = React.useState(false);
+  const [showAddWs, setShowAddWs] = React.useState(false);
+  const [newWsName, setNewWsName] = React.useState('');
+  const [newWsEmoji, setNewWsEmoji] = React.useState('📌');
+  // ID of the room whose emoji is being edited; 'new' for add-workspace panel
+  const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
+  const [hoveredRoomId, setHoveredRoomId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const check = () => {
-      setIsMobile(window.innerWidth < 540);
-      setIsCompact(window.innerWidth < 400);
+      const w = window.innerWidth;
+      setIsMobile(w < 540);
+      setIsCompact(w < 400);
+      if (w < 640) setMaxInlineRooms(0);
+      else if (w < 900) setMaxInlineRooms(3);
+      else if (w < 1200) setMaxInlineRooms(5);
+      else setMaxInlineRooms(8);
     };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // ── Refs ──────────────────────────────────────────────────────────────────
   const roomsRef = React.useRef<HTMLDivElement>(null);
   const tagsRef = React.useRef<HTMLDivElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const roomsBtnRef = React.useRef<HTMLButtonElement>(null);
+  const overflowRef = React.useRef<HTMLDivElement>(null);
+  const addWsRef = React.useRef<HTMLDivElement>(null);
+  const wsInputRef = React.useRef<HTMLInputElement>(null);
+  // Emoji picker ref — attached to whichever tab is being edited
+  const emojiPickerRef = React.useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
+  // ── Outside-click effects ─────────────────────────────────────────────────
   React.useEffect(() => {
     if (!showRooms) return;
     const handler = (e: MouseEvent) => {
@@ -77,7 +174,7 @@ const Toolbar = () => {
       if (
         roomsRef.current && !roomsRef.current.contains(t) &&
         roomsBtnRef.current && !roomsBtnRef.current.contains(t)
-      ) setShowRooms(false);
+      ) { setShowRooms(false); setShowAddWs(false); setEmojiPickerFor(null); setNewWsName(''); }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -101,6 +198,43 @@ const Toolbar = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [showMenu]);
 
+  React.useEffect(() => {
+    if (!showOverflow) return;
+    const handler = (e: MouseEvent) => {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) setShowOverflow(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showOverflow]);
+
+  React.useEffect(() => {
+    if (!showAddWs) return;
+    const handler = (e: MouseEvent) => {
+      if (addWsRef.current && !addWsRef.current.contains(e.target as Node)) {
+        setShowAddWs(false); setNewWsName(''); setNewWsEmoji('📌'); setEmojiPickerFor(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showAddWs]);
+
+  // Emoji picker outside-click (for existing room tabs only; 'new' is inside addWsRef)
+  React.useEffect(() => {
+    if (!emojiPickerFor || emojiPickerFor === 'new') return;
+    const handler = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node))
+        setEmojiPickerFor(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [emojiPickerFor]);
+
+  React.useEffect(() => {
+    if (showAddWs) setTimeout(() => wsInputRef.current?.focus(), 50);
+    else { setNewWsName(''); setNewWsEmoji('📌'); setEmojiPickerFor(null); }
+  }, [showAddWs]);
+
+  // ── Actions ───────────────────────────────────────────────────────────────
   const center = (offsetX = 0, offsetY = 0) => {
     const pos = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
     return { x: pos.x - offsetX + (Math.random() - 0.5) * 80, y: pos.y - offsetY + (Math.random() - 0.5) * 80 };
@@ -124,9 +258,20 @@ const Toolbar = () => {
     setEditingNodeId(id);
   };
 
-  const currentRoom = ROOMS.find(r => r.id === currentRoomId) ?? ROOMS[0];
-  const hasActiveFilters = activeTagFilters.length > 0;
+  const handleAddWorkspace = () => {
+    const name = newWsName.trim();
+    if (!name) return;
+    addRoom(name, newWsEmoji);
+    setShowAddWs(false);
+  };
 
+  // ── Computed ──────────────────────────────────────────────────────────────
+  const currentRoom = rooms.find(r => r.id === currentRoomId) ?? rooms[0];
+  const hasActiveFilters = activeTagFilters.length > 0;
+  const visibleRooms = rooms.slice(0, maxInlineRooms);
+  const overflowRooms = rooms.slice(maxInlineRooms);
+
+  // ── Style helpers ─────────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
     fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.28)',
     textTransform: 'uppercase', letterSpacing: '0.08em', userSelect: 'none', lineHeight: 1,
@@ -159,7 +304,169 @@ const Toolbar = () => {
     (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0) scale(0.92)';
   };
 
-  // ── Compact mode (< 400px): pill with rooms, + and menu ──────────────────
+  // ── Add workspace panel (shared) ──────────────────────────────────────────
+  const renderAddWsPanel = () => (
+    <div ref={addWsRef} style={{ ...panelStyle, minWidth: 230 }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+        New workspace
+      </div>
+      {/* Emoji selector */}
+      <div style={{ marginBottom: 10 }}>
+        <button
+          onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: emojiPickerFor === 'new' ? 'rgba(200,241,53,0.10)' : 'rgba(255,255,255,0.06)', border: emojiPickerFor === 'new' ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.09)', cursor: 'pointer', transition: 'all 0.15s' }}
+        >
+          <span style={{ fontSize: 22, lineHeight: 1 }}>{newWsEmoji}</span>
+        </button>
+        {emojiPickerFor === 'new' && (
+          <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, maxHeight: 200, overflowY: 'auto', overflowX:'hidden' }}>
+            {EMOJI_LIST.map(emoji => (
+              <button
+                key={emoji}
+                onClick={() => { setNewWsEmoji(emoji); setEmojiPickerFor(null); }}
+                style={{ width: 32, height: 32, borderRadius: 7, background: emoji === newWsEmoji ? 'rgba(200,241,53,0.12)' : 'transparent', border: emoji === newWsEmoji ? '1px solid rgba(200,241,53,0.3)' : 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.1s' }}
+                onMouseEnter={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseLeave={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Name input */}
+      <div style={{ display: 'flex', gap: 7 }}>
+        <input
+          ref={wsInputRef}
+          value={newWsName}
+          onChange={e => setNewWsName(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') setShowAddWs(false); }}
+          placeholder="Workspace name..."
+          style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+        />
+        <button
+          onClick={handleAddWorkspace}
+          disabled={!newWsName.trim()}
+          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: newWsName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: newWsName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: newWsName.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: newWsName.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+        >
+          <Check size={15} strokeWidth={2.5} />
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── Shared rooms panel (mobile/compact) ───────────────────────────────────
+  const renderRoomsPanel = (width: number) => (
+    <div ref={roomsRef} style={{ ...panelStyle, width: Math.min(width, window.innerWidth - 32) }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>
+        Workspaces
+      </div>
+      {!showAddWs ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {rooms.map(room => {
+            const active = room.id === currentRoomId;
+            return (
+              <div key={room.id} style={{ position: 'relative' }}>
+                <button onClick={() => { switchRoom(room.id); setShowRooms(false); }}
+                  style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+                  <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1, maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room.name}</span>
+                </button>
+                {!active && rooms.length > 1 && (
+                  <button onClick={e => { e.stopPropagation(); deleteRoom(room.id); }} title="Delete workspace"
+                    style={{ position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,60,60,0.75)', border: '1.5px solid rgba(10,11,22,0.85)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
+                    ×
+                  </button>
+                )}
+              </div>
+            );
+          })}
+          {/* Add workspace */}
+          <button onClick={() => setShowAddWs(true)}
+            style={{ borderRadius: 14, padding: '12px 8px', background: 'rgba(255,255,255,0.03)', border: '1.5px dashed rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+            <span style={{ fontSize: 22 }}>＋</span>
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Add</span>
+          </button>
+        </div>
+      ) : (
+        /* Inline add form inside mobile panel */
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <button
+              onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
+              style={{ fontSize: 22, lineHeight: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10, padding: '6px 8px', cursor: 'pointer' }}
+            >
+              {newWsEmoji}
+            </button>
+            <input
+              ref={wsInputRef}
+              value={newWsName}
+              onChange={e => setNewWsName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
+              placeholder="Workspace name..."
+              autoFocus
+              style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+            />
+          </div>
+          {emojiPickerFor === 'new' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, marginBottom: 10, maxHeight: 200, overflowY: 'auto' }}>
+              {EMOJI_LIST.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => { setNewWsEmoji(emoji); setEmojiPickerFor(null); }}
+                  style={{ width: 32, height: 32, borderRadius: 7, background: emoji === newWsEmoji ? 'rgba(200,241,53,0.12)' : 'transparent', border: emoji === newWsEmoji ? '1px solid rgba(200,241,53,0.3)' : 'none', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onMouseEnter={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                  onMouseLeave={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={handleAddWorkspace} disabled={!newWsName.trim()}
+              style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: newWsName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: newWsName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: newWsName.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: newWsName.trim() ? 'pointer' : 'default', fontSize: 11, fontWeight: 700 }}>
+              Add
+            </button>
+            <button onClick={() => { setShowAddWs(false); setEmojiPickerFor(null); }}
+              style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── Tags panel ────────────────────────────────────────────────────────────
+  const renderTagsPanel = () => (
+    <div ref={tagsRef} style={{ ...panelStyle, minWidth: 200, maxWidth: Math.min(300, window.innerWidth - 32) }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Filter by tag</span>
+        {hasActiveFilters && (
+          <button onClick={() => { [...activeTagFilters].forEach(t => toggleTagFilter(t)); }} style={{ fontSize: 9, fontWeight: 700, color: 'rgba(200,241,53,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <X size={10} /> Clear
+          </button>
+        )}
+      </div>
+      {allTags.length === 0 ? (
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '8px 0', margin: 0 }}>No tags yet</p>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {allTags.map(tag => {
+            const active = activeTagFilters.includes(tag);
+            return (
+              <button key={tag} onClick={() => toggleTagFilter(tag)} style={{ padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)', border: active ? '1px solid rgba(200,241,53,0.4)' : '1px solid rgba(255,255,255,0.08)', color: active ? '#c8f135' : 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase' }}>
+                {tag}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  // ── Compact mode (< 400px) ────────────────────────────────────────────────
   if (isCompact) {
     const menuItems = [
       { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); } },
@@ -171,67 +478,14 @@ const Toolbar = () => {
     return (
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
         <div className="relative" ref={menuRef}>
-          {/* Tags panel */}
-          {showTags && (
-            <div ref={tagsRef} style={{ ...panelStyle, minWidth: 200, maxWidth: Math.min(300, window.innerWidth - 32) }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Filter by tag</span>
-                {hasActiveFilters && (
-                  <button onClick={() => { [...activeTagFilters].forEach(t => toggleTagFilter(t)); }} style={{ fontSize: 9, fontWeight: 700, color: 'rgba(200,241,53,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <X size={10} /> Clear
-                  </button>
-                )}
-              </div>
-              {allTags.length === 0 ? (
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '8px 0', margin: 0 }}>No tags yet</p>
-              ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {allTags.map(tag => {
-                    const active = activeTagFilters.includes(tag);
-                    return (
-                      <button key={tag} onClick={() => toggleTagFilter(tag)} style={{ padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)', border: active ? '1px solid rgba(200,241,53,0.4)' : '1px solid rgba(255,255,255,0.08)', color: active ? '#c8f135' : 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s ease', textTransform: 'uppercase' }}>
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Rooms panel */}
-          {showRooms && (
-            <div ref={roomsRef} style={{ ...panelStyle, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: Math.min(220, window.innerWidth - 32) }}>
-              <div style={{ gridColumn: '1 / -1', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4, paddingLeft: 2 }}>Rooms</div>
-              {ROOMS.map(room => {
-                const active = room.id === currentRoomId;
-                return (
-                  <button key={room.id} onClick={() => { switchRoom(room.id); setShowRooms(false); }} style={{ borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s ease' }}>
-                    {room.icon}
-                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Menu grid */}
+          {showTags && renderTagsPanel()}
+          {showRooms && renderRoomsPanel(220)}
           {showMenu && (
             <div style={{ ...panelStyle, width: Math.min(240, window.innerWidth - 32) }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {menuItems.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={item.action}
-                    style={{
-                      borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                      background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)',
-                      border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)',
-                      color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
+                  <button key={item.label} onClick={item.action}
+                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s' }}>
                     {item.icon}
                     <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>{item.label}</span>
                   </button>
@@ -239,48 +493,29 @@ const Toolbar = () => {
               </div>
             </div>
           )}
-
-          {/* Compact pill */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 10px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
-            {/* Rooms */}
-            <button
-              ref={roomsBtnRef}
-              onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); }}
-              style={{ width: 34, height: 34, borderRadius: 12, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease' }}
-            >
-              {currentRoom.icon}
+            <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); }}
+              style={{ width: 34, height: 34, borderRadius: 12, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', fontSize: 20 }}>
+              {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
             </button>
-            {/* Undo */}
             <button onClick={undo} disabled={!canUndo}
-              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
-            >
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Undo2 size={16} strokeWidth={2} />
             </button>
-            {/* Redo */}
             <button onClick={redo} disabled={!canRedo}
-              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
-            >
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Redo2 size={16} strokeWidth={2} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            {/* Bookmark + */}
-            <button
-              onClick={handleAddBookmark}
-              style={{ width: 40, height: 40, borderRadius: 14, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
-            >
+            <button onClick={handleAddBookmark}
+              style={{ width: 40, height: 40, borderRadius: 14, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
               <Plus size={20} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            {/* Menu */}
-            <button
-              onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }}
-              onMouseDown={(e) => e.stopPropagation()}
-              style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease', position: 'relative' }}
-            >
+            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }} onMouseDown={e => e.stopPropagation()}
+              style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={18} strokeWidth={2} />
-              {hasActiveFilters && (
-                <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />
-              )}
+              {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
             </button>
           </div>
         </div>
@@ -288,7 +523,7 @@ const Toolbar = () => {
     );
   }
 
-  // ── Mobile layout (400–540px): Rooms + + + menu ──────────────────────────
+  // ── Mobile layout (400–540px) ─────────────────────────────────────────────
   if (isMobile) {
     const mobileMenuItems = [
       { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); } },
@@ -300,58 +535,14 @@ const Toolbar = () => {
     return (
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
         <div className="relative" ref={menuRef}>
-          {/* Tags panel */}
-          {showTags && (
-            <div ref={tagsRef} style={{ ...panelStyle, minWidth: 200, maxWidth: Math.min(300, window.innerWidth - 32) }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Filter by tag</span>
-                {hasActiveFilters && (
-                  <button onClick={() => { [...activeTagFilters].forEach(t => toggleTagFilter(t)); }} style={{ fontSize: 9, fontWeight: 700, color: 'rgba(200,241,53,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <X size={10} /> Clear
-                  </button>
-                )}
-              </div>
-              {allTags.length === 0 ? (
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '8px 0', margin: 0 }}>No tags yet</p>
-              ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {allTags.map(tag => {
-                    const active = activeTagFilters.includes(tag);
-                    return (
-                      <button key={tag} onClick={() => toggleTagFilter(tag)} style={{ padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)', border: active ? '1px solid rgba(200,241,53,0.4)' : '1px solid rgba(255,255,255,0.08)', color: active ? '#c8f135' : 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s ease', textTransform: 'uppercase' }}>
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Rooms panel */}
-          {showRooms && (
-            <div ref={roomsRef} style={{ ...panelStyle, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: Math.min(220, window.innerWidth - 32) }}>
-              <div style={{ gridColumn: '1 / -1', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4, paddingLeft: 2 }}>Rooms</div>
-              {ROOMS.map(room => {
-                const active = room.id === currentRoomId;
-                return (
-                  <button key={room.id} onClick={() => { switchRoom(room.id); setShowRooms(false); }} style={{ borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s ease' }}>
-                    {room.icon}
-                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Menu grid */}
+          {showTags && renderTagsPanel()}
+          {showRooms && renderRoomsPanel(240)}
           {showMenu && (
             <div style={{ ...panelStyle, width: Math.min(240, window.innerWidth - 32) }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {mobileMenuItems.map((item) => (
                   <button key={item.label} onClick={item.action}
-                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s ease' }}
-                  >
+                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s' }}>
                     {item.icon}
                     <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>{item.label}</span>
                   </button>
@@ -359,44 +550,28 @@ const Toolbar = () => {
               </div>
             </div>
           )}
-
-          {/* Mobile pill */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
-            {/* Rooms */}
-            <button
-              ref={roomsBtnRef}
-              onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); }}
-              style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease' }}
-            >
-              {currentRoom.icon}
+            <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); }}
+              style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+              {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            {/* Undo */}
             <button onClick={undo} disabled={!canUndo}
-              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
-            >
+              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Undo2 size={18} strokeWidth={2} />
             </button>
-            {/* Redo */}
             <button onClick={redo} disabled={!canRedo}
-              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
-            >
+              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Redo2 size={18} strokeWidth={2} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            {/* Bookmark + */}
             <button onClick={handleAddBookmark}
-              style={{ width: 44, height: 44, borderRadius: 16, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
-            >
+              style={{ width: 44, height: 44, borderRadius: 16, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
               <Plus size={22} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            {/* Menu */}
-            <button
-              onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }}
-              onMouseDown={(e) => e.stopPropagation()}
-              style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease', position: 'relative' }}
-            >
+            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }} onMouseDown={e => e.stopPropagation()}
+              style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={20} strokeWidth={2} />
               {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
             </button>
@@ -409,52 +584,196 @@ const Toolbar = () => {
   // ── Desktop layout ────────────────────────────────────────────────────────
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ maxWidth: 'calc(100vw - 2rem)' }}>
-      <div
-        className="flex items-center"
-        style={{
-          gap: 8,
-          padding: '0 16px',
-          animation: 'pillFloat 5s ease-in-out infinite',
-          background: 'rgba(10, 11, 22, 0.72)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          border: '1px solid rgba(255,255,255,0.10)',
-          borderRadius: '40px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
-          height: 76,
-        }}
-      >
-        {/* Rooms */}
-        <div className="relative" ref={roomsRef}>
-          {showRooms && (
-            <div style={{ ...panelStyle, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: Math.min(220, window.innerWidth - 32) }}>
-              <div style={{ gridColumn: '1 / -1', fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4, paddingLeft: 2 }}>Rooms</div>
-              {ROOMS.map(room => {
-                const active = room.id === currentRoomId;
-                return (
-                  <button key={room.id} onClick={() => { switchRoom(room.id); setShowRooms(false); }} style={{ borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s ease' }}
-                    onMouseEnter={(e) => { if (active) return; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
-                    onMouseLeave={(e) => { if (active) return; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'; }}
-                  >
-                    {room.icon}
-                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.label}</span>
+      <div className="flex items-center"
+        style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
+
+        {/* ── Workspaces ─────────────────────────────────────────────────── */}
+        {maxInlineRooms === 0 ? (
+          /* 540–640px: single dropdown */
+          <div className="relative" ref={roomsRef}>
+            {showRooms && (
+              <div style={{ ...panelStyle, width: Math.min(230, window.innerWidth - 32) }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Workspaces</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  {rooms.map(room => {
+                    const active = room.id === currentRoomId;
+                    return (
+                      <button key={room.id} onClick={() => { switchRoom(room.id); setShowRooms(false); }}
+                        style={{ borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+                        <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Add workspace inline */}
+                {!showAddWs ? (
+                  <button onClick={() => setShowAddWs(true)}
+                    style={{ width: '100%', padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1.5px dashed rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, transition: 'all 0.15s' }}>
+                    <Plus size={14} strokeWidth={2} /> New workspace
                   </button>
-                );
-              })}
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <button onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
+                        style={{ fontSize: 22, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10, padding: '5px 7px', cursor: 'pointer', lineHeight: 1 }}>
+                        {newWsEmoji}
+                      </button>
+                      <input ref={wsInputRef} value={newWsName} onChange={e => setNewWsName(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
+                        placeholder="Workspace name..."
+                        autoFocus
+                        style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '7px 9px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+                      />
+                    </div>
+                    {emojiPickerFor === 'new' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, marginBottom: 8, maxHeight: 200, overflowY: 'auto' }}>
+                        {EMOJI_LIST.map(emoji => (
+                          <button key={emoji} onClick={() => { setNewWsEmoji(emoji); setEmojiPickerFor(null); }}
+                            style={{ width: 30, height: 30, borderRadius: 6, background: emoji === newWsEmoji ? 'rgba(200,241,53,0.12)' : 'transparent', border: emoji === newWsEmoji ? '1px solid rgba(200,241,53,0.3)' : 'none', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            onMouseEnter={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                            onMouseLeave={e => { if (emoji !== newWsEmoji) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                          >{emoji}</button>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={handleAddWorkspace} disabled={!newWsName.trim()}
+                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, background: newWsName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: newWsName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: newWsName.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: newWsName.trim() ? 'pointer' : 'default', fontSize: 11, fontWeight: 700 }}>Add</button>
+                      <button onClick={() => { setShowAddWs(false); setEmojiPickerFor(null); }}
+                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex flex-col items-center justify-center" style={{ margin: '0 12px' }}>
+              <button ref={roomsBtnRef} onClick={() => setShowRooms(v => !v)}
+                style={{ width: 44, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, position: 'relative', top: '-5px' }}>
+                {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
+              </button>
+              <span style={{ fontSize: 9, fontWeight: 700, color: showRooms ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.08em', userSelect: 'none', lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                {currentRoom?.name}
+              </span>
             </div>
-          )}
-          <div className="flex flex-col items-center justify-center" style={{ margin: '0 12px' }}>
-            <button
-              onClick={() => setShowRooms(v => !v)}
-              style={{ width: 44, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s ease', position: 'relative', top: '-5px' }}
-              onMouseEnter={(e) => { if (showRooms) return; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
-              onMouseLeave={(e) => { if (showRooms) return; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'; }}
-            >
-              {currentRoom.icon}
-            </button>
-            <span style={{ fontSize: 9, fontWeight: 700, color: showRooms ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.08em', userSelect: 'none', lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{currentRoom.label}</span>
           </div>
-        </div>
+        ) : (
+          /* ≥640px: inline workspace tabs */
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {visibleRooms.map(room => {
+              const active = room.id === currentRoomId;
+              const pickerOpen = emojiPickerFor === room.id;
+              return (
+                /* emojiPickerRef attached to the tab container while its picker is open,
+                   so outside-click doesn't fire when clicking within the tab */
+                <div
+                  key={room.id}
+                  ref={pickerOpen ? emojiPickerRef : undefined}
+                  style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 2px' }}
+                  onMouseEnter={() => setHoveredRoomId(room.id)}
+                  onMouseLeave={() => setHoveredRoomId(null)}
+                >
+                  {/* Emoji picker panel */}
+                  {pickerOpen && renderEmojiGrid(
+                    (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); }
+                  )}
+                  {/* Tab button:
+                      - inactive → switch workspace
+                      - active → toggle emoji picker */}
+                  <button
+                    onClick={() => {
+                      if (active) {
+                        setEmojiPickerFor(pickerOpen ? null : room.id);
+                      } else {
+                        switchRoom(room.id);
+                        setEmojiPickerFor(null);
+                        setShowOverflow(false);
+                      }
+                    }}
+                    title={active ? 'Change emoji' : room.name}
+                    style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
+                    onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; } }}
+                    onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'grayscale(0.2) opacity(0.7)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
+                  >
+                    {getRoomEmoji(room)}
+                  </button>
+                  <span style={{ ...labelStyle, color: active ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', maxWidth: 72 }}>
+                    {room.name.length > 11 ? room.name.slice(0, 10) + '…' : room.name}
+                  </span>
+                  {/* Delete button — shown on hover for non-active rooms when >1 room exists */}
+                  {!active && rooms.length > 1 && hoveredRoomId === room.id && (
+                    <button
+                      onClick={e => { e.stopPropagation(); deleteRoom(room.id); }}
+                      title="Delete workspace"
+                      style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,60,60,0.85)', border: '1.5px solid rgba(10,11,22,0.9)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, zIndex: 10, lineHeight: 1 }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Overflow menu */}
+            {overflowRooms.length > 0 && (
+              <div className="relative" ref={overflowRef} style={{ margin: '0 2px' }}>
+                {showOverflow && (
+                  <div style={{ ...panelStyle, minWidth: 170 }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>More workspaces</div>
+                    {overflowRooms.map(room => {
+                      const active = room.id === currentRoomId;
+                      return (
+                        <div key={room.id} style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
+                          <button onClick={() => { switchRoom(room.id); setShowOverflow(false); }}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.03)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid transparent', color: active ? '#c8f135' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, textAlign: 'left' }}
+                            onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
+                            onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.6)'; } }}
+                          >
+                            <span style={{ fontSize: 18 }}>{getRoomEmoji(room)}</span>
+                            {room.name}
+                          </button>
+                          {!active && rooms.length > 1 && (
+                            <button onClick={() => deleteRoom(room.id)} title="Delete workspace"
+                              style={{ width: 24, height: 24, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,100,100,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, transition: 'all 0.15s' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,100,100,0.9)'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,100,100,0.5)'; }}
+                            >×</button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <div className="flex flex-col items-center justify-center">
+                  <button onClick={() => setShowOverflow(v => !v)}
+                    style={{ width: 44, height: 36, borderRadius: 13, background: showOverflow ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showOverflow ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                    onMouseEnter={e => { if (!showOverflow) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
+                    onMouseLeave={e => { if (!showOverflow) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'; } }}
+                  >
+                    <MoreHorizontal size={18} strokeWidth={2} />
+                  </button>
+                  <span style={labelStyle}>More</span>
+                </div>
+              </div>
+            )}
+
+            {/* Add workspace */}
+            <div className="relative" style={{ margin: '0 2px' }}>
+              {showAddWs && renderAddWsPanel()}
+              <div className="flex flex-col items-center justify-center">
+                <button
+                  onClick={() => { setShowAddWs(v => !v); setEmojiPickerFor(null); }}
+                  style={{ width: 44, height: 36, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                  onMouseEnter={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
+                  onMouseLeave={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; } }}
+                >
+                  <Plus size={16} strokeWidth={2.5} />
+                </button>
+                <span style={labelStyle}>Add</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
 
@@ -464,9 +783,9 @@ const Toolbar = () => {
           { icon: <Redo2 size={18} strokeWidth={2} />, action: redo, enabled: canRedo, label: '⌘⇧Z' },
         ].map((item) => (
           <button key={item.label} onClick={item.action} disabled={!item.enabled} title={item.label}
-            style={{ width: 36, height: 36, borderRadius: 10, background: 'transparent', border: 'none', color: item.enabled ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)', cursor: item.enabled ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease' }}
-            onMouseEnter={(e) => { if (!item.enabled) return; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = item.enabled ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)'; }}
+            style={{ width: 36, height: 36, borderRadius: 10, background: 'transparent', border: 'none', color: item.enabled ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)', cursor: item.enabled ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+            onMouseEnter={e => { if (!item.enabled) return; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = item.enabled ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)'; }}
           >
             {item.icon}
           </button>
@@ -474,14 +793,13 @@ const Toolbar = () => {
 
         <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
 
-        {/* Primary + */}
-        <button
-          onClick={handleAddBookmark}
-          style={{ width: isMobile ? 42 : 52, height: isMobile ? 42 : 52, borderRadius: 18, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(200,241,53,0.5), 0 0 8px rgba(200,241,53,0.3)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 36px rgba(200,241,53,0.7), 0 0 12px rgba(200,241,53,0.4)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(200,241,53,0.5), 0 0 8px rgba(200,241,53,0.3)'; }}
-          onMouseDown={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.94)'; }}
-          onMouseUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; }}
+        {/* Primary + bookmark */}
+        <button onClick={handleAddBookmark}
+          style={{ width: 52, height: 52, borderRadius: 18, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(200,241,53,0.5), 0 0 8px rgba(200,241,53,0.3)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 36px rgba(200,241,53,0.7), 0 0 12px rgba(200,241,53,0.4)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(200,241,53,0.5), 0 0 8px rgba(200,241,53,0.3)'; }}
+          onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.94)'; }}
+          onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; }}
         >
           <Plus size={26} strokeWidth={2.5} />
         </button>
@@ -490,63 +808,36 @@ const Toolbar = () => {
 
         {/* Sticker */}
         <div className="flex flex-col items-center justify-center">
-          <button style={mkBtnStyle()} onClick={handleAddSticker} onMouseEnter={(e) => onEnter(e)} onMouseLeave={(e) => onLeave(e)} onMouseDown={onDown}><StickyNote size={20} strokeWidth={2} /></button>
-          {!isMobile && <span style={labelStyle}>Sticker</span>}
+          <button style={mkBtnStyle()} onClick={handleAddSticker} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><StickyNote size={20} strokeWidth={2} /></button>
+          <span style={labelStyle}>Sticker</span>
         </div>
 
         {/* Group */}
         <div className="flex flex-col items-center justify-center">
-          <button style={mkBtnStyle()} onClick={handleAddGroup} onMouseEnter={(e) => onEnter(e)} onMouseLeave={(e) => onLeave(e)} onMouseDown={onDown}><Group size={20} strokeWidth={2} /></button>
-          {!isMobile && <span style={labelStyle}>Group</span>}
+          <button style={mkBtnStyle()} onClick={handleAddGroup} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><Group size={20} strokeWidth={2} /></button>
+          <span style={labelStyle}>Group</span>
         </div>
 
         {/* Tags */}
         <div className="relative flex flex-col items-center justify-center" ref={tagsRef}>
-          {showTags && (
-            <div style={{ ...panelStyle, minWidth: 200, maxWidth: Math.min(300, window.innerWidth - 32) }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Filter by tag</span>
-                {hasActiveFilters && (
-                  <button onClick={() => { [...activeTagFilters].forEach(t => toggleTagFilter(t)); }} style={{ fontSize: 9, fontWeight: 700, color: 'rgba(200,241,53,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <X size={10} /> Clear
-                  </button>
-                )}
-              </div>
-              {allTags.length === 0 ? (
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '8px 0', margin: 0 }}>No tags yet</p>
-              ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {allTags.map(tag => {
-                    const active = activeTagFilters.includes(tag);
-                    return (
-                      <button key={tag} onClick={() => toggleTagFilter(tag)} style={{ padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)', border: active ? '1px solid rgba(200,241,53,0.4)' : '1px solid rgba(255,255,255,0.08)', color: active ? '#c8f135' : 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s ease', textTransform: 'uppercase' }}>
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+          {showTags && renderTagsPanel()}
           <button
-            style={{ ...mkBtnStyle(hasActiveFilters), top: isMobile ? 0 : '-5px' }}
+            style={{ ...mkBtnStyle(hasActiveFilters), top: '-5px' }}
             onClick={() => { setShowTags(v => !v); setShowRooms(false); }}
-            onMouseEnter={(e) => onEnter(e, hasActiveFilters || showTags)}
-            onMouseLeave={(e) => onLeave(e, hasActiveFilters || showTags)}
+            onMouseEnter={e => onEnter(e, hasActiveFilters || showTags)}
+            onMouseLeave={e => onLeave(e, hasActiveFilters || showTags)}
             onMouseDown={onDown}
           >
             <Tag size={20} strokeWidth={2} />
-            {hasActiveFilters && (
-              <span style={{ position: 'absolute', top: 2, right: 2, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />
-            )}
+            {hasActiveFilters && <span style={{ position: 'absolute', top: 2, right: 2, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
           </button>
-          {!isMobile && <span style={{ ...labelStyle, color: hasActiveFilters ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Tags</span>}
+          <span style={{ ...labelStyle, color: hasActiveFilters ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Tags</span>
         </div>
 
         {/* Arrange */}
         <div className="flex flex-col items-center justify-center">
-          <button style={mkBtnStyle()} onClick={autoArrange} onMouseEnter={(e) => onEnter(e)} onMouseLeave={(e) => onLeave(e)} onMouseDown={onDown}><Wand2 size={20} strokeWidth={2} /></button>
-          {!isMobile && <span style={labelStyle}>Arrange</span>}
+          <button style={mkBtnStyle()} onClick={autoArrange} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><Wand2 size={20} strokeWidth={2} /></button>
+          <span style={labelStyle}>Arrange</span>
         </div>
       </div>
     </div>

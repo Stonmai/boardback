@@ -10,6 +10,7 @@ import type { WhiteboardNode } from '@whiteboard/shared/types';
 const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>>) => {
   const removeGroup = useStore(s => s.removeGroup);
   const updateNode = useStore(s => s.updateNode);
+  const updateGroupSize = useStore(s => s.updateGroupSize);
   const editingNodeId = useStore(s => s.editingNodeId);
   const setEditingNodeId = useStore(s => s.setEditingNodeId);
   const isDropTarget = !!(data as any).__dropTarget;
@@ -74,6 +75,8 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
         isVisible={selected}
         minWidth={200}
         minHeight={150}
+        onResize={(_, { x, y, width, height }) => updateGroupSize(id, x, y, width, height)}
+        onResizeEnd={(_, { x, y, width, height }) => updateGroupSize(id, x, y, width, height)}
       />
 
       {/* Group label */}

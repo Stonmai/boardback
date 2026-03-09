@@ -3,11 +3,22 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { Clock, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
 
+type RoomInfo = { id: string; name: string; emoji?: string };
+
+const DEFAULT_ROOMS: RoomInfo[] = [
+  { id: 'personal',     name: 'Personal',     emoji: '🏠' },
+  { id: 'office',       name: 'Office',        emoji: '💼' },
+  { id: 'social-media', name: 'Social Media',  emoji: '📱' },
+  { id: 'favorite',     name: 'Favorite',      emoji: '⭐' },
+];
+
 const Popup = () => {
   const [tabInfo, setTabInfo] = useState<{ title?: string; url?: string; favicon?: string }>({});
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [rooms, setRooms] = useState<RoomInfo[]>(DEFAULT_ROOMS);
+  const [selectedRoomId, setSelectedRoomId] = useState<string>(DEFAULT_ROOMS[0].id);
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -20,6 +31,14 @@ const Popup = () => {
         });
       }
     });
+
+    // Load workspaces from storage, fall back to defaults if not synced yet
+    chrome.storage.local.get('boardbackRooms', ({ boardbackRooms }) => {
+      if (Array.isArray(boardbackRooms) && boardbackRooms.length > 0) {
+        setRooms(boardbackRooms);
+        setSelectedRoomId(boardbackRooms[0].id);
+      }
+    });
   }, []);
 
   const handleCapture = async () => {
@@ -28,7 +47,8 @@ const Popup = () => {
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'CAPTURE_TAB',
-        tags: allTags
+        tags: allTags,
+        roomId: selectedRoomId,
       });
       if (response.success) {
         setStatus('success');
@@ -43,7 +63,10 @@ const Popup = () => {
 
   const handleCaptureAll = async () => {
     setStatus('loading');
-    const response = await chrome.runtime.sendMessage({ type: 'CAPTURE_ALL_TABS' });
+    const response = await chrome.runtime.sendMessage({
+      type: 'CAPTURE_ALL_TABS',
+      roomId: selectedRoomId,
+    });
     if (response.success) setStatus('success');
     else setStatus('error');
   };
@@ -80,6 +103,33 @@ const Popup = () => {
       </div>
 
       <div className="space-y-4">
+        {/* Workspace selector */}
+        {(
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(255,255,255,0.35)' }}>Workspace</label>
+            <div className="flex flex-wrap gap-1.5">
+              {rooms.map(room => {
+                const active = selectedRoomId === room.id;
+                return (
+                  <button
+                    key={room.id}
+                    onClick={() => setSelectedRoomId(room.id)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                    style={{
+                      background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)',
+                      color: active ? '#c8f135' : 'rgba(255,255,255,0.55)',
+                      border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    {room.emoji && <span style={{ fontSize: 13 }}>{room.emoji}</span>}
+                    {room.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Tags */}
         <div>
           <label className="text-[10px] font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(255,255,255,0.35)' }}>Tags</label>

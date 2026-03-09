@@ -24,21 +24,23 @@ let _preDragSnapshot: { nodes: Node<WhiteboardNode['data']>[]; edges: Edge[] } |
 const BOOKMARK_COLORS = ['blue', 'green', 'amber', 'yellow', 'purple', 'pink'];
 const NOTE_COLORS = ['purple', 'teal', 'yellow', 'pink', 'blue', 'lime'];
 
-export type RoomType = 'living-room' | 'kitchen' | 'bedroom' | 'toilet';
+export type RoomType = string;
 
 export interface RoomData {
   id: RoomType;
   name: string;
+  emoji?: string;
   nodes: Node<WhiteboardNode['data']>[];
   edges: Edge[];
   groups: GroupFrame[];
 }
 
 const DEFAULT_ROOMS: RoomData[] = [
-  { id: 'living-room', name: 'Living Room', nodes: [], edges: [], groups: [] },
-  { id: 'kitchen',     name: 'Kitchen',     nodes: [], edges: [], groups: [] },
-  { id: 'bedroom',     name: 'Bedroom',     nodes: [], edges: [], groups: [] },
-  { id: 'toilet',      name: 'Toilet',      nodes: [], edges: [], groups: [] },
+  { id: 'personal',     name: 'Personal',     emoji: '🏠', nodes: [], edges: [], groups: [] },
+  { id: 'office',       name: 'Office',       emoji: '💼', nodes: [], edges: [], groups: [] },
+  { id: 'social-media', name: 'Social Media', emoji: '📱', nodes: [], edges: [], groups: [] },
+  { id: 'learning',     name: 'Learning',     emoji: '🧠', nodes: [], edges: [], groups: [] },
+  { id: 'favorite',     name: 'Favorite',     emoji: '♥️', nodes: [], edges: [], groups: [] },
 ];
 
 const ACCENT_HEX: Record<string, string> = {
@@ -70,8 +72,10 @@ interface WhiteboardState {
   onEdgesChange: OnEdgesChange<Edge>;
   onConnect: OnConnect;
   addNode: (node: WhiteboardNode) => void;
+  addNodeToRoom: (roomId: string, node: WhiteboardNode) => void;
   deleteNode: (id: string) => void;
   updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => void;
+  updateGroupSize: (id: string, x: number, y: number, width: number, height: number) => void;
   copyNodes: () => void;
   cutNodes: () => void;
   pasteNodes: (center?: { x: number; y: number }) => void;
@@ -86,6 +90,9 @@ interface WhiteboardState {
   setNodes: (nodes: Node<WhiteboardNode['data']>[]) => void;
   autoArrange: () => void;
   switchRoom: (id: RoomType) => void;
+  addRoom: (name: string, emoji: string) => void;
+  deleteRoom: (id: string) => void;
+  updateRoomEmoji: (id: string, emoji: string) => void;
   snapshot: () => void;
   undo: () => void;
   redo: () => void;
@@ -101,7 +108,7 @@ export const useStore = create<WhiteboardState>()(
   edges: [],
   groups: [],
   rooms: DEFAULT_ROOMS,
-  currentRoomId: 'living-room' as RoomType,
+  currentRoomId: 'personal' as RoomType,
   tags: [
     { id: 'work', label: 'Work', color: 'slate' },
     { id: 'personal', label: 'Personal', color: 'slate' },
@@ -319,6 +326,33 @@ export const useStore = create<WhiteboardState>()(
     });
   },
 
+  addNodeToRoom: (roomId: string, node: WhiteboardNode) => {
+    const { currentRoomId } = get();
+    if (!roomId || roomId === currentRoomId) {
+      get().addNode(node);
+      return;
+    }
+    const { rooms } = get();
+    const targetRoom = rooms.find((r: RoomData) => r.id === roomId);
+    if (!targetRoom) { get().addNode(node); return; }
+
+    const palette = node.type === 'note' ? NOTE_COLORS : BOOKMARK_COLORS;
+    const color = (node.data.color as string) || palette[Math.floor(Math.random() * palette.length)];
+    const position = node.position || findPlacement(targetRoom.nodes, node.data);
+    const newNode: Node = {
+      id: node.id,
+      type: node.type,
+      position,
+      data: { ...node.data, color },
+      style: { width: node.width, height: node.height },
+    };
+    set({
+      rooms: rooms.map((r: RoomData) =>
+        r.id === roomId ? { ...r, nodes: [...r.nodes, newNode] } : r
+      ),
+    });
+  },
+
   deleteNode: (id: string) => {
     const { nodes, edges, _past } = get();
     set({
@@ -340,6 +374,16 @@ export const useStore = create<WhiteboardState>()(
         }
         return node;
       }),
+    });
+  },
+
+  updateGroupSize: (id: string, x: number, y: number, width: number, height: number) => {
+    set({
+      nodes: get().nodes.map((node: Node) =>
+        node.id === id
+          ? { ...node, position: { x, y }, style: { ...node.style, width, height } }
+          : node
+      ),
     });
   },
 
@@ -426,6 +470,23 @@ export const useStore = create<WhiteboardState>()(
       _past: [],
       _future: [],
     });
+  },
+
+  addRoom: (name: string, emoji: string) => {
+    const { rooms } = get();
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'workspace';
+    const id = `${slug}-${Date.now()}`;
+    set({ rooms: [...rooms, { id, name, emoji, nodes: [], edges: [], groups: [] }] });
+  },
+
+  deleteRoom: (id: string) => {
+    const { rooms, currentRoomId } = get();
+    if (rooms.length <= 1 || id === currentRoomId) return;
+    set({ rooms: rooms.filter((r: RoomData) => r.id !== id) });
+  },
+
+  updateRoomEmoji: (id: string, emoji: string) => {
+    set({ rooms: get().rooms.map((r: RoomData) => r.id === id ? { ...r, emoji } : r) });
   },
 
   autoArrange: () => {
@@ -645,17 +706,17 @@ export const useStore = create<WhiteboardState>()(
       return;
     }
     if (!state.rooms || state.rooms.length === 0) {
-      // Migrate from old format: move existing nodes/edges/groups into living room
+      // Migrate from old format: move existing nodes/edges/groups into first room
       state.rooms = DEFAULT_ROOMS.map((r: RoomData) =>
-        r.id === 'living-room'
+        r.id === 'personal'
           ? { ...r, nodes: state.nodes || [], edges: state.edges || [], groups: state.groups || [] }
           : r
       );
-      state.currentRoomId = 'living-room';
+      state.currentRoomId = 'personal';
     } else {
       // Top-level nodes/edges/groups are always the most up-to-date (persisted on every change).
       // Sync them back into the current room so rooms array stays consistent.
-      const roomId = state.currentRoomId || 'living-room';
+      const roomId = state.currentRoomId || 'personal';
       state.rooms = state.rooms.map((r: RoomData) =>
         r.id === roomId
           ? { ...r, nodes: state.nodes || [], edges: state.edges || [], groups: state.groups || [] }
