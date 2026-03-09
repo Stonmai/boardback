@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useRef } from 'react';
 import { NodeProps, NodeResizer, Node } from '@xyflow/react';
-import { FolderX, Pencil, Check, X } from 'lucide-react';
+import { FolderX, Pencil, Check, X, ExternalLink } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/utils/cn';
 import type { WhiteboardNode } from '@whiteboard/shared/types';
@@ -14,6 +14,8 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
   const editingNodeId = useStore(s => s.editingNodeId);
   const setEditingNodeId = useStore(s => s.setEditingNodeId);
   const isDropTarget = !!(data as any).__dropTarget;
+  const nodes = useStore(s => s.nodes);
+  const getParentId = (n: any) => n.parentId || n.parentNode;
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(data.title || '');
@@ -44,6 +46,19 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
   const handleCancelName = () => {
     setNameInput(data.title || 'New Group 📦');
     setIsEditingName(false);
+  };
+  
+  const handleOpenAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const children = nodes.filter(n => getParentId(n) === id);
+    const bookmarks = children.filter(n => n.type === 'bookmark' || n.type === 'tab');
+    
+    bookmarks.forEach(bm => {
+      const url = bm.data.url;
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
   };
 
   return (
@@ -174,6 +189,13 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
           onClick={handleStartEdit}
         >
           <Pencil size={15} />
+        </button>
+        <button
+          className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+          title="Open all bookmarks"
+          onClick={handleOpenAll}
+        >
+          <ExternalLink size={15} />
         </button>
         <button
           className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"

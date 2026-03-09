@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useStore, RoomData } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -269,6 +269,8 @@ const Toolbar = () => {
   const nodes = useStore((s) => s.nodes);
   const activeTagFilters = useStore((s) => s.activeTagFilters);
   const toggleTagFilter = useStore((s) => s.toggleTagFilter);
+  const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
+  const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
   const { screenToFlowPosition } = useReactFlow();
 
   const allTags = React.useMemo(() => {
@@ -281,6 +283,7 @@ const Toolbar = () => {
   const [showRooms, setShowRooms] = React.useState(false);
   const [showTags, setShowTags] = React.useState(false);
   const [showMenu, setShowMenu] = React.useState(false);
+  const [showSettings, setShowSettings] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
   const [isCompact, setIsCompact] = React.useState(false);
   const [maxInlineRooms, setMaxInlineRooms] = React.useState(8);
@@ -297,13 +300,14 @@ const Toolbar = () => {
   const reorderRoomsAction = useStore((s) => s.reorderRooms);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
-    setDraggedRoomId(id);
     e.dataTransfer.setData('text/plain', id);
     e.dataTransfer.effectAllowed = 'move';
-    // Transparent ghost image
-    const img = new Image();
-    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    e.dataTransfer.setDragImage(img, 0, 0);
+    
+    // Delay setting the state so the browser captures the original element 
+    // for the drag ghost image at full opacity.
+    requestAnimationFrame(() => {
+      setDraggedRoomId(id);
+    });
   };
 
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
@@ -344,6 +348,8 @@ const Toolbar = () => {
   const roomsRef = React.useRef<HTMLDivElement>(null);
   const tagsRef = React.useRef<HTMLDivElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
+  const settingsRef = React.useRef<HTMLDivElement>(null);
+  const settingsBtnRef = React.useRef<HTMLButtonElement>(null);
   const roomsBtnRef = React.useRef<HTMLButtonElement>(null);
   const overflowRef = React.useRef<HTMLDivElement>(null);
   const addWsRef = React.useRef<HTMLDivElement>(null);
@@ -361,7 +367,7 @@ const Toolbar = () => {
       if (
         roomsRef.current && !roomsRef.current.contains(t) &&
         roomsBtnRef.current && !roomsBtnRef.current.contains(t)
-      ) { setShowRooms(false); setShowAddWs(false); setEmojiPickerFor(null); setNewWsName(''); }
+      ) { setShowRooms(false); setShowAddWs(false); setEmojiPickerFor(null); setNewWsName(''); setShowSettings(false); }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -428,6 +434,19 @@ const Toolbar = () => {
     if (showAddWs) setTimeout(() => wsInputRef.current?.focus(), 50);
     else { setNewWsName(''); setNewWsEmoji('📌'); setEmojiPickerFor(null); }
   }, [showAddWs]);
+
+  React.useEffect(() => {
+    if (!showSettings) return;
+    const handler = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (
+        settingsRef.current && !settingsRef.current.contains(t) &&
+        settingsBtnRef.current && !settingsBtnRef.current.contains(t)
+      ) setShowSettings(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showSettings]);
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const center = (offsetX = 0, offsetY = 0) => {
@@ -651,19 +670,73 @@ const Toolbar = () => {
     </div>
   );
 
+  const renderSettingsPanel = () => (
+    <div ref={settingsRef} style={{ ...panelStyle, minWidth: 240 }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Settings</div>
+      
+      <div 
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          background: 'rgba(255,255,255,0.05)',
+          padding: '10px 12px',
+          borderRadius: 12,
+          border: '1px solid rgba(255,255,255,0.08)',
+          cursor: 'pointer'
+        }}
+        onClick={() => setAutoOpenBookmarks(!autoOpenBookmarks)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <ExternalLink size={16} color={autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.3)'} />
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Auto-open bookmarks</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Clicking card opens new tab</div>
+          </div>
+        </div>
+        <div 
+          style={{ 
+            width: 32, 
+            height: 18, 
+            borderRadius: 20, 
+            background: autoOpenBookmarks ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.1)',
+            border: autoOpenBookmarks ? '1px solid rgba(200,241,53,0.5)' : '1px solid rgba(255,255,255,0.15)',
+            position: 'relative',
+            transition: 'all 0.2s'
+          }}
+        >
+          <div 
+            style={{ 
+              position: 'absolute',
+              top: 2,
+              left: autoOpenBookmarks ? 16 : 2,
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.4)',
+              transition: 'all 0.2s'
+            }} 
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Compact mode (< 400px) ────────────────────────────────────────────────
   if (isCompact) {
     const menuItems = [
-      { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); } },
-      { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); } },
-      { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); }, active: hasActiveFilters },
-      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); } },
+      { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); setShowSettings(false); }, active: hasActiveFilters },
+      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Settings size={18} strokeWidth={2} />, label: 'Settings', action: () => { setShowSettings(v => !v); setShowMenu(false); setShowTags(false); }, active: showSettings },
     ];
 
     return (
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
+          {showSettings && renderSettingsPanel()}
           {showRooms && renderRoomsPanel(220)}
           {showMenu && (
             <div style={{ ...panelStyle, width: Math.min(240, window.innerWidth - 32) }}>
@@ -679,7 +752,7 @@ const Toolbar = () => {
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 10px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
-            <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); }}
+            <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); setShowSettings(false); }}
               style={{ width: 34, height: 34, borderRadius: 12, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', fontSize: 20 }}>
               {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
             </button>
@@ -697,7 +770,7 @@ const Toolbar = () => {
               <Plus size={20} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }} onMouseDown={e => e.stopPropagation()}
+            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); }} onMouseDown={e => e.stopPropagation()}
               style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={18} strokeWidth={2} />
               {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
@@ -711,16 +784,18 @@ const Toolbar = () => {
   // ── Mobile layout (400–540px) ─────────────────────────────────────────────
   if (isMobile) {
     const mobileMenuItems = [
-      { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); } },
-      { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); } },
-      { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); }, active: hasActiveFilters },
-      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); } },
+      { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); setShowSettings(false); }, active: hasActiveFilters },
+      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Settings size={18} strokeWidth={2} />, label: 'Settings', action: () => { setShowSettings(v => !v); setShowMenu(false); setShowTags(false); }, active: showSettings },
     ];
 
     return (
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
+          {showSettings && renderSettingsPanel()}
           {showRooms && renderRoomsPanel(240)}
           {showMenu && (
             <div style={{ ...panelStyle, width: Math.min(240, window.innerWidth - 32) }}>
@@ -736,7 +811,7 @@ const Toolbar = () => {
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
-            <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); }}
+            <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); setShowSettings(false); }}
               style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
               {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
             </button>
@@ -755,7 +830,7 @@ const Toolbar = () => {
               <Plus size={22} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); }} onMouseDown={e => e.stopPropagation()}
+            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); }} onMouseDown={e => e.stopPropagation()}
               style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={20} strokeWidth={2} />
               {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
@@ -804,7 +879,7 @@ const Toolbar = () => {
                 {!showAddWs ? (
                   <button onClick={() => setShowAddWs(true)}
                     style={{ width: '100%', padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1.5px dashed rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, transition: 'all 0.15s' }}>
-                    <Plus size={14} strokeWidth={2} /> New workspace
+                    <LayersPlus size={14} strokeWidth={2} /> New
                   </button>
                 ) : (
                   <div>
@@ -982,13 +1057,13 @@ const Toolbar = () => {
                 <button
                   ref={addWsBtnRef}
                   onClick={() => { setShowAddWs(v => !v); setEmojiPickerFor(null); }}
-                  style={{ width: 44, height: 36, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                  style={{ width: 44, height: 35, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
                   onMouseEnter={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
                   onMouseLeave={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; } }}
                 >
-                  <Plus size={16} strokeWidth={2.5} />
+                  <LayersPlus size={16} strokeWidth={2.5} />
                 </button>
-                <span style={labelStyle}>Add</span>
+                <span style={labelStyle}>New</span>
               </div>
             </div>
           </div>
@@ -1058,6 +1133,21 @@ const Toolbar = () => {
         <div className="flex flex-col items-center justify-center">
           <button style={mkBtnStyle()} onClick={autoArrange} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><Wand2 size={20} strokeWidth={2} /></button>
           <span style={labelStyle}>Arrange</span>
+        </div>
+
+        <div className="relative flex flex-col items-center justify-center">
+          {showSettings && renderSettingsPanel()}
+          <button
+            ref={settingsBtnRef}
+            style={mkBtnStyle(showSettings)}
+            onClick={() => { setShowSettings(v => !v); setShowRooms(false); setShowTags(false); }}
+            onMouseEnter={e => onEnter(e, showSettings)}
+            onMouseLeave={e => onLeave(e, showSettings)}
+            onMouseDown={onDown}
+          >
+            <Settings size={20} strokeWidth={2} />
+          </button>
+          <span style={{ ...labelStyle, color: showSettings ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Settings</span>
         </div>
       </div>
     </div>

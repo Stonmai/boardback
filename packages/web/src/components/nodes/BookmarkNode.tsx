@@ -34,6 +34,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
   const updateNode = useStore((s) => s.updateNode);
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
+  const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
 
   React.useEffect(() => {
     if (editingNodeId === id) {
@@ -126,7 +127,10 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       <NodeResizer color="rgba(255,255,255,0.5)" isVisible={selected} minWidth={160} minHeight={80} />
 
       {/* Card body */}
-      <div className="w-full h-full rounded-[14px] overflow-hidden" onDoubleClick={() => { if (!isEditing) setIsEditing(true); }}>
+      <div 
+        className="w-full h-full rounded-[14px] overflow-hidden" 
+        onDoubleClick={() => { if (!isEditing) setIsEditing(true); }}
+      >
         <div className="p-3 pl-4">
           {isEditing ? (
             <div className="space-y-2">
@@ -203,9 +207,18 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
 
               {(data.screenshot || data.ogImage) && (
                 <div
-                  className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer"
+                  className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer transition-transform hover:scale-[1.02]"
                   style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-                  onClick={() => window.open(data.url as string, '_blank')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!data.url || isEditing) return;
+                    // Open in new tab if setting is on OR user holds Cmd/Ctrl
+                    if (autoOpenBookmarks || e.metaKey || e.ctrlKey) {
+                      window.open(data.url as string, '_blank', 'noopener,noreferrer');
+                    } else {
+                      window.location.href = data.url as string;
+                    }
+                  }}
                   onDoubleClick={(e) => e.stopPropagation()}
                 >
                   <img
@@ -334,7 +347,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
         {!isEditing && (
           <button
             className="p-2 hover:bg-blue-500/20 rounded-xl text-white hover:text-blue-400 transition-colors"
-            onClick={() => window.open(data.url as string, '_blank')}
+            onClick={(e) => { e.stopPropagation(); window.open(data.url as string, '_blank', 'noopener,noreferrer'); }}
           >
             <ExternalLink size={15} />
           </button>

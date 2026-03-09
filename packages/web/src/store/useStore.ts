@@ -66,6 +66,7 @@ interface WhiteboardState {
   currentRoomId: RoomType;
   hasSeenIntro: boolean;
   activeTagFilters: string[];
+  autoOpenBookmarks: boolean;
 
   // Actions
   onNodesChange: OnNodesChange;
@@ -99,6 +100,7 @@ interface WhiteboardState {
   redo: () => void;
   dismissIntro: () => void;
   toggleTagFilter: (tag: string) => void;
+  setAutoOpenBookmarks: (val: boolean) => void;
   _getParentId: (n: Node) => string | undefined;
 }
 
@@ -126,6 +128,7 @@ export const useStore = create<WhiteboardState>()(
   _future: [],
   hasSeenIntro: false,
   activeTagFilters: [],
+  autoOpenBookmarks: true,
 
   dismissIntro: () => set({ hasSeenIntro: true }),
   toggleTagFilter: (tag: string) => {
@@ -136,6 +139,7 @@ export const useStore = create<WhiteboardState>()(
         : [...activeTagFilters, tag],
     });
   },
+  setAutoOpenBookmarks: (val: boolean) => set({ autoOpenBookmarks: val }),
 
   // ReactFlow 11 uses `parentNode`; v12+ uses `parentId`. Read both.
   _getParentId: (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode,
@@ -693,6 +697,7 @@ export const useStore = create<WhiteboardState>()(
     groups: state.groups,
     tags: state.tags,
     hasSeenIntro: state.hasSeenIntro,
+    autoOpenBookmarks: state.autoOpenBookmarks,
   }),
   onRehydrateStorage: () => async (state: any) => {
     // One-time migration: copy localStorage data into Dexie then remove it

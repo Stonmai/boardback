@@ -81,7 +81,7 @@ const PreviewModal = ({ node, onClose }: PreviewModalProps) => {
         {/* Footer */}
         <div className="flex justify-end p-4 bg-slate-50 border-t border-slate-100">
           <button 
-            onClick={() => window.open(node.data.url, '_blank')}
+            onClick={() => window.open(node.data.url, '_blank', 'noopener,noreferrer')}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-200 transition-all font-bold text-sm"
           >
             <ExternalLink size={16} />
