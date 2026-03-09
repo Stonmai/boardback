@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BoardBack Capture Tool",
   "version": "1.0.1",
-  "description": "Transform Your Browser Into a Visual Workspace WhiteBroad is more than a bookmark tool — BoardBack’s a visual productivity system built for people who work with ideas, research, and multiple tabs every day. Designed with a local-first approach, your bookmarks and workspace stay on your device — private, fast, and fully under your control. No unnecessary cloud storage. No tracking. Just your data, your way. Capture pages as visual cards, organize them into smart groups, and manage everything from a clean, powerful workspace.",
+  "description": "Capture bookmark tool for BoardBack (https://boardback-web.vercel.app)",
   "permissions": [
     "tabs",
     "activeTab",
