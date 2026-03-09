@@ -508,7 +508,7 @@ const Canvas = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onSelectionChange={({ nodes }) => useStore.getState().setSelectedNodes(nodes.map(n => n.id))}
+        onSelectionChange={({ nodes }: { nodes: Node[] }) => useStore.getState().setSelectedNodes(nodes.map(n => n.id))}
         nodeTypes={nodeTypes as any}
         fitView
         fitViewOptions={{ padding: 0.6, maxZoom: 1 }}
