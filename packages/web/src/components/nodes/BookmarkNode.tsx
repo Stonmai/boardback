@@ -224,6 +224,14 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                       window.location.href = data.url as string;
                     }
                   }}
+                  onAuxClick={(e) => {
+                    if (e.button === 1) {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!data.url || isEditing) return;
+                      window.open(data.url as string, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
                   onDoubleClick={(e) => e.stopPropagation()}
                 >
                   {(data.screenshot || data.ogImage) ? (

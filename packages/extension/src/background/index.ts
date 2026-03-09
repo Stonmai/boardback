@@ -1,13 +1,12 @@
-const NEW_TAB_PREFIXES = ['chrome://newtab', 'vivaldi://newtab', 'about:newtab'];
+import { browser } from '../utils/browser';
 
-// Detect Vivaldi via user agent OR its exclusive chrome.vivaldi API
-const isVivaldi = navigator.userAgent.includes('Vivaldi') || !!(globalThis as any).chrome?.vivaldi;
+const NEW_TAB_PREFIXES = ['chrome://newtab', 'vivaldi://newtab', 'about:newtab'];
 
 // Vivaldi exposes its internal vivaldi:// pages as chrome:// to extensions.
 // Map them back so captured URLs reflect what the user actually sees.
 const normalizeUrl = (url: string | undefined): string => {
   if (!url) return '';
-  if (isVivaldi && url.startsWith('chrome://')) {
+  if (url.startsWith('chrome://') && browser.vivaldi) {
     return 'vivaldi://' + url.slice('chrome://'.length);
   }
   return url;
@@ -99,6 +98,11 @@ async function captureTab(tags?: string[], roomId?: string) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) throw new Error('No active tab found');
 
+    const tabUrl = normalizeUrl(tab.url);
+    if (!browser.vivaldi && (tabUrl.startsWith('chrome://') || tabUrl.startsWith('chrome-extension://'))) {
+      return { success: false, error: 'Cannot capture browser internal pages' };
+    }
+
     let screenshot = '';
     try {
       screenshot = await chrome.tabs.captureVisibleTab({ format: 'jpeg', quality: 80 });
@@ -109,7 +113,7 @@ async function captureTab(tags?: string[], roomId?: string) {
 
     const captureData = {
       title: tab.title,
-      url: normalizeUrl(tab.url),
+      url: tabUrl,
       favicon: tab.favIconUrl,
       screenshot,
       description: metadata?.description || '',
@@ -147,6 +151,7 @@ async function captureAllTabs(roomId?: string) {
       const normalizedTabUrl = rawUrl ? normalizeUrl(rawUrl) : '';
       if (normalizedTabUrl.includes('boardback-web.vercel.app')) continue;
       if (normalizedTabUrl.includes('whitebroawd-web.vercel.app')) continue;
+      if (!browser.vivaldi && (normalizedTabUrl.startsWith('chrome://') || normalizedTabUrl.startsWith('chrome-extension://'))) continue;
 
       const metadata = await extractMetadata(tab.id!);
 
