@@ -40,7 +40,7 @@ const DEFAULT_ROOMS: RoomData[] = [
   { id: 'office',       name: 'Office',       emoji: '💼', nodes: [], edges: [], groups: [] },
   { id: 'social-media', name: 'Social Media', emoji: '📱', nodes: [], edges: [], groups: [] },
   { id: 'learning',     name: 'Learning',     emoji: '🧠', nodes: [], edges: [], groups: [] },
-  { id: 'favorite',     name: 'Favorite',     emoji: '♥️', nodes: [], edges: [], groups: [] },
+  { id: 'favorites',     name: 'Favorites',     emoji: '♥️', nodes: [], edges: [], groups: [] },
 ];
 
 const ACCENT_HEX: Record<string, string> = {

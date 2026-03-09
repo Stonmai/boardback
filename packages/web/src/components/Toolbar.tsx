@@ -138,7 +138,7 @@ const FALLBACK_EMOJI: Record<string, string> = {
   'office':       '💼',
   'social-media': '📱',
   'learning':     '🧠',
-  'favorite':     '♥️',
+  'favorites':     '♥️',
 };
 
 const getRoomEmoji = (room: Pick<RoomData, 'id' | 'emoji'>): string =>
@@ -284,6 +284,7 @@ const Toolbar = () => {
   const [showTags, setShowTags] = React.useState(false);
   const [showMenu, setShowMenu] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);
+  const [deleteConfirm, setDeleteConfirm] = React.useState<{ id: string; name: string } | null>(null);
   const [isMobile, setIsMobile] = React.useState(false);
   const [isCompact, setIsCompact] = React.useState(false);
   const [maxInlineRooms, setMaxInlineRooms] = React.useState(8);
@@ -587,7 +588,7 @@ const Toolbar = () => {
                   <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1, maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room.name}</span>
                 </button>
                 {!active && rooms.length > 1 && (
-                  <button onClick={e => { e.stopPropagation(); deleteRoom(room.id); }} title="Delete workspace"
+                  <button onClick={e => { e.stopPropagation(); setDeleteConfirm({ id: room.id, name: room.name }); }} title="Delete workspace"
                     style={{ position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,60,60,0.75)', border: '1.5px solid rgba(10,11,22,0.85)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
                     ×
                   </button>
@@ -671,7 +672,7 @@ const Toolbar = () => {
   );
 
   const renderSettingsPanel = () => (
-    <div ref={settingsRef} style={{ ...panelStyle, minWidth: 240 }}>
+    <div ref={settingsRef} style={{ ...panelStyle, minWidth: 280 }}>
       <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Settings</div>
       
       <div 
@@ -690,13 +691,13 @@ const Toolbar = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ExternalLink size={16} color={autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.3)'} />
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Auto-open bookmarks</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Clicking card opens new tab</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Open bookmark in new tab</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Click a preview to open it in a new browser tab</div>
           </div>
         </div>
         <div 
           style={{ 
-            width: 32, 
+            width: 40, 
             height: 18, 
             borderRadius: 20, 
             background: autoOpenBookmarks ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.1)',
@@ -722,6 +723,33 @@ const Toolbar = () => {
     </div>
   );
 
+  // ── Delete confirmation modal ─────────────────────────────────────────────
+  const deleteModal = deleteConfirm && (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
+      onClick={() => setDeleteConfirm(null)}>
+      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: '24px', width: 300, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,100,100,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete workspace?</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.5 }}>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteConfirm.name}"</span> and all its content will be permanently removed.
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setDeleteConfirm(null)}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={() => { deleteRoom(deleteConfirm.id); setDeleteConfirm(null); }}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'rgba(255,60,60,0.15)', border: '1px solid rgba(255,60,60,0.3)', color: '#ff6b6b', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Compact mode (< 400px) ────────────────────────────────────────────────
   if (isCompact) {
     const menuItems = [
@@ -733,6 +761,8 @@ const Toolbar = () => {
     ];
 
     return (
+      <>
+      {deleteModal}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
@@ -778,6 +808,7 @@ const Toolbar = () => {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
@@ -792,6 +823,8 @@ const Toolbar = () => {
     ];
 
     return (
+      <>
+      {deleteModal}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
@@ -838,11 +871,14 @@ const Toolbar = () => {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   // ── Desktop layout ────────────────────────────────────────────────────────
   return (
+    <>
+    {deleteModal}
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ maxWidth: 'calc(100vw - 2rem)', userSelect: 'none' }}>
       <div className="flex items-center"
         style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
@@ -955,39 +991,39 @@ const Toolbar = () => {
                     (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
                     getRoomEmoji(room)
                   )}
-                  {/* Tab button:
-                      - inactive → switch workspace
-                      - active → toggle emoji picker */}
-                  <button
-                    onClick={() => {
-                      if (active) {
-                        setEmojiPickerFor(pickerOpen ? null : room.id);
-                      } else {
-                        switchRoom(room.id);
-                        setEmojiPickerFor(null);
-                        setShowOverflow(false);
-                      }
-                    }}
-                    title={active ? 'Change emoji' : room.name}
-                    style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
-                    onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; } }}
-                    onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'grayscale(0.2) opacity(0.7)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
-                  >
-                    {getRoomEmoji(room)}
-                  </button>
+                  {/* Tab button wrapper — keeps delete button anchored to emoji button */}
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => {
+                        if (active) {
+                          setEmojiPickerFor(pickerOpen ? null : room.id);
+                        } else {
+                          switchRoom(room.id);
+                          setEmojiPickerFor(null);
+                          setShowOverflow(false);
+                        }
+                      }}
+                      title={active ? 'Change emoji' : room.name}
+                      style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
+                      onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; } }}
+                      onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'grayscale(0.2) opacity(0.7)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
+                    >
+                      {getRoomEmoji(room)}
+                    </button>
+                    {/* Delete button — shown on hover for non-active rooms when >1 room exists */}
+                    {!active && rooms.length > 1 && hoveredRoomId === room.id && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setDeleteConfirm({ id: room.id, name: room.name }); }}
+                        title="Delete workspace"
+                        style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,60,60,0.85)', border: '1.5px solid rgba(10,11,22,0.9)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, zIndex: 10, lineHeight: 1, paddingBottom: 1 }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   <span style={{ ...labelStyle, color: active ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', maxWidth: 72 }}>
                     {room.name.length > 11 ? room.name.slice(0, 10) + '…' : room.name}
                   </span>
-                  {/* Delete button — shown on hover for non-active rooms when >1 room exists */}
-                  {!active && rooms.length > 1 && hoveredRoomId === room.id && (
-                    <button
-                      onClick={e => { e.stopPropagation(); deleteRoom(room.id); }}
-                      title="Delete workspace"
-                      style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,60,60,0.85)', border: '1.5px solid rgba(10,11,22,0.9)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, zIndex: 10, lineHeight: 1 }}
-                    >
-                      ×
-                    </button>
-                  )}
                 </div>
               );
             })}
@@ -1026,7 +1062,7 @@ const Toolbar = () => {
                             {room.name}
                           </button>
                           {!active && rooms.length > 1 && (
-                            <button onClick={() => deleteRoom(room.id)} title="Delete workspace"
+                            <button onClick={() => setDeleteConfirm({ id: room.id, name: room.name })} title="Delete workspace"
                               style={{ width: 24, height: 24, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,100,100,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, transition: 'all 0.15s' }}
                               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,100,100,0.9)'; }}
                               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,100,100,0.5)'; }}
@@ -1151,6 +1187,7 @@ const Toolbar = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

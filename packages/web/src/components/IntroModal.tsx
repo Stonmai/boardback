@@ -234,7 +234,15 @@ const WelcomePage = () => (
   </div>
 );
 
-const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
+const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks }: { extInstalled: boolean | null; autoOpenBookmarks: boolean; setAutoOpenBookmarks: (v: boolean) => void }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
   <div>
     <div style={{ marginBottom: 20, textAlign: 'center' }}>
       <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(200,241,53,0.7)', background: 'rgba(200,241,53,0.08)', border: '1px solid rgba(200,241,53,0.18)', borderRadius: 20, padding: '3px 10px', marginBottom: 12 }}>
@@ -266,8 +274,9 @@ const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
         {
           num: '3',
           done: false,
-          title: 'Organise on the canvas',
-          body: 'Drag bookmarks into groups, paste URLs, add sticky notes, and connect related items together.',
+          title: 'Set as your browser start page',
+          body: 'Your browser: Settings → On startup → Open a specific page, then add the URL below.',
+          copyUrl: 'https://boardback-web.vercel.app',
         },
       ].map((step, i) => (
         <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px' }}>
@@ -289,18 +298,48 @@ const SetupPage = ({ extInstalled }: { extInstalled: boolean | null }) => (
                 {(step as any).link.label}
               </a>
             )}
+            {(step as any).copyUrl && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                <code style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 8px', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {(step as any).copyUrl}
+                </code>
+                <button
+                  onClick={() => handleCopy((step as any).copyUrl)}
+                  style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, color: copied ? '#c8f135' : 'rgba(255,255,255,0.55)', background: copied ? 'rgba(200,241,53,0.1)' : 'rgba(255,255,255,0.06)', border: copied ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ))}
     </div>
+
+    {/* Preference */}
+    <div style={{ marginTop: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Open bookmarks in new tab</div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>Click a preview to open it in a new browser tab</div>
+      </div>
+      <button
+        onClick={() => setAutoOpenBookmarks(!autoOpenBookmarks)}
+        style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', transition: 'background 0.2s ease', background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.12)', position: 'relative', padding: 0 }}
+      >
+        <span style={{ position: 'absolute', top: 3, left: autoOpenBookmarks ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: autoOpenBookmarks ? '#0b0c16' : 'rgba(255,255,255,0.55)', transition: 'left 0.2s ease', display: 'block' }} />
+      </button>
+    </div>
   </div>
-);
+  );
+};
 
 // ── Main modal ─────────────────────────────────────────────────────────────────
 
 const IntroModal = () => {
   const hasSeenIntro = useStore((s) => s.hasSeenIntro);
   const dismissIntro = useStore((s) => s.dismissIntro);
+  const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
+  const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
   const [extInstalled, setExtInstalled] = useState<boolean | null>(null);
   const [visible, setVisible] = useState(false);
   const [page, setPage] = useState(0);
@@ -366,7 +405,7 @@ const IntroModal = () => {
           {isWelcome ? (
             <WelcomePage />
           ) : isSetup ? (
-            <SetupPage extInstalled={extInstalled} />
+            <SetupPage extInstalled={extInstalled} autoOpenBookmarks={autoOpenBookmarks} setAutoOpenBookmarks={setAutoOpenBookmarks} />
           ) : current ? (
             <>
               {/* Illustration */}
