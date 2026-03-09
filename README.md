@@ -1,13 +1,15 @@
 <div align="center">
 
+<img src="packages/web/public/icon.png" alt="BoardBack" width="96" height="96" />
+
 # BoardBack
 
 **Your bookmark. Your browser. Your board.**
 
-A local-first visual workspace for organizing browser tabs and bookmarks on an infinite canvas.
+Capture anything from the web, arrange it on an infinite canvas, and map your thinking — all stored privately on your device.
 
-[![Web App](https://img.shields.io/badge/Web_App-Live-black?style=for-the-badge&logo=vercel)](https://boardback-web.vercel.app)
-[![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Install-blue?style=for-the-badge&logo=googlechrome)](https://chromewebstore.google.com/detail/boardback-capture-tool/cnopkpkjbkbccgikjggidpojcjchclpe)
+[![Web App](https://img.shields.io/badge/Open_App-boardback--web.vercel.app-black?style=for-the-badge&logo=vercel)](https://boardback-web.vercel.app)
+[![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Install_Free-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/boardback-capture-tool/cnopkpkjbkbccgikjggidpojcjchclpe)
 
 </div>
 
@@ -15,21 +17,34 @@ A local-first visual workspace for organizing browser tabs and bookmarks on an i
 
 ## What is BoardBack?
 
-Capture anything from Chrome with one click, arrange it on an infinite canvas, draw connections, group ideas — all stored **privately on your device** with no account required.
+BoardBack is a **local-first visual workspace** for your browser tabs and bookmarks. No sign-up. No cloud. No tracking. Everything stays on your device.
+
+Open a new tab, capture it in one click, and drag it onto your personal canvas. Draw connections between ideas, group related research, and see the whole picture at a glance.
 
 ---
 
 ## Features
 
-- **Infinite canvas** — Drag, zoom, and arrange bookmarks and notes freely
-- **One-click capture** — Chrome extension captures the current tab or all open tabs at once
-- **Paste URLs** — Drop any link onto the canvas directly
-- **Sticky notes** — Add text notes and connect them to bookmarks
-- **Groups** — Drag items into labeled group frames; auto-arrange by domain or tags
-- **Connections** — Draw edges between any two nodes to map your thinking
-- **Tag filtering** — Color-tag bookmarks and filter the canvas instantly
-- **Undo / Redo** — Full history with `Cmd+Z` / `Cmd+Shift+Z`
-- **100% local** — Data lives in your browser via IndexedDB; no cloud, no account, no tracking
+### 🗂 Visual Canvas
+Arrange bookmarks, notes, and web captures on an infinite canvas. Drag freely, zoom in/out, and group related items in labeled frames.
+
+### ⚡ One-Click Capture
+The Chrome extension saves any tab — screenshot, title, URL, and metadata — directly to your canvas. Capture one tab or all open tabs at once.
+
+### 🔗 Connections & Mapping
+Draw edges between any two nodes to map relationships, trace research threads, or plan a project visually.
+
+### 🏷 Tags & Filtering
+Color-tag bookmarks and filter the canvas instantly. Auto-arrange nodes by domain or tag for quick organization.
+
+### 📝 Sticky Notes
+Add plain-text notes alongside your bookmarks. Connect them to any node to add context.
+
+### 🔒 100% Private
+All data lives in your browser's IndexedDB. Nothing is sent to a server. No account, no analytics, no telemetry.
+
+### 🌐 New Tab Override
+Optionally replace your browser's new tab page with your BoardBack workspace (requires the extension).
 
 ---
 
@@ -51,8 +66,8 @@ Capture anything from Chrome with one click, arrange it on an infinite canvas, d
 ```
 boardback/
 ├── packages/
-│   ├── web/          # Next.js app (the canvas)
-│   ├── extension/    # Chrome extension (capture tool)
+│   ├── web/          # Next.js app — the visual canvas
+│   ├── extension/    # Chrome/Vivaldi extension — capture tool
 │   └── shared/       # Shared TypeScript types
 ```
 
@@ -64,34 +79,28 @@ boardback/
 
 - Node.js 18+
 - npm 9+
-- Google Chrome (for the extension)
+- Chrome or Vivaldi (for the extension)
 
-### Install dependencies
+### Install & Run
 
 ```bash
+# Install dependencies
 npm install
-```
 
-### Run the web app
-
-```bash
+# Start the web app
 npm run web:dev
-# Opens at http://localhost:3000
-```
+# → http://localhost:3000
 
-### Run the extension (dev)
-
-```bash
+# Start the extension in watch mode
 npm run extension:dev
 ```
 
-Then load it in Chrome:
+### Load the Extension (Dev)
 
-1. Go to `chrome://extensions`
-2. Enable **Developer mode** (top right)
-3. Click **Load unpacked**
-4. Select `packages/extension/dist`
-5. Pin **BoardBack** to your toolbar
+1. Go to `chrome://extensions` (or `vivaldi://extensions`)
+2. Enable **Developer mode**
+3. Click **Load unpacked** → select `packages/extension/dist`
+4. Pin **BoardBack** to your toolbar
 
 ---
 
@@ -99,8 +108,8 @@ Then load it in Chrome:
 
 | Action | What it does |
 |---|---|
-| **Capture Tab** | Saves the current tab (screenshot + metadata) to the canvas |
-| **Capture All** | Saves all open tabs in the current window |
+| **Capture Tab** | Saves the current tab (screenshot + metadata) to your canvas |
+| **Capture All** | Saves all open tabs in the current window (skips BoardBack itself) |
 | **Open App** | Opens the BoardBack canvas |
 
 Captured tabs appear on the canvas automatically within a few seconds.
@@ -144,17 +153,18 @@ BoardBack is local-first by design:
 - All data is stored in your browser's IndexedDB
 - No data is sent to any server
 - No analytics, no telemetry, no account required
-- The extension only communicates with the BoardBack web app
+- The extension only communicates with the BoardBack web app on the same device
 
 ---
 
 ## Development Notes
 
-- The extension communicates with the web app via custom DOM events (`WHITEBOARD_SYNC_REQUEST` / `WHITEBOARD_SYNC_RESPONSE`)
-- Extension detection works by the content script setting `data-whiteboard-ext="true"` on `<html>` — the web app reads this on load to show install status in the intro screen
-- The intro screen only appears once (tracked via `hasSeenIntro` in the persisted store)
+- Extension ↔ web app communication uses `chrome.runtime.sendMessage` with `externally_connectable` (MV3)
+- Extension detection: the web app pings both the production and dev extension IDs on load
+- The intro screen appears once per device (tracked via `hasSeenIntro` in the persisted Zustand store)
+- Vivaldi support: `vivaldi://newtab` is handled for new tab override; internal `chrome://` URLs are remapped to `vivaldi://` on capture
 
-### Reset all data
+### Reset all local data
 
 ```js
 indexedDB.deleteDatabase('boardback-db')
