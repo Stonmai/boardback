@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BoardBack Capture Tool",
   "version": "1.0.1",
-  "description": "Capture bookmark tool for BoardBack (https://boardback-web.vercel.app)",
+  "description": "A local-first visual workspace for organizing browser tabs and bookmarks on an infinite canvas.",
   "permissions": [
     "tabs",
     "activeTab",
