@@ -91,6 +91,7 @@ async function captureAllTabs(roomId?: string) {
       if (!tab.url?.startsWith('http') || tab.url.includes('chrome://')) continue;
       if (tab.url.match(/localhost:(3000|3001|3002|3003|3004|3005)/)) continue;
       if (tab.url.includes('boardback-web.vercel.app')) continue;
+      if (tab.url.includes('whitebroawd-web.vercel.app')) continue;
 
       const metadata = await extractMetadata(tab.id!);
 
