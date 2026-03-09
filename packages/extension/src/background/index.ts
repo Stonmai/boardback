@@ -85,7 +85,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function getAndClearPendingCaptures() {
-  const { pendingCaptures = [] } = await chrome.storage.local.get('pendingCaptures');
+  const result = await chrome.storage.local.get('pendingCaptures');
+  const pendingCaptures: any[] = Array.isArray(result.pendingCaptures) ? result.pendingCaptures : [];
   if (pendingCaptures.length > 0) {
     console.log(`[Background] Sending ${pendingCaptures.length} captures to whiteboard.`);
     await chrome.storage.local.set({ pendingCaptures: [] });
@@ -119,7 +120,8 @@ async function captureTab(tags?: string[], roomId?: string) {
     };
 
     // Store in storage.local for web app to pick up
-    const { pendingCaptures = [] } = await chrome.storage.local.get('pendingCaptures');
+    const r1 = await chrome.storage.local.get('pendingCaptures');
+    const pendingCaptures: any[] = Array.isArray(r1.pendingCaptures) ? r1.pendingCaptures : [];
     const updatedCaptures = [...pendingCaptures, captureData];
     await chrome.storage.local.set({
       pendingCaptures: updatedCaptures
@@ -158,7 +160,8 @@ async function captureAllTabs(roomId?: string) {
         timestamp: new Date().toISOString()
       };
 
-      const { pendingCaptures = [] } = await chrome.storage.local.get('pendingCaptures');
+      const r2 = await chrome.storage.local.get('pendingCaptures');
+      const pendingCaptures: any[] = Array.isArray(r2.pendingCaptures) ? r2.pendingCaptures : [];
       await chrome.storage.local.set({
         pendingCaptures: [...pendingCaptures, captureData]
       });
