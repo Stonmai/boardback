@@ -1,8 +1,21 @@
+<div align="center">
+
 # BoardBack
 
 **Your bookmark. Your browser. Your board.**
 
-BoardBack is a local-first visual workspace for organizing browser tabs and bookmarks. Capture anything from Chrome with one click, arrange it on an infinite canvas, draw connections, group ideas — all stored privately on your device with no account required.
+A local-first visual workspace for organizing browser tabs and bookmarks on an infinite canvas.
+
+[![Web App](https://img.shields.io/badge/Web_App-Live-black?style=for-the-badge&logo=vercel)](https://boardback-web.vercel.app)
+[![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Install-blue?style=for-the-badge&logo=googlechrome)](https://chromewebstore.google.com/detail/boardback-capture-tool/cnopkpkjbkbccgikjggidpojcjchclpe)
+
+</div>
+
+---
+
+## What is BoardBack?
+
+Capture anything from Chrome with one click, arrange it on an infinite canvas, draw connections, group ideas — all stored **privately on your device** with no account required.
 
 ---
 
@@ -15,14 +28,25 @@ BoardBack is a local-first visual workspace for organizing browser tabs and book
 - **Groups** — Drag items into labeled group frames; auto-arrange by domain or tags
 - **Connections** — Draw edges between any two nodes to map your thinking
 - **Tag filtering** — Color-tag bookmarks and filter the canvas instantly
-- **Undo / Redo** — Full history with Cmd+Z / Cmd+Shift+Z
+- **Undo / Redo** — Full history with `Cmd+Z` / `Cmd+Shift+Z`
 - **100% local** — Data lives in your browser via IndexedDB; no cloud, no account, no tracking
 
 ---
 
-## Project Structure
+## Tech Stack
 
-This is an npm workspaces monorepo with three packages:
+| Layer | Technology |
+|---|---|
+| Web app | Next.js 14, React, TypeScript |
+| Canvas | React Flow (@xyflow/react v12) |
+| State | Zustand |
+| Storage | Dexie (IndexedDB) |
+| Extension | React, Webpack, Chrome MV3 |
+| Styling | Tailwind CSS |
+
+---
+
+## Project Structure
 
 ```
 boardback/
@@ -48,13 +72,12 @@ boardback/
 npm install
 ```
 
-### Run the web app (dev)
+### Run the web app
 
 ```bash
 npm run web:dev
+# Opens at http://localhost:3000
 ```
-
-Opens at [http://localhost:3000](http://localhost:3000).
 
 ### Run the extension (dev)
 
@@ -62,7 +85,7 @@ Opens at [http://localhost:3000](http://localhost:3000).
 npm run extension:dev
 ```
 
-Then load the extension in Chrome:
+Then load it in Chrome:
 
 1. Go to `chrome://extensions`
 2. Enable **Developer mode** (top right)
@@ -84,14 +107,14 @@ Captured tabs appear on the canvas automatically within a few seconds.
 
 ---
 
-## Using the Canvas
+## Canvas Shortcuts
 
 | Interaction | Action |
 |---|---|
 | `Space + drag` | Pan the canvas |
 | Scroll | Zoom in / out |
-| `Shift + drag` | Rubber-band select multiple nodes |
-| `Cmd/Ctrl + click` | Add node to selection |
+| `Shift + drag` | Multi-select |
+| `Cmd/Ctrl + click` | Add to selection |
 | Paste a URL | Creates a bookmark node |
 | Paste text | Creates a sticky note |
 | Drag node into group | Attaches it to the group |
@@ -102,19 +125,6 @@ Captured tabs appear on the canvas automatically within a few seconds.
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Web app | Next.js 14, React, TypeScript |
-| Canvas | @xyflow/react v12 (React Flow) |
-| State | Zustand |
-| Storage | Dexie (IndexedDB) |
-| Extension | React, Webpack, Chrome MV3 |
-| Styling | Tailwind CSS |
-
----
-
 ## Build for Production
 
 ```bash
@@ -122,11 +132,8 @@ npm run web:build
 npm run extension:build
 ```
 
-After building the extension, reload it in `chrome://extensions`.
-
-The web app is deployed at [boardback-web.vercel.app](https://boardback-web.vercel.app).
-
-> **Note:** After deploying to a new domain, update `content_scripts.matches` in `packages/extension/public/manifest.json` to include your production URL, then rebuild the extension.
+> After building the extension, reload it in `chrome://extensions`.
+> After deploying to a new domain, update `content_scripts.matches` in `packages/extension/public/manifest.json` to include your production URL.
 
 ---
 
@@ -137,7 +144,7 @@ BoardBack is local-first by design:
 - All data is stored in your browser's IndexedDB
 - No data is sent to any server
 - No analytics, no telemetry, no account required
-- The extension only communicates with the BoardBack web app (localhost or your configured domain)
+- The extension only communicates with the BoardBack web app
 
 ---
 
@@ -148,8 +155,6 @@ BoardBack is local-first by design:
 - The intro screen only appears once (tracked via `hasSeenIntro` in the persisted store)
 
 ### Reset all data
-
-To wipe the canvas and see the intro again, run in the browser console:
 
 ```js
 indexedDB.deleteDatabase('boardback-db')
