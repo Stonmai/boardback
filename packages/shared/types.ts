@@ -4,6 +4,7 @@ export interface WhiteboardNode {
   position: { x: number; y: number };
   width?: number;
   height?: number;
+  selected?: boolean;
   data: {
     title: string;
     url?: string;
