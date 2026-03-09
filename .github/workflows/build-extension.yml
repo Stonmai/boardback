@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'packages/extension/**'
-      - 'packages/shared/**'
-      - 'package.json'
-      - 'package-lock.json'
     tags:
       - "v*"
 
@@ -41,7 +36,7 @@ jobs:
         run: cd packages/extension/dist && zip -r ../../../extension.zip .
 
       - name: Publish to Chrome Web Store
-        uses: fregante/chrome-webstore-action@v2
+        uses: fregante/chrome-webstore-upload-action
         with:
           client-id: ${{ secrets.CHROME_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
