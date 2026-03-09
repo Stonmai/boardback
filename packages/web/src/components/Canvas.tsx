@@ -500,6 +500,8 @@ const Canvas = () => {
         onSelectionChange={({ nodes }) => useStore.getState().setSelectedNodes(nodes.map(n => n.id))}
         nodeTypes={nodeTypes as any}
         fitView
+        fitViewOptions={{ padding: 0.4, maxZoom: 1 }}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.55 }}
         connectionMode={'loose' as any}
         connectionRadius={40}
         snapToGrid={false}
