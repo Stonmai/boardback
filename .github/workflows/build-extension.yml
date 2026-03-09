@@ -42,7 +42,7 @@ jobs:
 
       - name: Publish to Chrome Web Store
         if: startsWith(github.ref, 'refs/tags/')
-        uses: fregante/chrome-webstore-upload-action@v1
+        uses: fregante/chrome-webstore-upload@v4
         with:
           client-id: ${{ secrets.CHROME_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
