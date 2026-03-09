@@ -6,6 +6,7 @@ import { ExternalLink, Trash2, Palette, Check, X, Pencil, Tag } from 'lucide-rea
 import { useStore } from '@/store/useStore';
 import { WhiteboardNode } from '@whiteboard/shared/types';
 import { cn } from '@/utils/cn';
+import { fetchMetadata } from '@/utils/metadata';
 
 // Bookmark cards use a glassmorphism style with a colored accent on the left edge
 const COLORS: Record<
@@ -65,7 +66,12 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
   };
 
   const handleSave = () => {
+    const urlChanged = tempUrl !== data.url;
     updateNode(id, { title: tempTitle, url: tempUrl, description: tempDescription });
+    if (urlChanged && tempUrl) {
+      updateNode(id, { screenshot: '', favicon: '' });
+      fetchMetadata(tempUrl).then(metadata => updateNode(id, metadata));
+    }
     setIsEditing(false);
   };
 

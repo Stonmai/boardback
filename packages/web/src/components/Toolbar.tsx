@@ -271,7 +271,7 @@ const Toolbar = () => {
   const toggleTagFilter = useStore((s) => s.toggleTagFilter);
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
   const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
 
   const allTags = React.useMemo(() => {
     const set = new Set<string>();
@@ -854,7 +854,7 @@ const Toolbar = () => {
       { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); setShowSettings(false); }, active: hasActiveFilters },
-      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setTimeout(() => fitView({ duration: 0, padding: 0.5, maxZoom: 1 }), 50); setShowMenu(false); setShowSettings(false); } },
       { icon: <Settings size={18} strokeWidth={2} />, label: 'Settings', action: () => { setShowSettings(v => !v); setShowMenu(false); setShowTags(false); }, active: showSettings },
     ];
 
@@ -916,7 +916,7 @@ const Toolbar = () => {
       { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); setShowSettings(false); }, active: hasActiveFilters },
-      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setShowMenu(false); setShowSettings(false); } },
+      { icon: <Wand2 size={18} strokeWidth={2} />, label: 'Arrange', action: () => { autoArrange(); setTimeout(() => fitView({ duration: 0, padding: 0.5, maxZoom: 1 }), 50); setShowMenu(false); setShowSettings(false); } },
       { icon: <Settings size={18} strokeWidth={2} />, label: 'Settings', action: () => { setShowSettings(v => !v); setShowMenu(false); setShowTags(false); }, active: showSettings },
     ];
 
@@ -1265,7 +1265,7 @@ const Toolbar = () => {
 
         {/* Arrange */}
         <div className="flex flex-col items-center justify-center">
-          <button style={mkBtnStyle()} onClick={autoArrange} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><Wand2 size={20} strokeWidth={2} /></button>
+          <button style={mkBtnStyle()} onClick={() => { autoArrange(); setTimeout(() => fitView({ duration: 0, padding: 0.5, maxZoom: 1 }), 50); }} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><Wand2 size={20} strokeWidth={2} /></button>
           <span style={labelStyle}>Arrange</span>
         </div>
 
