@@ -161,7 +161,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                 value={tempDescription}
                 onChange={(e) => setTempDescription(e.target.value)}
                 placeholder="Description (optional)"
-                className="w-full rounded-lg px-2.5 py-1 text-[11px] text-white/80 outline-none resize-none min-h-[56px] focus:ring-2 focus:ring-white/20"
+                className="w-full rounded-lg px-2.5 py-1 text-[11px] text-white/80 outline-none resize-none min-h-14 focus:ring-2 focus:ring-white/20"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
               <div className="flex justify-end gap-1.5">
@@ -188,13 +188,13 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   <img
                     src={data.favicon as string}
                     alt=""
-                    className="w-4 h-4 mt-0.5 rounded flex-shrink-0"
+                    className="w-4 h-4 mt-0.5 rounded shrink-0"
                     style={{ background: 'rgba(255,255,255,0.08)', padding: 1 }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[13px] font-bold text-white leading-tight break-words mb-0.5">
+                  <h3 className="text-[13px] font-bold text-white leading-tight wrap-break-word mb-0.5">
                     {data.title || 'Untitled Bookmark 🔗'}
                   </h3>
                   <p className="text-[9px] text-white/35 break-all font-mono">
@@ -340,7 +340,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
           </button>
 
           {showColorPicker && (
-            <div className="absolute bottom-full left-0 mb-3 p-2 glass-dark rounded-2xl shadow-2xl flex gap-2 z-[60] border border-white/20">
+            <div className="absolute bottom-full left-0 mb-3 p-2 glass-dark rounded-2xl shadow-2xl flex gap-2 z-60 border border-white/20">
               {Object.entries(COLORS).map(([key, val]) => (
                 <button
                   key={key}
@@ -371,7 +371,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
           </button>
 
           {showTagInput && (
-            <div className="absolute bottom-full left-0 mb-3 p-2.5 glass-dark rounded-2xl shadow-2xl z-[60] border border-white/20" style={{ width: 180 }}>
+            <div className="absolute bottom-full left-0 mb-3 p-2.5 glass-dark rounded-2xl shadow-2xl z-60 border border-white/20" style={{ width: 180 }}>
               {(data.tags as string[] || []).length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
                   {(data.tags as string[]).map((tag) => (

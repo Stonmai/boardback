@@ -861,7 +861,7 @@ const Toolbar = () => {
     return (
       <>
       {deleteModal}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
           {showSettings && renderSettingsPanel()}
@@ -923,7 +923,7 @@ const Toolbar = () => {
     return (
       <>
       {deleteModal}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ userSelect: 'none' }}>
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showTags && renderTagsPanel()}
           {showSettings && renderSettingsPanel()}
@@ -977,7 +977,7 @@ const Toolbar = () => {
   return (
     <>
     {deleteModal}
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]" style={{ maxWidth: 'calc(100vw - 2rem)', userSelect: 'none' }}>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ maxWidth: 'calc(100vw - 2rem)', userSelect: 'none' }}>
       <div className="flex items-center"
         style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
 
