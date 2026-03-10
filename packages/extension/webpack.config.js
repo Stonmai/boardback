@@ -1,6 +1,10 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { APP_URL, LEGACY_URLS } = require('./config.json');
+
+// All URLs that the extension should be allowed to connect to / inject into
+const ALL_URL_MATCHES = [APP_URL, ...LEGACY_URLS].map(u => `${u}/*`);
 
 module.exports = {
     entry: {
@@ -52,7 +56,22 @@ module.exports = {
         }),
         new CopyPlugin({
             patterns: [
-                { from: 'public/manifest.json', to: 'manifest.json' },
+                {
+                    from: 'public/manifest.json',
+                    to: 'manifest.json',
+                    transform(content) {
+                        const manifest = JSON.parse(content.toString());
+                        manifest.externally_connectable.matches = [
+                            ...ALL_URL_MATCHES,
+                            ...manifest.externally_connectable.matches,
+                        ];
+                        manifest.content_scripts[0].matches = [
+                            ...ALL_URL_MATCHES,
+                            ...manifest.content_scripts[0].matches,
+                        ];
+                        return JSON.stringify(manifest, null, 2);
+                    },
+                },
                 { from: 'public/icon.png', to: 'icon.png' },
             ],
         }),

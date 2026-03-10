@@ -1,4 +1,5 @@
 import { browser } from '../utils/browser';
+import { APP_URL, LEGACY_URLS } from '../config';
 
 const NEW_TAB_PREFIXES = ['chrome://newtab', 'vivaldi://newtab', 'about:newtab'];
 
@@ -21,7 +22,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   if (url !== '' && !isNewTabUrl(url)) return;
   const { boardbackNewTab } = await chrome.storage.local.get('boardbackNewTab');
   if (boardbackNewTab && tab.id !== undefined) {
-    chrome.tabs.update(tab.id, { url: 'https://boardback-web.vercel.app' });
+    chrome.tabs.update(tab.id, { url: APP_URL });
   }
 });
 
@@ -30,7 +31,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
   if (!isNewTabUrl(url)) return;
   const { boardbackNewTab } = await chrome.storage.local.get('boardbackNewTab');
   if (boardbackNewTab) {
-    chrome.tabs.update(tabId, { url: 'https://boardback-web.vercel.app' });
+    chrome.tabs.update(tabId, { url: APP_URL });
   }
 });
 
@@ -149,8 +150,7 @@ async function captureAllTabs(roomId?: string) {
       const rawUrl = tab.url || tab.pendingUrl || '';
       if (!rawUrl && !tab.title) continue;
       const normalizedTabUrl = rawUrl ? normalizeUrl(rawUrl) : '';
-      if (normalizedTabUrl.includes('boardback-web.vercel.app')) continue;
-      if (normalizedTabUrl.includes('whitebroawd-web.vercel.app')) continue;
+      if ([APP_URL, ...LEGACY_URLS].some(u => normalizedTabUrl.includes(new URL(u).hostname))) continue;
       if (!browser.vivaldi && (normalizedTabUrl.startsWith('chrome://') || normalizedTabUrl.startsWith('chrome-extension://'))) continue;
 
       const metadata = await extractMetadata(tab.id!);

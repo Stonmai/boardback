@@ -1,0 +1,7 @@
+{
+  "APP_URL": "https://open-boardback.com",
+  "LEGACY_URLS": [
+    "https://boardback-web.vercel.app",
+    "https://whitebroawd-web.vercel.app"
+  ]
+}

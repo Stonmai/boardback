@@ -110,9 +110,9 @@ interface WhiteboardState {
 export const useStore = create<WhiteboardState>()(
   persist(
     (set, get) => ({
-  nodes: [],
-  edges: [],
-  groups: [],
+  nodes: [] as Node<WhiteboardNode['data']>[],
+  edges: [] as Edge[],
+  groups: [] as GroupFrame[],
   rooms: DEFAULT_ROOMS,
   currentRoomId: 'personal' as RoomType,
   tags: [
@@ -122,13 +122,13 @@ export const useStore = create<WhiteboardState>()(
     { id: 'idea', label: 'Idea', color: 'slate' },
     { id: 'reference', label: 'Reference', color: 'slate' },
     { id: 'later', label: 'Later', color: 'slate' },
-  ],
-  selectedNodes: [],
+  ] as Tag[],
+  selectedNodes: [] as string[],
   previewNodeId: null,
   editingNodeId: null,
   clipboard: [] as Node<WhiteboardNode['data']>[],
-  _past: [],
-  _future: [],
+  _past: [] as HistoryEntry[],
+  _future: [] as HistoryEntry[],
   hasSeenIntro: false,
   activeTagFilters: [],
   autoOpenBookmarks: true,
@@ -492,8 +492,12 @@ export const useStore = create<WhiteboardState>()(
 
   deleteRoom: (id: string) => {
     const { rooms, currentRoomId } = get();
-    if (rooms.length <= 1 || id === currentRoomId) return;
-    set({ rooms: rooms.filter((r: RoomData) => r.id !== id) });
+    if (rooms.length <= 1) return;
+    if (id === currentRoomId) {
+      const next = rooms.find((r: RoomData) => r.id !== id)!;
+      get().switchRoom(next.id);
+    }
+    set({ rooms: get().rooms.filter((r: RoomData) => r.id !== id) });
   },
 
   updateRoomEmoji: (id: string, emoji: string) => {

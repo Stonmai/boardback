@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, Wrench } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useStore, RoomData } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -434,11 +434,11 @@ const Toolbar = () => {
   React.useEffect(() => {
     const check = () => {
       const w = window.innerWidth;
-      setIsMobile(w < 540);
-      setIsCompact(w < 400);
-      if (w < 640) setMaxInlineRooms(0);
-      else if (w < 900) setMaxInlineRooms(3);
-      else if (w < 1200) setMaxInlineRooms(5);
+      setIsMobile(w <= 768);
+      setIsCompact(w <= 576);
+      if (w <= 992) setMaxInlineRooms(0);
+      else if (w <= 1200) setMaxInlineRooms(3);
+      else if (w <= 1400) setMaxInlineRooms(5);
       else setMaxInlineRooms(8);
     };
     check();
@@ -1390,6 +1390,18 @@ const Toolbar = () => {
                           <Check size={15} strokeWidth={2.5} />
                         </button>
                       </div>
+                      {/* Delete workspace */}
+                      {rooms.length > 1 && (
+                        <button
+                          onClick={() => { setRenamingRoomId(null); setEmojiPickerFor(null); setDeleteConfirm({ id: room.id, name: room.name }); }}
+                          style={{ marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10, background: 'rgba(255,60,60,0.08)', border: '1px solid rgba(255,60,60,0.2)', color: 'rgba(255,100,100,0.85)', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.15)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,60,60,0.4)'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,60,60,0.2)'; }}
+                        >
+                          <Trash2 size={13} strokeWidth={2} />
+                          Delete workspace
+                        </button>
+                      )}
                     </div>
                   )}
                   {/* Tab button wrapper — keeps delete button anchored to emoji button */}
@@ -1439,8 +1451,67 @@ const Toolbar = () => {
             {/* Overflow menu */}
             {overflowRooms.length > 0 && (
               <div className="relative" ref={overflowRef} style={{ margin: '0 2px' }}>
+                {/* Edit panel for overflow rooms — shown instead of overflow list */}
+                {renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId) && (() => {
+                  const room = overflowRooms.find(r => r.id === renamingRoomId)!;
+                  const pickerOpen = emojiPickerFor === room.id;
+                  return (
+                    <div style={{ ...panelStyle, minWidth: 230 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+                        Edit workspace
+                      </div>
+                      {/* Emoji selector */}
+                      <div style={{ marginBottom: 10 }}>
+                        <button
+                          onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(200,241,53,0.10)' : 'rgba(255,255,255,0.06)', border: pickerOpen ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.09)', cursor: 'pointer', transition: 'all 0.15s' }}
+                        >
+                          <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
+                        </button>
+                        {pickerOpen && renderEmojiPicker(
+                          (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
+                          getRoomEmoji(room),
+                          true
+                        )}
+                      </div>
+                      {/* Name input */}
+                      <div style={{ display: 'flex', gap: 7 }}>
+                        <input
+                          ref={renameInputRef}
+                          value={renameValue}
+                          onChange={e => setRenameValue(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }
+                            if (e.key === 'Escape') { setRenamingRoomId(null); setRenameValue(''); setEmojiPickerFor(null); }
+                          }}
+                          placeholder="Workspace name..."
+                          style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+                        />
+                        <button
+                          onClick={() => { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }}
+                          disabled={!renameValue.trim()}
+                          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: renameValue.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: renameValue.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: renameValue.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: renameValue.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                        >
+                          <Check size={15} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                      {/* Delete workspace */}
+                      {rooms.length > 1 && (
+                        <button
+                          onClick={() => { setRenamingRoomId(null); setEmojiPickerFor(null); setDeleteConfirm({ id: room.id, name: room.name }); }}
+                          style={{ marginTop: 10, width: '100%', padding: '7px 0', borderRadius: 10, background: 'rgba(255,60,60,0.08)', border: '1px solid rgba(255,60,60,0.2)', color: 'rgba(255,100,100,0.85)', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.15)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,60,60,0.4)'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,60,60,0.2)'; }}
+                        >
+                          <Trash2 size={13} strokeWidth={2} />
+                          Delete workspace
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
                 {showOverflow && (
-                  <div style={{ ...panelStyle, minWidth: 170 }}>
+                  <div style={{ ...panelStyle, minWidth: 190 }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>More workspaces</div>
                     {overflowRooms.map(room => {
                       const active = room.id === currentRoomId;
@@ -1469,20 +1540,33 @@ const Toolbar = () => {
                             <span style={{ fontSize: 18 }}>{getRoomEmoji(room)}</span>
                             {room.name}
                           </button>
-                          {!active && rooms.length > 1 && (
-                            <button onClick={() => setDeleteConfirm({ id: room.id, name: room.name })} title="Delete workspace"
-                              style={{ width: 24, height: 24, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,100,100,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, transition: 'all 0.15s' }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,100,100,0.9)'; }}
-                              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,100,100,0.5)'; }}
-                            >×</button>
-                          )}
+                          {/* Gear edit button */}
+                          <button
+                            onClick={() => { startRenaming(room); setShowOverflow(false); }}
+                            title="Edit workspace"
+                            style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; }}
+                          >
+                            <Wrench size={13} strokeWidth={2} />
+                          </button>
                         </div>
                       );
                     })}
                   </div>
                 )}
                 <div className="flex flex-col items-center justify-center">
-                  <button onClick={() => setShowOverflow(v => !v)}
+                  <button onClick={() => {
+                    const isEditingOverflow = renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId);
+                    if (isEditingOverflow) {
+                      commitRename();
+                      setRenamingRoomId(null);
+                      setEmojiPickerFor(null);
+                      setShowOverflow(true);
+                    } else {
+                      setShowOverflow(v => !v);
+                    }
+                  }}
                     style={{ width: 44, height: 36, borderRadius: 13, background: showOverflow ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showOverflow ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
                     onMouseEnter={e => { if (!showOverflow) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
                     onMouseLeave={e => { if (!showOverflow) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'; } }}

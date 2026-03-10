@@ -31,16 +31,12 @@
   },
   "externally_connectable": {
     "matches": [
-      "https://boardback-web.vercel.app/*",
-      "https://whitebroawd-web.vercel.app/*",
       "http://localhost:3000/*"
     ]
   },
   "content_scripts": [
     {
       "matches": [
-        "https://boardback-web.vercel.app/*",
-        "https://whitebroawd-web.vercel.app/*",
         "http://localhost:3000/*"
       ],
       "js": ["content.js"]
