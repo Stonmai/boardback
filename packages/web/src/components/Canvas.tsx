@@ -183,6 +183,36 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
   return null;
 };
 
+const NavigationHandler = () => {
+  const { setCenter } = useReactFlow();
+  const pendingNavigation = useStore(s => s.pendingNavigation);
+  const setPendingNavigation = useStore(s => s.setPendingNavigation);
+  const currentRoomId = useStore(s => s.currentRoomId);
+  // Store the target in a ref so the currentRoomId effect can read it
+  // after the new room's nodes have been rendered by ReactFlow.
+  const navRef = React.useRef<{ x: number; y: number } | null>(null);
+
+  // Capture the pending navigation and clear it from the store immediately.
+  useEffect(() => {
+    if (!pendingNavigation) return;
+    navRef.current = pendingNavigation;
+    setPendingNavigation(null);
+  }, [pendingNavigation, setPendingNavigation]);
+
+  // After the room switch is committed and ReactFlow has painted the new nodes,
+  // apply the saved navigation target.
+  useEffect(() => {
+    if (!navRef.current) return;
+    const { x, y } = navRef.current;
+    navRef.current = null;
+    const timer = setTimeout(() => setCenter(x, y, { zoom: 1, duration: 400 }), 150);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentRoomId]);
+
+  return null;
+};
+
 const ZoomHandler = () => {
   const { zoomIn, zoomOut } = useReactFlow();
 
@@ -207,23 +237,44 @@ const Canvas = () => {
   const rawNodes = useStore((state) => state.nodes);
   const activeTagFilters = useStore((state) => state.activeTagFilters);
   const nodes = React.useMemo(() => {
+    // Pre-compute which groups match the filter (by own tags or by having matching children)
+    const getPid = (n: any): string | undefined => n.parentId || n.parentNode;
+    const matchingGroupIds = new Set<string>();
+    if (activeTagFilters.length > 0) {
+      // Groups that directly have a matching tag
+      rawNodes.forEach(n => {
+        if (n.type === 'group' && (n.data.tags as string[] | undefined)?.some(t => activeTagFilters.includes(t))) {
+          matchingGroupIds.add(n.id);
+        }
+      });
+      // Also mark parent groups of any matching child node
+      rawNodes.forEach(n => {
+        if (n.type !== 'group' && (n.data.tags as string[] | undefined)?.some(t => activeTagFilters.includes(t))) {
+          const pid = getPid(n);
+          if (pid) matchingGroupIds.add(pid);
+        }
+      });
+    }
+
     return rawNodes.map(n => {
       // Group nodes are stored with only style.width/style.height, no top-level
       // width/height. ReactFlow's getNodesInside treats such nodes as
       // "notInitialized" and always includes them in rubber-band selection,
       // bypassing SelectionMode.Full. Providing explicit dimensions here fixes this.
       if (n.type === 'group') {
-        return {
+        const base = {
           ...n,
           width: (n.style?.width as number) ?? (n.width as number) ?? 800,
           height: (n.style?.height as number) ?? (n.height as number) ?? 600,
         };
+        if (activeTagFilters.length === 0) return base;
+        return { ...base, hidden: !matchingGroupIds.has(n.id) };
       }
       if (activeTagFilters.length === 0) return n;
-      return {
-        ...n,
-        hidden: !(n.data.tags as string[] | undefined)?.some(t => activeTagFilters.includes(t)),
-      };
+      const pid = getPid(n);
+      const nodeMatches = (n.data.tags as string[] | undefined)?.some(t => activeTagFilters.includes(t));
+      const parentMatches = pid ? matchingGroupIds.has(pid) : false;
+      return { ...n, hidden: !nodeMatches && !parentMatches };
     });
   }, [rawNodes, activeTagFilters]);
   const edges = useStore((state) => state.edges);
@@ -544,6 +595,7 @@ const Canvas = () => {
         <PasteHandler addNode={addNode} updateNode={updateNode} />
         <SyncHandler addNode={addNode} updateNode={updateNode} />
         <ZoomHandler />
+        <NavigationHandler />
         <RoomsSyncer />
       </ReactFlow>
 

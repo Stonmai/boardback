@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useStore, RoomData } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,10 +16,16 @@ const EMOJI_GROUPS = [
       '😄','😆','😅','😂','🤣','😊','😇','😍','🤩','😘',
       '😗','😚','😙','😌','😏','😴','🤤','😪','😵','🤯',
       '🥺','😡','😱','😭','😬','😮','🤓','🥱','😤','🤥',
+      '😶','😐','😑','😯','😦','😧','😲','😢','😰','😥',
+      '🫨','🫢','🫣','🤫','🫤','😒','🙄','😠','😳','🤐',
       '👩','🧑','👶','👼','👨','🧔','👵','👴','🧒','👧',
+      '👱','🧕','👲','🎅','🤶','🧑‍🎄','🧑‍🍼','🧑‍🎓','🧑‍🏫','🧑‍⚕️',
+      '🧑‍🍳','🧑‍🌾','🧑‍🔧','🧑‍🏭','🧑‍💼','🧑‍🔬','🧑‍🎨','🧑‍✈️','🧑‍🚀','🧑‍🚒',
+      '👮','💂','🕵️','👷','🫂','🧏','🙆','🙅','💁','🙋',
       '👍','👎','🫰','👏','🙌','🤝','🙏','✌️','👌','👀',
       '🫶','🤞','🖐️','✋','🫡','🤟','🤘','✊','🦾','🦶',
-      '🥷','🦹','🧛','🧙','🧟','🫅','🧝','🧞'
+      '👂','🦻','👃','🫀','🫁','🧠','🦷','🦴','👁️','👅',
+      '🥷','🦹','🧛','🧙','🧟','🫅','🧝','🧞','🧜','🧚'
     ]
   },
   {
@@ -28,7 +34,9 @@ const EMOJI_GROUPS = [
       '🛋️','🍳','🛏️','🚿','🏠','🏡','🏢','🏗️',
       '🏰','🏯','🏛️','🕌','🏕️','🛖','🏘️','🌃',
       '🌆','🌇','🏙️','🏚️','🏬','🏪','🏭','💒',
-      '🗼','🗽','🗿','🏟️','🏛','🏞️','🏖️','🏜️'
+      '🗼','🗽','🗿','🏟️','🏛','🏞️','🏖️','🏜️',
+      '🏔️','⛰️','🌋','🗻','🏝️','🏕️','🌁','🌉',
+      '🌌','⛲','🎡','🎢','🎠','🛕','🕍','⛩️','🕋'
     ]
   },
   {
@@ -39,7 +47,9 @@ const EMOJI_GROUPS = [
       '✏️','📐','📏','✂️','🔒','📍','🖊️','📓',
       '🧠','🛠️','🎒','📁','📂','🗃️','🗄️','📅',
       '⏰','⌛','🕒','🕓','🕔','🗓️','📑','📕',
-      '📗','📘','📙', '👔',
+      '📗','📘','📙','👔','🔓','🪝','🪤','📮',
+      '📯','🔔','🔕','📣','📢','💬','💭','🗯️',
+      '🖋️','🖌️','📤','📥','📧','📨','📩','📫'
     ]
   },
   {
@@ -48,7 +58,9 @@ const EMOJI_GROUPS = [
       '🎨','🎬','🎵','🎸','🎹','🎷','🎺','🥁',
       '🎭','🎪','📸','🎤','🎧','📻','🎞️','🎉',
       '🎻','🪕','🪘','📽️','🎟️','🎫','🎰','🎳',
-      '🪩','🎯', '📺',
+      '🪩','🎯','📺','🎼','🪗','🪈','🥳','🎊',
+      '🎋','🎍','🎎','🎏','🎐','🧨','🎆','🎇',
+      '🃏','🀄','🎴','🪆','🪅','🎠','🎡','🎢'
     ]
   },
   {
@@ -56,24 +68,33 @@ const EMOJI_GROUPS = [
     emojis: [
       '💄','💋','💅','🧧','💰','💳','🛒','🛍️',
       '👗','👠','👒','🧴','🧼','🪞','💍','⌚',
-      '🧢','👟','🧥','🧦','👛','👜','🎒'
+      '🧢','👟','🧥','🧦','👛','👜','🎒',
+      '💵','💴','💶','💷','💸','🏷️','🪙','🤑',
+      '👘','👙','🩱','🩲','🩳','🧣','🧤','🧶',
+      '👡','👢','🥿','👞','👣','💎','🪬','📿'
     ]
-  },  
+  },
   {
     title: "Travel",
     emojis: [
       '✈️','🚂','🚢','🚗','🏎️','🚲','🛴','🚁',
       '🚤','🛶','🚕','🚓','🚑','🚒','🚜','🚚',
-      '🚍','🚉','🚄','🚅','🛫','🛬'
+      '🚍','🚉','🚄','🚅','🛫','🛬','🛳️','⛴️',
+      '🚀','🛸','🚠','🚡','🚞','🚝','🚋','🚃',
+      '🏍️','🛵','🚐','🛻','🚛','🚌','🛺','🚖',
+      '⛽','🛞','🚦','🚥','🗺️','🧳','🪂','⛷️'
     ]
   },
   {
     title: "Technology",
     emojis: [
-      '💻', '📱', '🖥️', '📷', '🔭', '🤖', '👾',
-      '🛸', '🚀', '🔌', '🔋', '💾', '🖨️', '⌨️',
-      '🖱️', '📡', '🧭', '🛰️', '📀', '💿', '📼',
-      '🧬', '🧫', '🔬', '🧪', '💉', '🩸'
+      '💻','📱','🖥️','📷','🔭','🤖','👾',
+      '🛸','🚀','🔌','🔋','💾','🖨️','⌨️',
+      '🖱️','📡','🧭','🛰️','📀','💿','📼',
+      '🧬','🧫','🔬','🧪','💉','🩸',
+      '📲','☎️','📞','📟','📠','🔦','🕹️',
+      '🎙️','📺','📻','⏱️','⏲️','🧲','💡','🔋',
+      '🪫','🖲️','🖼️','🗜️','📸','🔐','🛡️','🔏'
     ]
   },
   {
@@ -83,16 +104,23 @@ const EMOJI_GROUPS = [
       '🐸','🦜','🦉','🐺','🐼','🦘','🐉','🦅',
       '🐝','🦩','🐬','🦈','🐘','🦒','🦓','🦔',
       '🐢','🐍','🦎','🦖','🦕','🐓','🐇','🐿️',
-      '🐕','🐈','🦔','🦦','🦥','🦬'
+      '🐕','🐈','🦦','🦥','🦬','🐂','🐄','🐎',
+      '🐖','🐏','🐑','🦙','🐐','🦌','🐕‍🦺','🐩',
+      '🦮','🐈‍⬛','🐓','🦃','🦤','🪶','🦚','🦋',
+      '🐛','🐌','🐞','🐜','🪲','🪳','🕷️','🦂',
+      '🐡','🐠','🐟','🐊','🐸','🐲','🦕','🦖'
     ]
   },
   {
     title: "Nature",
     emojis: [
       '🌿','🌸','🌊','⭐','🌙','☀️','🌈','🌲',
-        '🌳','🌴','🌺','🌻','🪷','🌹','🍀','🌱',
-        '🌾','❄️','🌧️','⛈️','🌤️','🌬️','🏔️','🌋',
-        '🏝️','🪾','🪴','🪨','🌵','🌼','🌞','🌛'
+      '🌳','🌴','🌺','🌻','🪷','🌹','🍀','🌱',
+      '🌾','❄️','🌧️','⛈️','🌤️','🌬️','🏔️','🌋',
+      '🏝️','🪾','🪴','🪨','🌵','🌼','🌞','🌛',
+      '🍃','🍂','🍁','🪺','🪸','🌾','🌏','🌍',
+      '🌊','🌁','🌫️','🌪️','🌩️','🌨️','☃️','⛄',
+      '🌬️','💨','🌀','🌈','☔','⛱️','⚡','🔥'
     ]
   },
   {
@@ -102,7 +130,12 @@ const EMOJI_GROUPS = [
       '🎂','🍺','🥂','🍷','🍎','🥗','🧁','🥤',
       '🍿','🍪','🍫','🍬','🍭','🥐','🥞','🍞',
       '🧀','🍗','🍖','🍤','🍱','🍛','🍚','🍙',
-      '🍉','🍓','🍌','🍇','🍑','🍍'
+      '🍉','🍓','🍌','🍇','🍑','🍍','🥭','🍒',
+      '🥝','🍅','🥥','🥑','🍆','🥦','🥕','🌽',
+      '🌶️','🫑','🧄','🧅','🥔','🍠','🫘','🥜',
+      '🫚','🫙','🧂','🥣','🥙','🧆','🥚','🍳',
+      '🥘','🍲','🫕','🥫','🫖','🧃','🥛','🍶',
+      '🧋','🍹','🍸','🍾','🥃','🫗','🍻','🍵'
     ]
   },
   {
@@ -111,15 +144,68 @@ const EMOJI_GROUPS = [
       '🎯','⛳️','🏆','🥇','🎮','🕹️','🎲','🧩','♟️',
       '🏀','⚽','🏈','🎾','🏋️','🚴','🧘','🤸',
       '🥊','🥋','🏊','🏄','⛹️','🤾','🎳','🏓',
-      '🏸','🥏','🎣'
+      '🏸','🥏','🎣','🤿','🏹','🛹','🛷','⛸️',
+      '🎿','🛼','🪃','🥅','⛷️','🏂','🪁','🤺',
+      '🤼','🤽','🚣','🧗','🏇','⛺','🏕️','🎪'
     ]
   },
   {
-    title: "Spaces",
+    title: "Space",
     emojis: [
       '🌌','🌠','🪐','🌍','🌎','🌏','🌕','🌖',
       '🌗','🌘','🌑','🌒','🌓','🌔','☄️','🛰️',
-      '🚀','🛸','⭐','✨','🌟','💫','🔭'
+      '🚀','🛸','⭐','✨','🌟','💫','🔭',
+      '🌙','🌛','🌜','🌝','🌞','☀️','🌤️','⛅',
+      '🪩','🔵','🟣','⚫','🌐','🗺️','🧭','🌀'
+    ]
+  },
+  {
+    title: "Health & Body",
+    emojis: [
+      '🏥','💊','💉','🩺','🩻','🩹','🩼','🩽',
+      '🧬','🔬','🧪','🩸','🦷','🦴','👁️','👂',
+      '🫀','🫁','🧠','💪','🦵','🦶','🤲','🫶',
+      '🧘','🏃','🚶','🛌','🛀','🧖','🧗','🤸',
+      '😴','💤','🥱','😪','🥗','🥦','🫐','🥕'
+    ]
+  },
+  {
+    title: "Symbols",
+    emojis: [
+      '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔',
+      '❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️',
+      '✅','❌','⭕','🔴','🟠','🟡','🟢','🔵','🟣','⚫',
+      '⚪','🟤','🔶','🔷','🔸','🔹','🔺','🔻','💠','🔘',
+      '⚡','🔥','💧','🌊','✨','⭐','🌟','💫','☀️','❄️',
+      '♻️','✔️','➕','➖','➗','✖️','💯','🔠','🔡','🔢',
+      '🅰️','🅱️','🆎','🆑','🆒','🆓','🆔','🆕','🆖','🆗',
+      '⬆️','⬇️','⬅️','➡️','↗️','↘️','↙️','↖️','↕️','↔️',
+      '🔁','🔂','🔃','🔄','🎵','🎶','🔔','🔕','📳','📴'
+    ]
+  },
+  {
+    title: "Objects",
+    emojis: [
+      '🏮','🪔','💡','🔦','🕯️','🪑','🚪','🪞','🪟','🛋️',
+      '🛁','🚿','🪠','🧹','🧺','🧻','🪣','🧴','🧷','🧽',
+      '🪤','🧲','🔧','🔨','⚒️','🛠️','⛏️','🔩','🪛','🔗',
+      '🧰','🪜','🧱','🔮','🧿','🪬','🗝️','🔐','🔏','🔒',
+      '🛡️','⚔️','🗡️','🏹','🪃','🪖','🎀','🎁','🎊','🎉',
+      '🎈','🎏','🎐','🎑','🧧','🎗️','🎟️','🎫','🎭','🖼️',
+      '🪆','🪅','🧸','🪀','🪁','🎣','🤿','🎽','🥋','🩰',
+      '🛍️','🪙','💎','🏅','🥇','🥈','🥉','🏆','🎖️','👑'
+    ]
+  },
+  {
+    title: "Flags",
+    emojis: [
+      '🏳️','🏴','🏁','🚩','🏳️‍🌈','🏳️‍⚧️','🏴‍☠️',
+      '🇺🇸','🇬🇧','🇨🇦','🇦🇺','🇯🇵','🇰🇷','🇨🇳','🇩🇪',
+      '🇫🇷','🇮🇹','🇪🇸','🇧🇷','🇲🇽','🇮🇳','🇷🇺','🇸🇦',
+      '🇳🇬','🇿🇦','🇦🇷','🇨🇱','🇨🇴','🇵🇪','🇻🇪','🇪🇬',
+      '🇹🇷','🇮🇩','🇵🇰','🇧🇩','🇵🇭','🇻🇳','🇹🇭','🇲🇾',
+      '🇸🇬','🇳🇿','🇸🇪','🇳🇴','🇩🇰','🇫🇮','🇳🇱','🇧🇪',
+      '🇨🇭','🇦🇹','🇵🇹','🇬🇷','🇵🇱','🇺🇦','🇮🇱','🇮🇷'
     ]
   },
   {
@@ -128,7 +214,10 @@ const EMOJI_GROUPS = [
       '💎','👑','🔮','🏅','💯','🏹','🎗️','🌟','✨',
       '🎁','🎀','🧸','🪄','🎃','🎄','🎆','🔨',
       '🏁','⚡','🔥','💥','💤','✅','❌','⭕',
-      '♥️','💝','💘','💖','💗','💓','💞'
+      '♥️','💝','💘','💖','💗','💓','💞',
+      '🌀','🎭','🃏','🀄','🎴','🪬','🧿','🔯',
+      '☯️','✡️','☪️','✝️','☦️','🛐','⛎','♈',
+      '♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'
     ]
   }
 ]
@@ -208,11 +297,11 @@ const Toolbar = () => {
                 gap: 2
               }}
             >
-              {group.emojis.map(emoji => {
+              {group.emojis.map((emoji, emojiIdx) => {
                 const active = emoji === currentEmoji;
                 return (
                   <button
-                    key={emoji}
+                    key={`${group.title}-${emojiIdx}`}
                     onClick={() => onSelect(emoji)}
                     style={{
                       width: 30,
@@ -266,12 +355,15 @@ const Toolbar = () => {
   const addRoom = useStore((s) => s.addRoom);
   const deleteRoom = useStore((s) => s.deleteRoom);
   const updateRoomEmoji = useStore((s) => s.updateRoomEmoji);
+  const updateRoomName = useStore((s) => s.updateRoomName);
   const nodes = useStore((s) => s.nodes);
+  const groups = useStore((s) => s.groups);
   const activeTagFilters = useStore((s) => s.activeTagFilters);
   const toggleTagFilter = useStore((s) => s.toggleTagFilter);
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
   const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
-  const { screenToFlowPosition, fitView } = useReactFlow();
+  const setPendingNavigation = useStore((s) => s.setPendingNavigation);
+  const { screenToFlowPosition, fitView, setCenter } = useReactFlow();
 
   const allTags = React.useMemo(() => {
     const set = new Set<string>();
@@ -289,12 +381,17 @@ const Toolbar = () => {
   const [isCompact, setIsCompact] = React.useState(false);
   const [maxInlineRooms, setMaxInlineRooms] = React.useState(8);
   const [showOverflow, setShowOverflow] = React.useState(false);
+  const [showSearch, setShowSearch] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
   const [showAddWs, setShowAddWs] = React.useState(false);
   const [newWsName, setNewWsName] = React.useState('');
   const [newWsEmoji, setNewWsEmoji] = React.useState('📌');
   const [activeEmojiGroup, setActiveEmojiGroup] = React.useState(0);
   // ID of the room whose emoji is being edited; 'new' for add-workspace panel
   const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
+  // ID of room being renamed (inline edit panel)
+  const [renamingRoomId, setRenamingRoomId] = React.useState<string | null>(null);
+  const [renameValue, setRenameValue] = React.useState('');
   const [hoveredRoomId, setHoveredRoomId] = React.useState<string | null>(null);
   const [draggedRoomId, setDraggedRoomId] = React.useState<string | null>(null);
   const [newTabEnabled, setNewTabEnabled] = React.useState(false);
@@ -361,6 +458,10 @@ const Toolbar = () => {
   const addWsBtnRef = React.useRef<HTMLButtonElement>(null);
   const tagsBtnRef = React.useRef<HTMLButtonElement>(null);
   const wsInputRef = React.useRef<HTMLInputElement>(null);
+  const searchRef = React.useRef<HTMLDivElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const searchBtnRef = React.useRef<HTMLButtonElement>(null);
+  const renameInputRef = React.useRef<HTMLInputElement>(null);
   // Emoji picker ref — attached to whichever tab is being edited
   const emojiPickerRef = React.useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
@@ -461,16 +562,32 @@ const Toolbar = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [showAddWs]);
 
+  // Edit-room panel outside-click (rename + emoji picker for existing tabs)
+  React.useEffect(() => {
+    if (!renamingRoomId) return;
+    const handler = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+        const currentName = renameInputRef.current?.value.trim();
+        if (currentName) updateRoomName(renamingRoomId, currentName);
+        setEmojiPickerFor(null);
+        setRenamingRoomId(null);
+        setRenameValue('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [renamingRoomId]);
+
   // Emoji picker outside-click (for existing room tabs only; 'new' is inside addWsRef)
   React.useEffect(() => {
-    if (!emojiPickerFor || emojiPickerFor === 'new') return;
+    if (!emojiPickerFor || emojiPickerFor === 'new' || renamingRoomId) return;
     const handler = (e: MouseEvent) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node))
         setEmojiPickerFor(null);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [emojiPickerFor]);
+  }, [emojiPickerFor, renamingRoomId]);
 
   React.useEffect(() => {
     if (showAddWs) setTimeout(() => wsInputRef.current?.focus(), 50);
@@ -489,6 +606,37 @@ const Toolbar = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showSettings]);
+
+
+  React.useEffect(() => {
+    if (!showSearch) return;
+    const handler = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (
+        searchRef.current && !searchRef.current.contains(t) &&
+        (!searchBtnRef.current || !searchBtnRef.current.contains(t))
+      ) { setShowSearch(false); setSearchQuery(''); }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showSearch]);
+
+  // Cmd/Ctrl+F → open search
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowSearch(true);
+        setTimeout(() => searchInputRef.current?.focus(), 0);
+      }
+      if (e.key === 'Escape') {
+        setShowSearch(false);
+        setSearchQuery('');
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const center = (offsetX = 0, offsetY = 0) => {
@@ -521,11 +669,82 @@ const Toolbar = () => {
     setShowAddWs(false);
   };
 
+  const startRenaming = (room: { id: string; name: string }) => {
+    setRenamingRoomId(room.id);
+    setRenameValue(room.name);
+    setTimeout(() => renameInputRef.current?.focus(), 50);
+  };
+
+  const commitRename = () => {
+    if (renamingRoomId) updateRoomName(renamingRoomId, renameValue);
+    setRenamingRoomId(null);
+    setRenameValue('');
+  };
+
   // ── Computed ──────────────────────────────────────────────────────────────
   const currentRoom = rooms.find(r => r.id === currentRoomId) ?? rooms[0];
   const hasActiveFilters = activeTagFilters.length > 0;
   const visibleRooms = rooms.slice(0, maxInlineRooms);
   const overflowRooms = rooms.slice(maxInlineRooms);
+
+  const searchResults = React.useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const results: { id: string; type: 'bookmark' | 'note' | 'group'; title: string; subtitle?: string; position: { x: number; y: number }; width?: number; height?: number; roomId: string; roomName: string; roomEmoji: string }[] = [];
+    rooms.forEach(room => {
+      const roomNodes = room.id === currentRoomId ? nodes : room.nodes;
+      const roomEmoji = getRoomEmoji(room);
+
+      // Build id→absolute-position map so child nodes (inside groups) resolve correctly.
+      // Child node positions in ReactFlow are relative to their parent group.
+      const absPos = new Map<string, { x: number; y: number }>();
+      roomNodes.forEach(n => absPos.set(n.id, n.position));
+      roomNodes.forEach(n => {
+        const parentId = (n as any).parentId || (n as any).parentNode;
+        if (parentId) {
+          const p = absPos.get(parentId) ?? { x: 0, y: 0 };
+          absPos.set(n.id, { x: p.x + n.position.x, y: p.y + n.position.y });
+        }
+      });
+
+      roomNodes.forEach(n => {
+        const pos = absPos.get(n.id) ?? n.position;
+        if (n.type === 'bookmark' || n.type === 'tab') {
+          const title = (n.data.title as string || '').toLowerCase();
+          const url = (n.data.url as string || '').toLowerCase();
+          const desc = (n.data.description as string || '').toLowerCase();
+          if (title.includes(q) || url.includes(q) || desc.includes(q)) {
+            results.push({ id: n.id, type: 'bookmark', title: (n.data.title as string) || (n.data.url as string) || 'Untitled', subtitle: n.data.url as string, position: pos, width: n.width ?? 180, height: n.height ?? 120, roomId: room.id, roomName: room.name, roomEmoji });
+          }
+        } else if (n.type === 'note') {
+          const title = (n.data.title as string || '').toLowerCase();
+          const content = (n.data.content as string || '').toLowerCase();
+          if (title.includes(q) || content.includes(q)) {
+            results.push({ id: n.id, type: 'note', title: (n.data.title as string) || 'Untitled Note', subtitle: n.data.content as string, position: pos, width: n.width ?? 180, height: n.height ?? 180, roomId: room.id, roomName: room.name, roomEmoji });
+          }
+        } else if (n.type === 'group') {
+          const title = (n.data.title as string || '').toLowerCase();
+          if (title.includes(q)) {
+            results.push({ id: n.id, type: 'group', title: (n.data.title as string) || 'Untitled Group', position: pos, width: n.width ?? 800, height: n.height ?? 600, roomId: room.id, roomName: room.name, roomEmoji });
+          }
+        }
+      });
+    });
+    return results;
+  }, [searchQuery, rooms, nodes, currentRoomId]);
+
+  const handleSearchResultClick = (result: { roomId: string; position: { x: number; y: number }; width?: number; height?: number }) => {
+    const x = result.position.x + (result.width ?? 180) / 2;
+    const y = result.position.y + (result.height ?? 120) / 2;
+    if (result.roomId !== currentRoomId) {
+      setPendingNavigation({ x, y });
+      switchRoom(result.roomId);
+    } else {
+      setCenter(x, y, { zoom: 1, duration: 400 });
+    }
+    setShowSearch(false);
+    setSearchQuery('');
+  };
 
   // ── Style helpers ─────────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
@@ -821,6 +1040,48 @@ const Toolbar = () => {
     </div>
   );
 
+  const renderSearchPanel = () => (
+    <div ref={searchRef} style={{ ...panelStyle, width: Math.min(320, window.innerWidth - 32) }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Search</div>
+      <input
+        ref={searchInputRef}
+        value={searchQuery}
+        onChange={e => setSearchQuery(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Escape') { setShowSearch(false); setSearchQuery(''); } }}
+        placeholder="Search bookmarks, notes, groups..."
+        autoFocus
+        style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: searchQuery.trim() ? 8 : 0 }}
+      />
+      {searchQuery.trim() && (
+        <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+          {searchResults.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 12, padding: '16px 0' }}>No results found</div>
+          ) : (
+            searchResults.map(result => (
+              <button key={result.id} onClick={() => handleSearchResultClick(result)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', marginBottom: 4, transition: 'all 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; }}
+              >
+                <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: result.type === 'bookmark' ? 'rgba(59,130,246,0.15)' : result.type === 'note' ? 'rgba(168,85,247,0.15)' : 'rgba(34,197,94,0.15)' }}>
+                  {result.type === 'bookmark' ? <ExternalLink size={13} color="#3b82f6" /> : result.type === 'note' ? <StickyNote size={13} color="#a855f7" /> : <Group size={13} color="#22c55e" />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{result.title || 'Untitled'}</div>
+                  {result.subtitle && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{result.subtitle}</div>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: result.type === 'bookmark' ? 'rgba(59,130,246,0.7)' : result.type === 'note' ? 'rgba(168,85,247,0.7)' : 'rgba(34,197,94,0.7)' }}>{result.type}</span>
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>{result.roomEmoji} {result.roomName}</span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   // ── Delete confirmation modal ─────────────────────────────────────────────
   const deleteModal = deleteConfirm && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
@@ -851,6 +1112,7 @@ const Toolbar = () => {
   // ── Compact mode (< 400px) ────────────────────────────────────────────────
   if (isCompact) {
     const menuItems = [
+      { icon: <Search size={18} strokeWidth={2} />, label: 'Search', action: () => { setShowSearch(v => !v); setShowMenu(false); setShowSettings(false); setShowTags(false); }, active: showSearch },
       { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); setShowSettings(false); }, active: hasActiveFilters },
@@ -863,6 +1125,7 @@ const Toolbar = () => {
       {deleteModal}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
+          {showSearch && renderSearchPanel()}
           {showTags && renderTagsPanel()}
           {showSettings && renderSettingsPanel()}
           {showRooms && renderRoomsPanel(220)}
@@ -898,7 +1161,7 @@ const Toolbar = () => {
               <Plus size={20} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); }} onMouseDown={e => e.stopPropagation()}
+            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); setShowSearch(false); setSearchQuery(''); }} onMouseDown={e => e.stopPropagation()}
               style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={18} strokeWidth={2} />
               {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
@@ -913,6 +1176,7 @@ const Toolbar = () => {
   // ── Mobile layout (400–540px) ─────────────────────────────────────────────
   if (isMobile) {
     const mobileMenuItems = [
+      { icon: <Search size={18} strokeWidth={2} />, label: 'Search', action: () => { setShowSearch(v => !v); setShowMenu(false); setShowSettings(false); setShowTags(false); }, active: showSearch },
       { icon: <StickyNote size={18} strokeWidth={2} />, label: 'Sticker', action: () => { handleAddSticker(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Group size={18} strokeWidth={2} />, label: 'Group', action: () => { handleAddGroup(); setShowMenu(false); setShowSettings(false); } },
       { icon: <Tag size={18} strokeWidth={2} />, label: 'Tags', action: () => { setShowTags(v => !v); setShowMenu(false); setShowSettings(false); }, active: hasActiveFilters },
@@ -925,6 +1189,7 @@ const Toolbar = () => {
       {deleteModal}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
+          {showSearch && renderSearchPanel()}
           {showTags && renderTagsPanel()}
           {showSettings && renderSettingsPanel()}
           {showRooms && renderRoomsPanel(240)}
@@ -961,7 +1226,7 @@ const Toolbar = () => {
               <Plus size={22} strokeWidth={2.5} />
             </button>
             <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
-            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); }} onMouseDown={e => e.stopPropagation()}
+            <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); setShowSearch(false); setSearchQuery(''); }} onMouseDown={e => e.stopPropagation()}
               style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={20} strokeWidth={2} />
               {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
@@ -1061,11 +1326,11 @@ const Toolbar = () => {
               const active = room.id === currentRoomId;
               const pickerOpen = emojiPickerFor === room.id;
               return (
-                /* emojiPickerRef attached to the tab container while its picker is open,
+                /* emojiPickerRef attached to the tab container while edit panel is open,
                    so outside-click doesn't fire when clicking within the tab */
                 <div
                   key={room.id}
-                  ref={pickerOpen ? emojiPickerRef : undefined}
+                  ref={renamingRoomId === room.id ? emojiPickerRef : undefined}
                   style={{
                     position: 'relative',
                     display: 'flex',
@@ -1084,24 +1349,69 @@ const Toolbar = () => {
                   onDragOver={(e) => handleDragOver(e, room.id)}
                   onDragEnd={handleDragEnd}
                 >
-                  {/* Emoji picker panel */}
-                  {pickerOpen && renderEmojiPicker(
-                    (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
-                    getRoomEmoji(room)
+                  {/* Edit-room panel — rename + emoji change */}
+                  {renamingRoomId === room.id && (
+                    <div style={{ ...panelStyle, minWidth: 230 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+                        Edit workspace
+                      </div>
+                      {/* Emoji selector */}
+                      <div style={{ marginBottom: 10 }}>
+                        <button
+                          onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(200,241,53,0.10)' : 'rgba(255,255,255,0.06)', border: pickerOpen ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.09)', cursor: 'pointer', transition: 'all 0.15s' }}
+                        >
+                          <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
+                        </button>
+                        {pickerOpen && renderEmojiPicker(
+                          (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
+                          getRoomEmoji(room),
+                          true
+                        )}
+                      </div>
+                      {/* Name input */}
+                      <div style={{ display: 'flex', gap: 7 }}>
+                        <input
+                          ref={renameInputRef}
+                          value={renameValue}
+                          onChange={e => setRenameValue(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }
+                            if (e.key === 'Escape') { setRenamingRoomId(null); setRenameValue(''); setEmojiPickerFor(null); }
+                          }}
+                          placeholder="Workspace name..."
+                          style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+                        />
+                        <button
+                          onClick={() => { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }}
+                          disabled={!renameValue.trim()}
+                          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: renameValue.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: renameValue.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: renameValue.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: renameValue.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                        >
+                          <Check size={15} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </div>
                   )}
                   {/* Tab button wrapper — keeps delete button anchored to emoji button */}
                   <div style={{ position: 'relative' }}>
                     <button
                       onClick={() => {
                         if (active) {
-                          setEmojiPickerFor(pickerOpen ? null : room.id);
+                          if (renamingRoomId === room.id) {
+                            commitRename();
+                            setRenamingRoomId(null);
+                            setEmojiPickerFor(null);
+                          } else {
+                            startRenaming(room);
+                          }
                         } else {
                           switchRoom(room.id);
+                          setRenamingRoomId(null);
                           setEmojiPickerFor(null);
                           setShowOverflow(false);
                         }
                       }}
-                      title={active ? 'Change emoji' : room.name}
+                      title={active ? 'Edit workspace' : room.name}
                       style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
                       onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; } }}
                       onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'grayscale(0.2) opacity(0.7)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
@@ -1267,6 +1577,22 @@ const Toolbar = () => {
         <div className="flex flex-col items-center justify-center">
           <button style={mkBtnStyle()} onClick={() => { autoArrange(); setTimeout(() => fitView({ duration: 0, padding: 0.5, maxZoom: 1 }), 50); }} onMouseEnter={e => onEnter(e)} onMouseLeave={e => onLeave(e)} onMouseDown={onDown}><Wand2 size={20} strokeWidth={2} /></button>
           <span style={labelStyle}>Arrange</span>
+        </div>
+
+        {/* Search */}
+        <div className="relative flex flex-col items-center justify-center">
+          {showSearch && renderSearchPanel()}
+          <button
+            ref={searchBtnRef}
+            style={{ ...mkBtnStyle(showSearch), top: '-5px' }}
+            onClick={() => { setShowSearch(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); }}
+            onMouseEnter={e => onEnter(e, showSearch)}
+            onMouseLeave={e => onLeave(e, showSearch)}
+            onMouseDown={onDown}
+          >
+            <Search size={20} strokeWidth={2} />
+          </button>
+          <span style={{ ...labelStyle, color: showSearch ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Search</span>
         </div>
 
         <div className="relative flex flex-col items-center justify-center">

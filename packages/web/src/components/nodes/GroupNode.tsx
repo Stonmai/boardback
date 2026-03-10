@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useRef } from 'react';
 import { NodeProps, NodeResizer, Node } from '@xyflow/react';
-import { FolderX, Pencil, Check, X, ExternalLink } from 'lucide-react';
+import { FolderX, Pencil, Check, X, ExternalLink, Tag } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/utils/cn';
 import type { WhiteboardNode } from '@whiteboard/shared/types';
@@ -19,7 +19,22 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(data.title || '');
+  const [showTagInput, setShowTagInput] = useState(false);
+  const [tagInput, setTagInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddTag = (tag: string) => {
+    const trimmed = tag.trim().toLowerCase();
+    if (!trimmed) return;
+    const existing = (data.tags as string[]) || [];
+    if (!existing.includes(trimmed)) updateNode(id, { tags: [...existing, trimmed] } as any);
+    setTagInput('');
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    const existing = (data.tags as string[]) || [];
+    updateNode(id, { tags: existing.filter((t: string) => t !== tag) } as any);
+  };
 
   React.useEffect(() => {
     if (editingNodeId === id) {
@@ -174,6 +189,17 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
         </div>
       )}
 
+      {/* Tags display */}
+      {(data.tags as string[] | undefined) && (data.tags as string[]).length > 0 && (
+        <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', flexWrap: 'wrap', gap: 4, pointerEvents: 'none' }}>
+          {(data.tags as string[]).map((tag, idx) => (
+            <span key={idx} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Floating action bar */}
       <div
         className={cn(
@@ -190,6 +216,46 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
         >
           <Pencil size={15} />
         </button>
+        <div className="relative">
+          <button
+            className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+            title="Tags"
+            onClick={(e) => { e.stopPropagation(); setShowTagInput(v => !v); }}
+          >
+            <Tag size={15} />
+          </button>
+          {showTagInput && (
+            <div className="absolute bottom-full left-0 mb-3 p-2.5 glass-dark rounded-2xl shadow-2xl border border-white/20" style={{ width: 180, zIndex: 100 }} onClick={e => e.stopPropagation()}>
+              {(data.tags as string[] || []).length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {(data.tags as string[]).map((tag) => (
+                    <span
+                      key={tag}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase cursor-pointer transition-colors hover:bg-red-500/20 hover:text-red-400"
+                      style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      onClick={() => handleRemoveTag(tag)}
+                    >
+                      {tag} <X size={8} />
+                    </span>
+                  ))}
+                </div>
+              )}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); handleAddTag(tagInput); }
+                  if (e.key === 'Escape') setShowTagInput(false);
+                }}
+                placeholder="Add tag & press Enter"
+                autoFocus
+                className="w-full rounded-lg px-2.5 py-1.5 text-[11px] text-white outline-none placeholder:text-white/30"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+              />
+            </div>
+          )}
+        </div>
         <button
           className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
           title="Open all bookmarks"

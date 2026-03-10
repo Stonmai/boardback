@@ -67,6 +67,7 @@ interface WhiteboardState {
   hasSeenIntro: boolean;
   activeTagFilters: string[];
   autoOpenBookmarks: boolean;
+  pendingNavigation: { x: number; y: number } | null;
 
   // Actions
   onNodesChange: OnNodesChange;
@@ -94,6 +95,7 @@ interface WhiteboardState {
   addRoom: (name: string, emoji: string) => void;
   deleteRoom: (id: string) => void;
   updateRoomEmoji: (id: string, emoji: string) => void;
+  updateRoomName: (id: string, name: string) => void;
   reorderRooms: (rooms: RoomData[]) => void;
   snapshot: () => void;
   undo: () => void;
@@ -101,6 +103,7 @@ interface WhiteboardState {
   dismissIntro: () => void;
   toggleTagFilter: (tag: string) => void;
   setAutoOpenBookmarks: (val: boolean) => void;
+  setPendingNavigation: (nav: { x: number; y: number } | null) => void;
   _getParentId: (n: Node) => string | undefined;
 }
 
@@ -129,8 +132,10 @@ export const useStore = create<WhiteboardState>()(
   hasSeenIntro: false,
   activeTagFilters: [],
   autoOpenBookmarks: true,
+  pendingNavigation: null,
 
   dismissIntro: () => set({ hasSeenIntro: true }),
+  setPendingNavigation: (nav: { x: number; y: number } | null) => set({ pendingNavigation: nav }),
   toggleTagFilter: (tag: string) => {
     const { activeTagFilters } = get();
     set({
@@ -494,6 +499,11 @@ export const useStore = create<WhiteboardState>()(
   updateRoomEmoji: (id: string, emoji: string) => {
     set({ rooms: get().rooms.map((r: RoomData) => r.id === id ? { ...r, emoji } : r) });
   },
+  updateRoomName: (id: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set({ rooms: get().rooms.map((r: RoomData) => r.id === id ? { ...r, name: trimmed } : r) });
+  },
   reorderRooms: (rooms: RoomData[]) => {
     set({ rooms });
   },
@@ -502,18 +512,72 @@ export const useStore = create<WhiteboardState>()(
     const allNodes = get().nodes;
 
     const NODE_W = 180, NODE_H = 120;
-    const GROUP_PAD = 60, NODE_GAP = 60;
-    const CLUSTER_GAP = 120;
+    const GROUP_PAD = 48, NODE_GAP = 24;
+    const CLUSTER_GAP = 80;
+    // Group label floats above the frame (top: -65px), so no title bar inside
+    const GROUP_TITLE_H = 80;
 
-    // Existing groups and their child ids
+    // Actual node dimensions — check width/height first, then style, then fallback
+    const nodeW = (n: Node): number =>
+      (n.width as number) ?? (n.style?.width as number) ?? NODE_W;
+    const nodeH = (n: Node): number =>
+      (n.height as number) ?? (n.style?.height as number) ?? NODE_H;
+
+    /**
+     * Row-packing layout: places nodes left-to-right, wrapping to a new row
+     * whenever the next node would exceed maxRowW. Each node uses its actual
+     * dimensions, so nodes of varying sizes never overlap.
+     *
+     * padX/padY = initial offset (use GROUP_PAD for group children).
+     * Returns per-node positions and the total bounding-box size of the content.
+     */
+    const packRows = (
+      nodes: Node[],
+      gap: number,
+      maxRowW: number,
+      padX = 0,
+      padY = 0,
+    ): { positions: Map<string, { x: number; y: number }>; totalW: number; totalH: number } => {
+      const positions = new Map<string, { x: number; y: number }>();
+      let x = padX, y = padY, rowH = 0, maxX = padX;
+
+      nodes.forEach(n => {
+        const w = nodeW(n), h = nodeH(n);
+        // Wrap if placing this node would exceed the row limit (but always place at least one)
+        if (x > padX && x + w > padX + maxRowW) {
+          x = padX;
+          y += rowH + gap;
+          rowH = 0;
+        }
+        positions.set(n.id, { x, y });
+        x += w + gap;
+        rowH = Math.max(rowH, h);
+        maxX = Math.max(maxX, x - gap); // trailing gap excluded
+      });
+
+      return {
+        positions,
+        totalW: maxX - padX,
+        totalH: y + rowH - padY,
+      };
+    };
+
+    // Compute a sensible max-row-width for a set of nodes targeting ~sqrt(N) columns
+    const targetRowW = (nodes: Node[]): number => {
+      const cols = Math.ceil(Math.sqrt(nodes.length));
+      const avg = nodes.reduce((s, n) => s + nodeW(n), 0) / nodes.length;
+      return cols * avg + (cols - 1) * NODE_GAP;
+    };
+
+    // Existing groups and their children — kept completely untouched
+    const getPid = (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode;
     const existingGroupIds = new Set(
       allNodes.filter((n: Node) => n.type === 'group').map((n: Node) => n.id)
     );
     const existingGroups = allNodes.filter((n: Node) => n.type === 'group');
-    const getPid = (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode;
     const childNodes = allNodes.filter((n: Node) => { const pid = getPid(n); return pid && existingGroupIds.has(pid); });
 
-    // Top-level (ungrouped) nodes
+    // Top-level (ungrouped) nodes only
     const topBookmarks = allNodes.filter(
       (n: Node) => (n.type === 'bookmark' || n.type === 'tab') && !getPid(n)
     );
@@ -535,32 +599,32 @@ export const useStore = create<WhiteboardState>()(
 
     domainMap.forEach((domNodes, domain) => {
       const groupId = `group-${domain}`;
-      if (existingGroupIds.has(groupId)) return; // already grouped
-      if (domNodes.length < 2) return;           // need 2+ to auto-group
+      if (existingGroupIds.has(groupId)) return;
+      if (domNodes.length < 2) return;
 
-      const cols = Math.ceil(Math.sqrt(domNodes.length));
-      const rows = Math.ceil(domNodes.length / cols);
-      const gw = cols * NODE_W + (cols - 1) * NODE_GAP + GROUP_PAD * 2;
-      const gh = rows * NODE_H + (rows - 1) * NODE_GAP + GROUP_PAD * 2 + 130;
+      // Pack children inside the group with padding; title bar sits at top
+      const { positions, totalW, totalH } = packRows(
+        domNodes, NODE_GAP, targetRowW(domNodes),
+        GROUP_PAD, GROUP_PAD,
+      );
+      const gw = Math.max(totalW + GROUP_PAD * 2, 400);
+      const gh = Math.max(totalH + GROUP_PAD * 2 + GROUP_TITLE_H, 400);
 
       newGroups.push({
         id: groupId,
         type: 'group',
         position: { x: 0, y: 0 },
-        style: { width: Math.max(gw, 800), height: Math.max(gh, 600) },
+        style: { width: gw, height: gh },
         data: { title: domain.toUpperCase(), count: domNodes.length },
       });
 
-      domNodes.forEach((n, i) => {
+      domNodes.forEach(n => {
         toBeGrouped.add(n.id);
         newGroupChildren.push({
           ...n,
           parentId: groupId,
           extent: undefined,
-          position: {
-            x: GROUP_PAD + (i % cols) * (NODE_W + NODE_GAP),
-            y: GROUP_PAD + Math.floor(i / cols) * (NODE_H + NODE_GAP),
-          },
+          position: positions.get(n.id)!,
         });
       });
     });
@@ -589,7 +653,6 @@ export const useStore = create<WhiteboardState>()(
       }
     });
 
-    // Map root -> nodes in component
     const compMap = new Map<string, Node[]>();
     remainingNodes.forEach((n: Node) => {
       const root = find(n.id);
@@ -597,13 +660,17 @@ export const useStore = create<WhiteboardState>()(
       compMap.get(root)!.push(n);
     });
 
-    // Build layout blocks: groups + connected components
-    interface Block { repId: string; nodes: Node[]; w: number; h: number; isGroup: boolean; }
+    // Build layout blocks: all groups (existing + new) + connected components of ungrouped nodes
+    interface Block {
+      repId: string; nodes: Node[]; w: number; h: number;
+      isGroup: boolean; packed?: Map<string, { x: number; y: number }>;
+    }
     const blocks: Block[] = [
+      // Existing groups — repositioned but size/children untouched
       ...existingGroups.map((g: Node) => ({
         repId: g.id, nodes: [g],
-        w: (g.style?.width as number) ?? 550,
-        h: (g.style?.height as number) ?? 450,
+        w: (g.style?.width as number) ?? (g.width as number) ?? 550,
+        h: (g.style?.height as number) ?? (g.height as number) ?? 450,
         isGroup: true,
       })),
       ...newGroups.map((g: Node) => ({
@@ -615,16 +682,13 @@ export const useStore = create<WhiteboardState>()(
     ];
 
     compMap.forEach((compNodes, root) => {
-      const cols = Math.ceil(Math.sqrt(compNodes.length));
-      const rows = Math.ceil(compNodes.length / cols);
-      const nw = Math.max(...compNodes.map(n => (n.style?.width as number) ?? NODE_W));
-      const nh = Math.max(...compNodes.map(n => (n.style?.height as number) ?? NODE_H));
+      const { positions, totalW, totalH } = packRows(
+        compNodes, NODE_GAP, targetRowW(compNodes),
+      );
       blocks.push({
-        repId: root,
-        nodes: compNodes,
-        w: cols * nw + (cols - 1) * NODE_GAP,
-        h: rows * nh + (rows - 1) * NODE_GAP,
-        isGroup: false,
+        repId: root, nodes: compNodes,
+        w: totalW, h: totalH,
+        isGroup: false, packed: positions,
       });
     });
 
@@ -635,7 +699,7 @@ export const useStore = create<WhiteboardState>()(
       return (b.w * b.h) - (a.w * a.h);
     });
 
-    // Row-based layout
+    // Row-based block layout
     const totalArea = blocks.reduce((s: number, b) => s + (b.w + CLUSTER_GAP) * (b.h + CLUSTER_GAP), 0);
     const MAX_ROW_W = Math.max(1400, Math.sqrt(totalArea) * 1.5);
     const blockPositions = new Map<string, { x: number; y: number }>();
@@ -650,29 +714,23 @@ export const useStore = create<WhiteboardState>()(
       rowH = Math.max(rowH, block.h);
     });
 
-    // Resolve individual node positions within each block
+    // Resolve final per-node positions
     const nodePositions = new Map<string, { x: number; y: number }>();
     blocks.forEach(block => {
       const bp = blockPositions.get(block.repId)!;
       if (block.isGroup || block.nodes.length === 1) {
         nodePositions.set(block.nodes[0].id, bp);
       } else {
-        const cols = Math.ceil(Math.sqrt(block.nodes.length));
-        block.nodes.forEach((n, i) => {
-          const nw = (n.style?.width as number) ?? NODE_W;
-          const nh = (n.style?.height as number) ?? NODE_H;
-          nodePositions.set(n.id, {
-            x: bp.x + (i % cols) * (nw + NODE_GAP),
-            y: bp.y + Math.floor(i / cols) * (nh + NODE_GAP),
-          });
+        block.packed!.forEach((pos, id) => {
+          nodePositions.set(id, { x: bp.x + pos.x, y: bp.y + pos.y });
         });
       }
     });
 
     const finalNodes: Node[] = [
       ...existingGroups.map((g: Node) => ({ ...g, position: nodePositions.get(g.id) ?? g.position })),
+      ...childNodes,       // children untouched (relative positions preserved)
       ...newGroups.map((g: Node) => ({ ...g, position: nodePositions.get(g.id) ?? { x: 0, y: 0 } })),
-      ...childNodes,
       ...newGroupChildren,
       ...remainingNodes.map((n: Node) => ({ ...n, position: nodePositions.get(n.id) ?? n.position })),
     ];
