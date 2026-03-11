@@ -8,12 +8,17 @@ const OfflineBanner = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Check initial state — handles page loads that happen while already offline
+    if (!navigator.onLine) {
+      setIsOffline(true);
+      setVisible(true);
+    }
+
     const handleOffline = () => {
       setIsOffline(true);
       setVisible(true);
     };
     const handleOnline = () => {
-      // Keep the banner visible briefly so the user sees it went back online
       setIsOffline(false);
       setTimeout(() => setVisible(false), 2000);
     };
@@ -32,9 +37,8 @@ const OfflineBanner = () => {
     <div
       style={{
         position: 'fixed',
-        bottom: 24,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        top: 16,
+        right: 16,
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
