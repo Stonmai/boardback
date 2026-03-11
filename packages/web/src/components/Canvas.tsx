@@ -20,7 +20,7 @@ import Toolbar from './Toolbar';
 import PreviewModal from './PreviewModal';
 import IntroModal from './IntroModal';
 import CursorEffect from './CursorEffect';
-import OfflineBanner from './OfflineBanner';
+
 
 import { v4 as uuidv4 } from 'uuid';
 import { fetchMetadata } from '@/utils/metadata';
@@ -609,7 +609,6 @@ const Canvas = () => {
 
       <IntroModal />
       <CursorEffect />
-      <OfflineBanner />
     </div>
   );
 };
