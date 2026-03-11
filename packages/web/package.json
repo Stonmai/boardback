@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
+    "dev": "next dev -p 3000 --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@serwist/next": "^9.5.6",
     "@whiteboard/shared": "*",
     "@xyflow/react": "12.10.1",
     "clsx": "^2.1.0",
@@ -17,6 +18,7 @@
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "serwist": "^9.5.6",
     "tailwind-merge": "^3.5.0",
     "uuid": "^13.0.0",
     "zustand": "^5.0.11"
