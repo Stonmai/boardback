@@ -3,7 +3,7 @@ name: Build Extension
 on:
   push:
     branches:
-      - main
+      - production
     tags:
       - "v*"
     paths:
