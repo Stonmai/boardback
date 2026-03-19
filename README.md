@@ -10,7 +10,7 @@ Capture anything from the web, arrange it on an infinite canvas, and map your th
 
 <img width="575" height="522" alt="Screenshot 2569-03-19 at 10 20 15 PM" src="https://github.com/user-attachments/assets/ef6357af-fbbd-4518-8004-d2af2ffad8f7" />
 
-[![Web App](https://img.shields.io/badge/Open_App-boardback--web.vercel.app-black?style=for-the-badge&logo=vercel)](https://boardback-web.vercel.app)
+[![Web App](https://img.shields.io/badge/Open_App-open--boardback.com-black?style=for-the-badge&logo=vercel)](https://open-boardback.com)
 [![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Install_Free-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/boardback-capture-tool/cnopkpkjbkbccgikjggidpojcjchclpe)
 
 </div>
