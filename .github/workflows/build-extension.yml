@@ -17,11 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: "npm"
 
       - name: Install dependencies
@@ -42,7 +42,7 @@ jobs:
 
       - name: Publish to Chrome Web Store
         if: startsWith(github.ref, 'refs/tags/')
-        uses: mobilefirstllc/cws-publish@latest
+        uses: mobilefirstllc/cws-publish@v2
         with:
           action: publish
           client_id: ${{ secrets.CHROME_CLIENT_ID }}
