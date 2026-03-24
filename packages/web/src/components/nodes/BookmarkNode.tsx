@@ -1,11 +1,12 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useState, useRef, useCallback } from 'react';
 import { Handle, Position, NodeProps, NodeResizer, Node } from '@xyflow/react';
-import { ExternalLink, Trash2, Palette, Check, X, Pencil, Tag } from 'lucide-react';
+import { ExternalLink, Trash2, Palette, Check, X, Pencil, Tag, Copy, Scissors } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { WhiteboardNode } from '@whiteboard/shared/types';
 import { cn } from '@/utils/cn';
+import NodeContextMenu from './NodeContextMenu';
 import { fetchMetadata } from '@/utils/metadata';
 
 // Bookmark cards use a glassmorphism style with a colored accent on the left edge
@@ -23,6 +24,9 @@ const COLORS: Record<
 };
 
 const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['data']>>) => {
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const getRect = useCallback(() => nodeRef.current?.getBoundingClientRect() ?? null, []);
+  const [contextMenuPos, setContextMenuPos] = useState<boolean>(false);
   const [showColorPicker, setShowColorPicker] = React.useState(false);
   const [showTagInput, setShowTagInput] = React.useState(false);
   const [tagInput, setTagInput] = React.useState('');
@@ -36,6 +40,13 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
+  const copyNodeById = useStore((s) => s.copyNodeById);
+  const cutNodeById = useStore((s) => s.cutNodeById);
+  const contextMenuNodeId = useStore((s) => s.contextMenuNodeId);
+  const setContextMenuNodeId = useStore((s) => s.setContextMenuNodeId);
+
+  const contextMenu = contextMenuNodeId === id && contextMenuPos;
+  const closeContextMenu = () => setContextMenuNodeId(null);
 
   React.useEffect(() => {
     if (editingNodeId === id) {
@@ -90,9 +101,21 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
     }
   }, [data.title, data.url, data.description, isEditing]);
 
+  React.useEffect(() => {
+    if (!contextMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeContextMenu(); };
+    const onClick = () => closeContextMenu();
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('click', onClick);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('click', onClick); };
+  }, [contextMenu]);
+
   return (
     <div
+      ref={nodeRef}
       className="group relative h-full w-full"
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenuPos(true); setContextMenuNodeId(id); }}
+      onClick={() => closeContextMenu()}
       style={{
         borderRadius: 18,
         background: 'rgba(12, 13, 28, 0.75)',
@@ -134,18 +157,22 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
 
       {/* Card body */}
       <div 
-        className="w-full h-full rounded-[14px] overflow-hidden" 
+        className="w-full h-full min-h-40 rounded-[14px] overflow-hidden" 
         onDoubleClick={() => { if (!isEditing) setIsEditing(true); }}
       >
         <div className="p-3 pl-4">
           {isEditing ? (
-            <div className="space-y-2">
+            <div className="nodrag space-y-2">
               <input
                 type="text"
                 value={tempTitle}
                 onChange={(e) => setTempTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                }}
                 placeholder="Title"
-                className="w-full rounded-lg px-2.5 py-1 text-[13px] font-bold text-white outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full rounded-lg px-2.5 py-1 text-[25px] font-bold text-white outline-none focus:ring-2 focus:ring-white/30"
                 style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
                 autoFocus
               />
@@ -153,51 +180,61 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                 type="text"
                 value={tempUrl}
                 onChange={(e) => setTempUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                }}
                 placeholder="URL"
-                className="w-full rounded-lg px-2.5 py-1 text-[11px] text-white/70 outline-none focus:ring-2 focus:ring-white/20"
+                className="w-full rounded-lg px-2.5 py-1 text-[15px] text-white/70 outline-none focus:ring-2 focus:ring-white/20"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
               <textarea
                 value={tempDescription}
                 onChange={(e) => setTempDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                }}
                 placeholder="Description (optional)"
-                className="w-full rounded-lg px-2.5 py-1 text-[11px] text-white/80 outline-none resize-none min-h-14 focus:ring-2 focus:ring-white/20"
+                className="w-full rounded-lg px-2.5 py-1 text-[18px] text-white/80 outline-none resize-none min-h-40 focus:ring-2 focus:ring-white/20"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
-              <div className="flex justify-end gap-1.5">
+              <div className="flex justify-end gap-2">
                 <button
                   onClick={handleCancel}
-                  className="p-1 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-xl transition-colors"
+                  style={{ background: 'rgba(0,0,0,0.2)', color: 'white' }}
                 >
-                  <X size={13} />
+                  <X size={15} />
                 </button>
                 <button
                   onClick={handleSave}
-                  className="p-1 rounded-lg text-white hover:bg-white/15 transition-colors"
+                  className="p-2 rounded-xl transition-colors"
+                  style={{ background: 'rgba(0,0,0,0.25)', color: 'white' }}
                 >
-                  <Check size={13} />
+                  <Check size={15} />
                 </button>
               </div>
             </div>
           ) : (
             <>
               <div
-                className="flex items-start gap-2 mb-2"
+                className="flex items-start gap-3 mb-2"
               >
                 {data.favicon && (
                   <img
                     src={data.favicon as string}
                     alt=""
-                    className="w-4 h-4 mt-0.5 rounded shrink-0"
+                    className="w-12 h-11 mt-0.5 rounded shrink-0"
                     style={{ background: 'rgba(255,255,255,0.08)', padding: 1 }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[13px] font-bold text-white leading-tight wrap-break-word mb-0.5">
+                  <h3 className="text-[25px] font-bold text-white leading-tight wrap-break-word mb-0.5">
                     {data.title || 'Untitled Bookmark 🔗'}
                   </h3>
-                  <p className="text-[9px] text-white/35 break-all font-mono">
+                  <p className="text-[15px] text-white/35 break-all font-mono">
                     {data.url as string}
                   </p>
                 </div>
@@ -205,7 +242,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
 
               {data.description && (
                 <p
-                  className="text-[11px] text-white/65 mb-2 leading-relaxed line-clamp-2 font-medium"
+                  className="text-[18px] text-white/65 mb-2 leading-relaxed line-clamp-2 font-medium"
                 >
                   {data.description as string}
                 </p>
@@ -321,6 +358,23 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
           )}
         </div>
       </div>
+
+      {/* Context menu */}
+      {contextMenu && (
+        <NodeContextMenu
+          getRect={getRect}
+          items={[
+            { icon: ExternalLink, label: 'Open URL', hidden: !data.url, onClick: () => { window.open(data.url as string, '_blank', 'noopener,noreferrer'); closeContextMenu(); } },
+            { icon: Copy, label: 'Copy', onClick: () => { copyNodeById(id); closeContextMenu(); } },
+            { icon: Scissors, label: 'Cut', onClick: () => { cutNodeById(id); closeContextMenu(); } },
+            { divider: true },
+            { icon: Palette, label: 'Color', onClick: () => { setShowColorPicker(true); setShowTagInput(false); closeContextMenu(); } },
+            { icon: Tag, label: 'Tag', onClick: () => { setShowTagInput(true); setShowColorPicker(false); closeContextMenu(); } },
+            { icon: Pencil, label: 'Edit', onClick: () => { setIsEditing(true); closeContextMenu(); } },
+            { icon: Trash2, label: 'Delete', onClick: () => { deleteNode(id); closeContextMenu(); } },
+          ]}
+        />
+      )}
 
       {/* Floating action bar */}
       <div

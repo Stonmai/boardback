@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ReactFlow,
   Background,
@@ -20,6 +21,8 @@ import Toolbar from './Toolbar';
 import PreviewModal from './PreviewModal';
 import IntroModal from './IntroModal';
 import CursorEffect from './CursorEffect';
+import NodeContextMenu from './nodes/NodeContextMenu';
+import { Clipboard } from 'lucide-react';
 
 import { v4 as uuidv4 } from 'uuid';
 import { fetchMetadata } from '@/utils/metadata';
@@ -35,6 +38,14 @@ const nodeTypes = {
 // If the pasted text matches this, it came from an internal copy/cut and we
 // should paste nodes rather than creating a new node from the text.
 let _internalClipboardText = '';
+
+// Module-level ref so onPaneContextMenu (outside ReactFlow context) can convert coords.
+let _screenToFlowPosition: ((pos: { x: number; y: number }) => { x: number; y: number }) | null = null;
+const ScreenToFlowBridge = () => {
+  const { screenToFlowPosition } = useReactFlow();
+  _screenToFlowPosition = screenToFlowPosition;
+  return null;
+};
 
 type HandlerProps = {
   addNode: (node: any) => void;
@@ -60,7 +71,8 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
       const originX = center.x - ((cols - 1) * COL_W) / 2;
       const originY = center.y - ((rows - 1) * ROW_H) / 2;
 
-      const addedIds: string[] = [];
+      const currentRoomId = useStore.getState().currentRoomId;
+      const currentRoomIds: string[] = [];
 
       pendingCaptures.forEach((capture: any, index: number) => {
         const col = index % cols;
@@ -71,30 +83,47 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
           id: nodeId,
           type: 'bookmark' as const,
           position: { x: originX + col * COL_W, y: originY + row * ROW_H },
-          width: 180,
+          width: 300,
           selected: true,
           data: capture,
           createdAt: new Date().toISOString(),
         };
         if (roomId) {
           addNodeToRoom(roomId, nodePayload);
+          if (roomId === currentRoomId) currentRoomIds.push(nodeId);
         } else {
           addNode(nodePayload);
+          currentRoomIds.push(nodeId);
         }
-        addedIds.push(nodeId);
         if (!capture.screenshot && capture.url) {
           fetchMetadata(capture.url).then((metadata: any) => { updateNode(nodeId, metadata); });
         }
       });
 
-      // Fit view to newly added nodes after React Flow renders them
-      setTimeout(() => {
-        fitView({ nodes: addedIds.map(id => ({ id })), padding: 0.3, duration: 0, maxZoom: 1 });
-      }, 100);
+      // Fit view only to nodes added to the current room
+      if (currentRoomIds.length > 0) {
+        setTimeout(() => {
+          fitView({ nodes: currentRoomIds.map(id => ({ id })), padding: 0.3, duration: 0, maxZoom: 1 });
+        }, 100);
+      }
     };
 
+    const requestSync = () => window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
+
     window.addEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
-    return () => window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
+    window.addEventListener('WHITEBOARD_EXT_READY', requestSync);
+
+    // Delay the first sync to ensure Dexie has finished rehydrating persisted state.
+    // Without this, nodes added by sync can be overwritten when Dexie loads.
+    const initTimer = setTimeout(requestSync, 500);
+    const interval = setInterval(requestSync, 2000);
+
+    return () => {
+      window.removeEventListener('WHITEBOARD_SYNC_RESPONSE', handleSyncResponse);
+      window.removeEventListener('WHITEBOARD_EXT_READY', requestSync);
+      clearTimeout(initTimer);
+      clearInterval(interval);
+    };
   }, [addNode, addNodeToRoom, updateNode, screenToFlowPosition, fitView]);
 
   return null;
@@ -230,9 +259,42 @@ const ZoomHandler = () => {
   return null;
 };
 
+const PaneContextMenu = ({ x, y, canvasPos, onClose }: { x: number; y: number; canvasPos: { x: number; y: number }; onClose: () => void }) => {
+  const pasteNodes = useStore(s => s.pasteNodes);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const onClick = () => onClose();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('click', onClick);
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('click', onClick); window.removeEventListener('keydown', onKey); };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      className="glass-dark rounded-2xl shadow-2xl border border-white/20 overflow-hidden"
+      style={{ position: 'fixed', top: y, left: x, width: 160, zIndex: 99999 }}
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <button
+        className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-white/80 hover:bg-white/10 hover:text-white transition-colors text-left"
+        onClick={() => { pasteNodes(canvasPos); onClose(); }}
+      >
+        <Clipboard size={13} /> Paste
+      </button>
+    </div>,
+    document.body
+  );
+};
+
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
+  const [paneContextMenu, setPaneContextMenu] = React.useState<{ x: number; y: number; canvasPos: { x: number; y: number } } | null>(null);
   const currentRoomId = useStore(s => s.currentRoomId);
+  const clipboard = useStore(s => s.clipboard);
 
   const rawNodes = useStore((state) => state.nodes);
   const activeTagFilters = useStore((state) => state.activeTagFilters);
@@ -309,6 +371,7 @@ const Canvas = () => {
   const onConnect = useStore((state) => state.onConnect);
   const addNode = useStore((state) => state.addNode);
   const updateNode = useStore((state) => state.updateNode);
+  const setContextMenuNodeId = useStore((state) => state.setContextMenuNodeId);
   const autoArrange = useStore((state) => state.autoArrange);
   const previewNodeId = useStore((state) => state.previewNodeId);
   const setPreviewNodeId = useStore((state) => state.setPreviewNodeId);
@@ -536,18 +599,6 @@ const Canvas = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Request sync from the extension immediately on mount, then every 2 seconds.
-  // Immediate fire ensures pending captures aren't missed due to content-script
-  // auto-check race conditions on page load.
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
-    const interval = setInterval(() => {
-      window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_REQUEST'));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-
   if (!isMounted) return null;
 
   return (
@@ -579,6 +630,17 @@ const Canvas = () => {
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
+        onPaneClick={() => { setContextMenuNodeId(null); setPaneContextMenu(null); }}
+        onPaneContextMenu={(e) => {
+          e.preventDefault();
+          setContextMenuNodeId(null);
+          if (clipboard.length > 0 && _screenToFlowPosition) {
+            const canvasPos = _screenToFlowPosition({ x: e.clientX, y: e.clientY });
+            setPaneContextMenu({ x: e.clientX, y: e.clientY, canvasPos });
+          } else {
+            setPaneContextMenu(null);
+          }
+        }}
         defaultEdgeOptions={{
           style: { strokeWidth: 2.5, strokeLinecap: 'round' },
           animated: false,
@@ -597,7 +659,17 @@ const Canvas = () => {
         <ZoomHandler />
         <NavigationHandler />
         <RoomsSyncer />
+        <ScreenToFlowBridge />
       </ReactFlow>
+
+      {paneContextMenu && (
+        <PaneContextMenu
+          x={paneContextMenu.x}
+          y={paneContextMenu.y}
+          canvasPos={paneContextMenu.canvasPos}
+          onClose={() => setPaneContextMenu(null)}
+        />
+      )}
 
       {previewNode && (
         <PreviewModal

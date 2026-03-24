@@ -15,6 +15,7 @@ const DEFAULT_ROOMS: RoomInfo[] = [
 
 const Popup = () => {
   const [tabInfo, setTabInfo] = useState<{ title?: string; url?: string; favicon?: string }>({});
+  const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -30,6 +31,7 @@ const Popup = () => {
           url: activeTab.url,
           favicon: activeTab.favIconUrl,
         });
+        setActiveTabId(activeTab.id ?? null);
       }
     });
 
@@ -47,6 +49,7 @@ const Popup = () => {
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'CAPTURE_TAB',
+        tabId: activeTabId,
         tags: allTags,
         roomId: selectedRoomId,
       });

@@ -59,6 +59,7 @@ interface WhiteboardState {
   selectedNodes: string[];
   previewNodeId: string | null;
   editingNodeId: string | null;
+  contextMenuNodeId: string | null;
   clipboard: Node<WhiteboardNode['data']>[];
   _past: HistoryEntry[];
   _future: HistoryEntry[];
@@ -80,6 +81,8 @@ interface WhiteboardState {
   updateGroupSize: (id: string, x: number, y: number, width: number, height: number) => void;
   copyNodes: () => void;
   cutNodes: () => void;
+  copyNodeById: (id: string) => void;
+  cutNodeById: (id: string) => void;
   pasteNodes: (center?: { x: number; y: number }) => void;
   createGroup: (group: GroupFrame) => void;
   deleteGroup: (id: string) => void;
@@ -89,6 +92,7 @@ interface WhiteboardState {
   setSelectedNodes: (ids: string[]) => void;
   setPreviewNodeId: (id: string | null) => void;
   setEditingNodeId: (id: string | null) => void;
+  setContextMenuNodeId: (id: string | null) => void;
   setNodes: (nodes: Node<WhiteboardNode['data']>[]) => void;
   autoArrange: () => void;
   switchRoom: (id: RoomType) => void;
@@ -126,6 +130,7 @@ export const useStore = create<WhiteboardState>()(
   selectedNodes: [] as string[],
   previewNodeId: null,
   editingNodeId: null,
+  contextMenuNodeId: null,
   clipboard: [] as Node<WhiteboardNode['data']>[],
   _past: [] as HistoryEntry[],
   _future: [] as HistoryEntry[],
@@ -170,6 +175,35 @@ export const useStore = create<WhiteboardState>()(
       : [];
     const cut = [...selected, ...children];
     if (cut.length === 0) return;
+    const cutIds = new Set(cut.map((n: Node) => n.id));
+    set({
+      clipboard: cut,
+      nodes: nodes.filter((n: Node) => !cutIds.has(n.id)),
+      edges: edges.filter((e: Edge) => !cutIds.has(e.source) && !cutIds.has(e.target)),
+      selectedNodes: [],
+      _past: [..._past.slice(-49), { nodes, edges }],
+      _future: [],
+    });
+  },
+
+  copyNodeById: (id: string) => {
+    const { nodes, _getParentId } = get();
+    const node = nodes.find((n: Node) => n.id === id);
+    if (!node) return;
+    const children = node.type === 'group'
+      ? nodes.filter((n: Node) => _getParentId(n) === id)
+      : [];
+    set({ clipboard: [node, ...children] });
+  },
+
+  cutNodeById: (id: string) => {
+    const { nodes, edges, _past, _getParentId } = get();
+    const node = nodes.find((n: Node) => n.id === id);
+    if (!node) return;
+    const children = node.type === 'group'
+      ? nodes.filter((n: Node) => _getParentId(n) === id)
+      : [];
+    const cut = [node, ...children];
     const cutIds = new Set(cut.map((n: Node) => n.id));
     set({
       clipboard: cut,
@@ -343,7 +377,7 @@ export const useStore = create<WhiteboardState>()(
       get().addNode(node);
       return;
     }
-    const { rooms } = get();
+    const { rooms, nodes: currentNodes, edges: currentEdges, groups: currentGroups } = get();
     const targetRoom = rooms.find((r: RoomData) => r.id === roomId);
     if (!targetRoom) { get().addNode(node); return; }
 
@@ -358,9 +392,12 @@ export const useStore = create<WhiteboardState>()(
       style: { width: node.width, height: node.height },
     };
     set({
-      rooms: rooms.map((r: RoomData) =>
-        r.id === roomId ? { ...r, nodes: [...r.nodes, newNode] } : r
-      ),
+      rooms: rooms.map((r: RoomData) => {
+        if (r.id === roomId) return { ...r, nodes: [...r.nodes, newNode] };
+        // Keep the current room's entry in sync with live state so switchRoom reads fresh data
+        if (r.id === currentRoomId) return { ...r, nodes: currentNodes, edges: currentEdges, groups: currentGroups };
+        return r;
+      }),
     });
   },
 
@@ -458,6 +495,10 @@ export const useStore = create<WhiteboardState>()(
 
   setEditingNodeId: (id: string | null) => {
     set({ editingNodeId: id });
+  },
+
+  setContextMenuNodeId: (id: string | null) => {
+    set({ contextMenuNodeId: id });
   },
 
   setNodes: (nodes: Node<WhiteboardNode['data']>[]) => {

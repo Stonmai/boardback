@@ -57,7 +57,7 @@ chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) =>
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'CAPTURE_TAB') {
-    captureTab(message.tags, message.roomId).then(sendResponse);
+    captureTab(message.tags, message.roomId, message.tabId ?? null).then(sendResponse);
     return true; // Keep channel open for async response
   }
 
@@ -94,9 +94,16 @@ async function getAndClearPendingCaptures() {
   return pendingCaptures;
 }
 
-async function captureTab(tags?: string[], roomId?: string) {
+async function captureTab(tags?: string[], roomId?: string, tabId?: number | null) {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    let tab: chrome.tabs.Tab | undefined;
+    if (tabId != null) {
+      tab = await chrome.tabs.get(tabId).catch(() => undefined);
+    }
+    if (!tab) {
+      const [found] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+      tab = found;
+    }
     if (!tab) throw new Error('No active tab found');
 
     const tabUrl = normalizeUrl(tab.url);
@@ -106,7 +113,7 @@ async function captureTab(tags?: string[], roomId?: string) {
 
     let screenshot = '';
     try {
-      screenshot = await chrome.tabs.captureVisibleTab({ format: 'jpeg', quality: 80 });
+      screenshot = await chrome.tabs.captureVisibleTab(tab.windowId!, { format: 'jpeg', quality: 80 });
     } catch (_) {
       // Screenshot unavailable (restricted page, window not focused, etc.) — capture metadata only
     }
