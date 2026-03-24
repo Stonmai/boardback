@@ -634,12 +634,12 @@ const Canvas = () => {
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={() => { setContextMenuNodeId(null); setPaneContextMenu(null); }}
-        onPaneContextMenu={(e: React.MouseEvent<HTMLElement>) => {
+        onPaneContextMenu={(e: MouseEvent | React.MouseEvent<Element>) => {
           e.preventDefault();
           setContextMenuNodeId(null);
           if (clipboard.length > 0 && _screenToFlowPosition) {
-            const canvasPos = _screenToFlowPosition({ x: e.clientX, y: e.clientY });
-            setPaneContextMenu({ x: e.clientX, y: e.clientY, canvasPos });
+            const canvasPos = _screenToFlowPosition({ x: (e as any).clientX, y: (e as any).clientY });
+            setPaneContextMenu({ x: (e as any).clientX, y: (e as any).clientY, canvasPos });
           } else {
             setPaneContextMenu(null);
           }
