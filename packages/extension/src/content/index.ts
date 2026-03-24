@@ -3,23 +3,23 @@ document.documentElement.setAttribute('data-whiteboard-ext', 'true');
 
 let contextInvalidated = false;
 
-// Custom event listener for the web app to trigger a sync
-window.addEventListener('WHITEBOARD_SYNC_REQUEST', async () => {
+async function sendPendingCaptures() {
   if (contextInvalidated) return;
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_PENDING_CAPTURES' });
     if (response && response.length > 0) {
       console.log(`[Content Script] Received ${response.length} captures, dispatching to app.`);
-      window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_RESPONSE', {
-        detail: response
-      }));
+      window.dispatchEvent(new CustomEvent('WHITEBOARD_SYNC_RESPONSE', { detail: response }));
     }
   } catch (error: any) {
     if (error?.message?.includes('Extension context invalidated')) {
-      contextInvalidated = true; // stop all future attempts silently
+      contextInvalidated = true;
     }
   }
-});
+}
+
+// Custom event listener for the web app to trigger a sync
+window.addEventListener('WHITEBOARD_SYNC_REQUEST', sendPendingCaptures);
 
 // Relay workspace list updates from the web app to extension storage
 window.addEventListener('BOARDBACK_ROOMS_UPDATE', async (event: any) => {
@@ -36,5 +36,7 @@ window.addEventListener('BOARDBACK_ROOMS_UPDATE', async (event: any) => {
   }
 });
 
-// Do NOT auto-check on load — the web app drives sync via WHITEBOARD_SYNC_REQUEST
-// to avoid clearing captures before React has mounted and is ready to receive them.
+// Notify the web app that the extension content script is ready.
+// The web app listens for this event to trigger an immediate sync,
+// handling the case where the content script loads after React has already mounted.
+window.dispatchEvent(new CustomEvent('WHITEBOARD_EXT_READY'));

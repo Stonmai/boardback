@@ -1,11 +1,12 @@
 'use client';
 
-import React, { memo, useState, useRef } from 'react';
+import React, { memo, useState, useRef, useCallback } from 'react';
 import { NodeProps, NodeResizer, Node } from '@xyflow/react';
-import { FolderX, Pencil, Check, X, ExternalLink, Tag } from 'lucide-react';
+import { FolderX, Pencil, Check, X, ExternalLink, Tag, Copy, Scissors } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/utils/cn';
 import type { WhiteboardNode } from '@whiteboard/shared/types';
+import NodeContextMenu from './NodeContextMenu';
 
 const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>>) => {
   const removeGroup = useStore(s => s.removeGroup);
@@ -13,15 +14,25 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
   const updateGroupSize = useStore(s => s.updateGroupSize);
   const editingNodeId = useStore(s => s.editingNodeId);
   const setEditingNodeId = useStore(s => s.setEditingNodeId);
+  const copyNodeById = useStore(s => s.copyNodeById);
+  const cutNodeById = useStore(s => s.cutNodeById);
   const isDropTarget = !!(data as any).__dropTarget;
   const nodes = useStore(s => s.nodes);
   const getParentId = (n: any) => n.parentId || n.parentNode;
 
   const [isEditingName, setIsEditingName] = useState(false);
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const getRect = useCallback(() => nodeRef.current?.getBoundingClientRect() ?? null, []);
+  const [contextMenuPos, setContextMenuPos] = useState<boolean>(false);
   const [nameInput, setNameInput] = useState(data.title || '');
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const contextMenuNodeId = useStore(s => s.contextMenuNodeId);
+  const setContextMenuNodeId = useStore(s => s.setContextMenuNodeId);
+  const contextMenu = contextMenuNodeId === id && contextMenuPos;
+  const closeContextMenu = () => setContextMenuNodeId(null);
 
   const handleAddTag = (tag: string) => {
     const trimmed = tag.trim().toLowerCase();
@@ -44,6 +55,15 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [editingNodeId, id, setEditingNodeId]);
+
+  React.useEffect(() => {
+    if (!contextMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeContextMenu(); };
+    const onClick = () => closeContextMenu();
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('click', onClick);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('click', onClick); };
+  }, [contextMenu]);
 
   const handleStartEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -78,7 +98,10 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
 
   return (
     <div
+      ref={nodeRef}
       className="group w-full h-full relative"
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenuPos(true); setContextMenuNodeId(id); }}
+      onClick={() => closeContextMenu()}
       style={{
         borderRadius: 20,
         border: isDropTarget
@@ -124,11 +147,11 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
                 if (e.key === 'Escape') handleCancelName();
               }}
               placeholder="NEW GROUP"
-              className="rounded-lg px-2 py-0.5 text-[11px] font-bold tracking-widest uppercase text-white outline-none placeholder:text-white/30"
+              className="rounded-lg px-2 py-0.5 text-[25px] font-bold tracking-widest uppercase text-white outline-none placeholder:text-white/30"
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(255,255,255,0.25)',
-                width: 120,
+                width: 240,
               }}
               autoFocus
               onClick={(e) => e.stopPropagation()}
@@ -147,66 +170,51 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
             </button>
           </div>
         ) : (
-          <>
-            <span
-              style={{
-                padding: '3px 10px',
-                borderRadius: 8,
-                fontSize: 25,
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                background: isDropTarget ? 'rgba(200,241,53,0.18)' : 'rgba(255,255,255,0.08)',
-                color: isDropTarget ? '#c8f135' : 'rgba(255,255,255,0.55)',
-                border: isDropTarget ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(8px)',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {data.title || 'New Group 📦'}
-            </span>
-            {(data as any).count !== undefined && (
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
-                {(data as any).count} items
-              </span>
-            )}
-          </>
+          <span
+            onDoubleClick={handleStartEdit}
+            style={{
+              padding: '3px 10px',
+              borderRadius: 8,
+              fontSize: 25,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              background: isDropTarget ? 'rgba(200,241,53,0.18)' : 'rgba(255,255,255,0.08)',
+              color: isDropTarget ? '#c8f135' : 'rgba(255,255,255,0.55)',
+              border: isDropTarget ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.15s ease',
+              cursor: 'text',
+            }}
+          >
+            {data.title || 'New Group 📦'}
+          </span>
         )}
       </div>
 
-      {/* Drop hint */}
-      {isDropTarget && (
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            pointerEvents: 'none',
-          }}
-        >
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(200,241,53,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Drop to add
-          </span>
-        </div>
-      )}
-
-      {/* Tags display */}
-      {(data.tags as string[] | undefined) && (data.tags as string[]).length > 0 && (
-        <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', flexWrap: 'wrap', gap: 4, pointerEvents: 'none' }}>
-          {(data.tags as string[]).map((tag, idx) => (
-            <span key={idx} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              {tag}
-            </span>
-          ))}
-        </div>
+      {/* Context menu */}
+      {contextMenu && (
+        <NodeContextMenu
+          getRect={getRect}
+          items={[
+            { icon: ExternalLink, label: 'Open All', onClick: (e) => { handleOpenAll(e); closeContextMenu(); } },
+            { icon: Copy, label: 'Copy', onClick: () => { copyNodeById(id); closeContextMenu(); } },
+            { icon: Scissors, label: 'Cut', onClick: () => { cutNodeById(id); closeContextMenu(); } },
+            { divider: true },
+            { icon: Pencil, label: 'Rename', onClick: (e) => { handleStartEdit(e); closeContextMenu(); } },
+            { icon: Tag, label: 'Tag', onClick: () => { setShowTagInput(true); closeContextMenu(); } },
+            { icon: FolderX, label: 'Ungroup', onClick: () => { removeGroup(id); closeContextMenu(); } },
+          ]}
+        />
       )}
 
       {/* Floating action bar */}
       <div
         className={cn(
-          'nodrag absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200 z-50',
+          'nodrag absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200',
           selected
-            ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+            ? 'opacity-100 translate-y-0 z-9999'
+            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
         )}
       >
         <button
@@ -270,7 +278,39 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
         >
           <FolderX size={15} />
         </button>
+        {(data as any).count !== undefined && (
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 600, padding: '0 6px' }}>
+            {(data as any).count} items
+          </span>
+        )}
       </div>
+
+      {/* Drop hint */}
+      {isDropTarget && (
+        <div
+          style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(200,241,53,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Drop to add
+          </span>
+        </div>
+      )}
+
+      {/* Tags display */}
+      {(data.tags as string[] | undefined) && (data.tags as string[]).length > 0 && (
+        <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', flexWrap: 'wrap', gap: 4, pointerEvents: 'none' }}>
+          {(data.tags as string[]).map((tag, idx) => (
+            <span key={idx} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 };

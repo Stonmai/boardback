@@ -8,3 +8,5 @@ packages/web/public/sw.js
 packages/web/public/sw.js.map
 packages/web/public/workbox-*.js
 packages/web/public/workbox-*.js.map
+
+claude.md

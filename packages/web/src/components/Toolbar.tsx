@@ -646,13 +646,13 @@ const Toolbar = () => {
 
   const handleAddBookmark = () => {
     const id = uuidv4();
-    addNode({ id, type: 'bookmark', position: center(90, 65), width: 180, data: { title: '', url: '' }, createdAt: new Date().toISOString() });
+    addNode({ id, type: 'bookmark', position: center(90, 65), width: 300, data: { title: '', url: '' }, createdAt: new Date().toISOString() });
     setEditingNodeId(id);
   };
 
   const handleAddSticker = () => {
     const id = uuidv4();
-    addNode({ id, type: 'note', position: center(90, 65), width: 180, data: { title: '', content: '' }, createdAt: new Date().toISOString() });
+    addNode({ id, type: 'note', position: center(150, 90), width: 360, data: { title: '', content: '' }, createdAt: new Date().toISOString() });
     setEditingNodeId(id);
   };
 

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useRef, useCallback } from 'react';
 import { Handle, Position, NodeProps, NodeResizer, Node } from '@xyflow/react';
-import { Trash2, Check, X, Palette, Pencil, Tag } from 'lucide-react';
+import { Trash2, Check, X, Palette, Pencil, Tag, Copy, Scissors } from 'lucide-react';
 import { WhiteboardNode } from '@whiteboard/shared/types';
 import { cn } from '@/utils/cn';
 import { useStore } from '@/store/useStore';
+import NodeContextMenu from './NodeContextMenu';
 
 // ── Gradient palette from the reference image ──────────────────────────────
 const COLORS: Record<
@@ -77,7 +78,10 @@ const COLORS: Record<
 };
 
 const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>>) => {
+  const nodeRef = useRef<HTMLDivElement>(null);
+  const getRect = useCallback(() => nodeRef.current?.getBoundingClientRect() ?? null, []);
   const [isEditing, setIsEditing] = useState(false);
+  const [contextMenuPos, setContextMenuPos] = useState<boolean>(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState('');
@@ -88,6 +92,13 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const deleteNode = useStore((s) => s.deleteNode);
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
+  const copyNodeById = useStore((s) => s.copyNodeById);
+  const cutNodeById = useStore((s) => s.cutNodeById);
+  const contextMenuNodeId = useStore((s) => s.contextMenuNodeId);
+  const setContextMenuNodeId = useStore((s) => s.setContextMenuNodeId);
+
+  const contextMenu = contextMenuNodeId === id && contextMenuPos;
+  const closeContextMenu = () => setContextMenuNodeId(null);
 
   React.useEffect(() => {
     if (editingNodeId === id) {
@@ -95,6 +106,15 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
       setEditingNodeId(null);
     }
   }, [editingNodeId, id, setEditingNodeId]);
+
+  React.useEffect(() => {
+    if (!contextMenu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeContextMenu(); };
+    const onClick = () => closeContextMenu();
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('click', onClick);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('click', onClick); };
+  }, [contextMenu]);
 
   const currentColor = (data.color as string) || 'purple';
   const style = COLORS[currentColor] ?? COLORS.purple;
@@ -130,7 +150,10 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
 
   return (
     <div
+      ref={nodeRef}
       className="group relative h-full w-full"
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenuPos(true); setContextMenuNodeId(id); }}
+      onClick={() => closeContextMenu()}
       style={{
         borderRadius: 20,
         background: style.gradient,
@@ -155,16 +178,20 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
       <NodeResizer color="rgba(255,255,255,0.6)" isVisible={selected} minWidth={160} minHeight={80} />
 
       {/* Card content */}
-      <div className="w-full h-full p-3 rounded-[16px]" style={{ color: style.text }}>
+      <div className="w-full h-full p-3 rounded-[14px]" style={{ color: style.text, overflow: isEditing ? 'hidden auto' : 'visible' }}>
         <div className="space-y-2">
           {isEditing ? (
-            <div className="space-y-2">
+            <div className="nodrag space-y-2">
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                }}
                 placeholder="Title"
-                className="w-full rounded-lg px-2.5 py-1.5 text-[13px] font-bold outline-none focus:ring-2"
+                className="w-full rounded-lg px-2.5 py-1.5 text-[25px] font-bold outline-none focus:ring-2"
                 style={{
                   background: 'rgba(0,0,0,0.15)',
                   color: style.text,
@@ -175,8 +202,12 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                }}
                 placeholder="Start typing..."
-                className="w-full rounded-lg px-2.5 py-1.5 text-[12px] outline-none resize-none min-h-[80px] focus:ring-2"
+                className="w-full rounded-lg px-2.5 py-1.5 text-[18px] outline-none resize-none min-h-40 focus:ring-2"
                 style={{
                   background: 'rgba(0,0,0,0.15)',
                   color: style.text,
@@ -202,17 +233,17 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
             </div>
           ) : (
             <div
-              className="cursor-text min-h-[60px] break-words"
+              className="cursor-text min-h-40 wrap-break-word"
               onDoubleClick={() => setIsEditing(true)}
             >
               <h3
-                className="font-bold text-[14px] mb-1.5 break-words leading-tight"
+                className="font-bold text-[25px] mb-1.5 wrap-break-word leading-tight"
                 style={{ color: style.text, textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
               >
                 {title || 'New Note 🔖'}
               </h3>
               <p
-                className="text-[12px] whitespace-pre-wrap leading-relaxed break-words line-clamp-4 font-medium"
+                className="text-[18px] whitespace-pre-wrap leading-relaxed wrap-break-word line-clamp-4 font-medium"
                 style={{ color: style.text, opacity: 0.88 }}
               >
                 {content || 'Click to add content…'}
@@ -239,6 +270,22 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
           )}
         </div>
 
+        {/* Context menu */}
+        {contextMenu && (
+          <NodeContextMenu
+            getRect={getRect}
+            items={[
+              { icon: Copy, label: 'Copy', onClick: () => { copyNodeById(id); closeContextMenu(); } },
+              { icon: Scissors, label: 'Cut', onClick: () => { cutNodeById(id); closeContextMenu(); } },
+              { divider: true },
+              { icon: Palette, label: 'Color', onClick: () => { setShowColorPicker(true); setShowTagInput(false); closeContextMenu(); } },
+              { icon: Tag, label: 'Tag', onClick: () => { setShowTagInput(true); setShowColorPicker(false); closeContextMenu(); } },
+              { icon: Pencil, label: 'Edit', onClick: () => { setIsEditing(true); closeContextMenu(); } },
+              { icon: Trash2, label: 'Delete', onClick: () => { deleteNode(id); closeContextMenu(); } },
+            ]}
+          />
+        )}
+
         {/* Floating action bar */}
         <div
           className={cn(
@@ -257,7 +304,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
             </button>
 
             {showColorPicker && (
-              <div className="absolute bottom-full left-0 mb-3 p-2 glass-dark rounded-2xl shadow-2xl flex gap-2 z-[60] border border-white/20">
+              <div className="absolute bottom-full left-0 mb-3 p-2 glass-dark rounded-2xl shadow-2xl flex gap-2 z-60 border border-white/20">
                 {Object.entries(COLORS).map(([key, val]) => (
                   <button
                     key={key}
@@ -288,7 +335,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
             </button>
 
             {showTagInput && (
-              <div className="absolute bottom-full left-0 mb-3 p-2.5 glass-dark rounded-2xl shadow-2xl z-[60] border border-white/20" style={{ width: 180 }}>
+              <div className="absolute bottom-full left-0 mb-3 p-2.5 glass-dark rounded-2xl shadow-2xl z-60 border border-white/20" style={{ width: 180 }}>
                 {(data.tags as string[] || []).length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {(data.tags as string[]).map((tag) => (

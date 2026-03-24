@@ -31,6 +31,7 @@
   },
   "externally_connectable": {
     "matches": [
+      "https://open-boardback.com/*",
       "https://boardback-web.vercel.app/*",
       "https://whitebroawd-web.vercel.app/*",
       "http://localhost:3000/*"
@@ -39,11 +40,14 @@
   "content_scripts": [
     {
       "matches": [
+        "https://open-boardback.com/*",
         "https://boardback-web.vercel.app/*",
         "https://whitebroawd-web.vercel.app/*",
         "http://localhost:3000/*"
       ],
-      "js": ["content.js"]
+      "js": [
+        "content.js"
+      ]
     }
   ]
 }
