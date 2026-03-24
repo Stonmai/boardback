@@ -634,7 +634,7 @@ const Canvas = () => {
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={() => { setContextMenuNodeId(null); setPaneContextMenu(null); }}
-        onPaneContextMenu={(e) => {
+        onPaneContextMenu={(e: any) => {
           e.preventDefault();
           setContextMenuNodeId(null);
           if (clipboard.length > 0 && _screenToFlowPosition) {
