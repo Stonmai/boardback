@@ -259,17 +259,18 @@ const ZoomHandler = () => {
   return null;
 };
 
-const PaneContextMenu = ({ x, y, canvasPos, onClose }: { x: number; y: number; canvasPos: { x: number; y: number }; onClose: () => void }) => {
+const PaneContextMenu = ({ x, y, canvasPos }: { x: number; y: number; canvasPos: { x: number; y: number } }) => {
   const pasteNodes = useStore(s => s.pasteNodes);
+  const setPaneContextMenu = useStore(s => s.setPaneContextMenu);
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    const onClick = () => onClose();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onClick = () => setPaneContextMenu(null);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPaneContextMenu(null); };
     window.addEventListener('click', onClick);
     window.addEventListener('keydown', onKey);
     return () => { window.removeEventListener('click', onClick); window.removeEventListener('keydown', onKey); };
-  }, [onClose]);
+  }, [setPaneContextMenu]);
 
   return createPortal(
     <div
@@ -281,7 +282,7 @@ const PaneContextMenu = ({ x, y, canvasPos, onClose }: { x: number; y: number; c
     >
       <button
         className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-white/80 hover:bg-white/10 hover:text-white transition-colors text-left"
-        onClick={() => { pasteNodes(canvasPos); onClose(); }}
+        onClick={() => { pasteNodes(canvasPos); setPaneContextMenu(null); }}
       >
         <Clipboard size={13} /> Paste
       </button>
@@ -292,9 +293,10 @@ const PaneContextMenu = ({ x, y, canvasPos, onClose }: { x: number; y: number; c
 
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
-  const [paneContextMenu, setPaneContextMenu] = React.useState<{ x: number; y: number; canvasPos: { x: number; y: number } } | null>(null);
   const currentRoomId = useStore(s => s.currentRoomId);
   const clipboard = useStore(s => s.clipboard);
+  const paneContextMenu = useStore(s => s.paneContextMenu);
+  const setPaneContextMenu = useStore(s => s.setPaneContextMenu);
 
   const rawNodes = useStore((state) => state.nodes);
   const activeTagFilters = useStore((state) => state.activeTagFilters);
@@ -667,7 +669,6 @@ const Canvas = () => {
           x={paneContextMenu.x}
           y={paneContextMenu.y}
           canvasPos={paneContextMenu.canvasPos}
-          onClose={() => setPaneContextMenu(null)}
         />
       )}
 

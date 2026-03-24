@@ -60,6 +60,7 @@ interface WhiteboardState {
   previewNodeId: string | null;
   editingNodeId: string | null;
   contextMenuNodeId: string | null;
+  paneContextMenu: { x: number; y: number; canvasPos: { x: number; y: number } } | null;
   clipboard: Node<WhiteboardNode['data']>[];
   _past: HistoryEntry[];
   _future: HistoryEntry[];
@@ -93,6 +94,7 @@ interface WhiteboardState {
   setPreviewNodeId: (id: string | null) => void;
   setEditingNodeId: (id: string | null) => void;
   setContextMenuNodeId: (id: string | null) => void;
+  setPaneContextMenu: (menu: { x: number; y: number; canvasPos: { x: number; y: number } } | null) => void;
   setNodes: (nodes: Node<WhiteboardNode['data']>[]) => void;
   autoArrange: () => void;
   switchRoom: (id: RoomType) => void;
@@ -131,6 +133,7 @@ export const useStore = create<WhiteboardState>()(
   previewNodeId: null,
   editingNodeId: null,
   contextMenuNodeId: null,
+  paneContextMenu: null,
   clipboard: [] as Node<WhiteboardNode['data']>[],
   _past: [] as HistoryEntry[],
   _future: [] as HistoryEntry[],
@@ -499,6 +502,10 @@ export const useStore = create<WhiteboardState>()(
 
   setContextMenuNodeId: (id: string | null) => {
     set({ contextMenuNodeId: id });
+  },
+
+  setPaneContextMenu: (menu: { x: number; y: number; canvasPos: { x: number; y: number } } | null) => {
+    set({ paneContextMenu: menu });
   },
 
   setNodes: (nodes: Node<WhiteboardNode['data']>[]) => {
