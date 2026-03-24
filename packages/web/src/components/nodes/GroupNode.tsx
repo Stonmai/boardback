@@ -31,8 +31,9 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
 
   const contextMenuNodeId = useStore(s => s.contextMenuNodeId);
   const setContextMenuNodeId = useStore(s => s.setContextMenuNodeId);
+  const setPaneContextMenu = useStore(s => s.setPaneContextMenu);
   const contextMenu = contextMenuNodeId === id && contextMenuPos;
-  const closeContextMenu = () => setContextMenuNodeId(null);
+  const closeContextMenu = () => { setContextMenuNodeId(null); setPaneContextMenu(null); };
 
   const handleAddTag = (tag: string) => {
     const trimmed = tag.trim().toLowerCase();
@@ -100,7 +101,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
     <div
       ref={nodeRef}
       className="group w-full h-full relative"
-      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenuPos(true); setContextMenuNodeId(id); }}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenuPos(true); setContextMenuNodeId(id); setPaneContextMenu(null); }}
       onClick={() => closeContextMenu()}
       style={{
         borderRadius: 20,

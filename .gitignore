@@ -10,3 +10,4 @@ packages/web/public/workbox-*.js
 packages/web/public/workbox-*.js.map
 
 claude.md
+.qwen/
