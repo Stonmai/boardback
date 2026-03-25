@@ -235,7 +235,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   <h3 className="text-[25px] font-bold text-white leading-tight wrap-break-word mb-0.5">
                     {data.title || 'Untitled Bookmark 🔗'}
                   </h3>
-                  <p className="text-[15px] text-white/35 break-all font-mono">
+                  <p className="text-[15px] text-white/35 break-all font-mono line-clamp-3">
                     {data.url as string}
                   </p>
                 </div>

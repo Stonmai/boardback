@@ -242,8 +242,12 @@ export const useStore = create<WhiteboardState>()(
       const oldPid = _getParentId(n);
       const newParent = oldPid && clipboardIds.has(oldPid) ? idMap.get(oldPid) : undefined;
       const isChild = oldPid && clipboardIds.has(oldPid);
+      const sizeOverride =
+        (n.type === 'bookmark' || n.type === 'tab') ? { width: 300, height: undefined, measured: undefined } :
+        n.type === 'note' ? { width: 360, height: undefined, measured: undefined } : {};
       return {
         ...n,
+        ...sizeOverride,
         id: newId,
         selected: true,
         parentId: newParent,

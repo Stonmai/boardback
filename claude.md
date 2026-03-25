@@ -1,197 +1,184 @@
-# Claude Instructions — BoardBack
+# BoardBack — Claude Instructions
 
-This document defines how Claude should understand, modify, and generate code for the BoardBack project.
-
----
-
-## Project Overview
-
-BoardBack is a local-first visual workspace for bookmarks and web captures.
-
-Key principles:
-- Local-first (IndexedDB via Dexie)
-- No backend / no cloud
-- Fast, interactive canvas (React Flow)
-- Clean, minimal UI
-- Deterministic state (Zustand)
+Local-first visual workspace for bookmarks and web captures. No backend. No auth. No cloud.
 
 ---
 
-## Architecture
+## Core Principles
 
-Monorepo structure:
+1. **Local-first**: IndexedDB (Dexie) is the single source of truth. Never add server calls or external APIs.
+2. **Performance**: Memoize node components. Avoid re-renders. No heavy logic in render.
+3. **Minimal**: Don't add features, abstractions, or dependencies beyond what's asked.
+4. **Typed**: All props/data use TypeScript. Shared types live in `packages/shared/types.ts` — never duplicate them.
 
+---
+
+## Monorepo Layout
+
+```
 packages/
-  web/        → Next.js app (main canvas UI)
-  extension/  → Chrome extension (capture tool)
-  shared/     → Shared types
-
-### Responsibilities
-
-- web: UI, canvas logic, state, persistence
-- extension: capture tabs and send data
-- shared: strict TypeScript types used across packages
-
-Claude must:
-- Keep logic in the correct package
-- Never duplicate shared types
-- Prefer reusing types from shared
-
----
-
-## React Guidelines
-
-### Components
-
-- Use functional components only
-- Use TypeScript for all props
-- Keep components small and focused
-- Extract reusable logic into hooks
-
-Avoid:
-- Large monolithic components
-- Deeply nested JSX
-- Inline complex logic
+  web/src/
+    app/              → Next.js pages (layout.tsx, page.tsx)
+    components/
+      Canvas.tsx      → React Flow container + extension sync handler
+      Toolbar.tsx
+      PreviewModal.tsx
+      nodes/
+        BookmarkNode.tsx   → Used for both 'bookmark' and 'tab' types (488 lines, memo'd)
+        NoteNode.tsx
+        GroupNode.tsx
+        NodeContextMenu.tsx
+    store/
+      useStore.ts     → Zustand store (855 lines) — all state + actions here
+      dexieStorage.ts → IndexedDB adapter (async get/set/delete)
+    utils/
+      clustering.ts   → Auto-arrange: domain grouping + union-find + row-packing
+      cn.ts           → Tailwind class merge utility
+      metadata.ts
+  extension/src/
+    background/index.ts   → Tab listeners, new tab hijacking
+    popup/index.tsx        → Room selector, tag input, capture button
+    content/index.ts
+    options/index.tsx
+    config.ts              → APP_URL, LEGACY_URLS
+  shared/
+    types.ts          → WhiteboardNode, GroupFrame, Tag, TagColor, RoomData — source of truth
+```
 
 ---
 
-### State Management (Zustand)
+## Tech Stack
 
-- Global state lives in Zustand stores
-- Persisted state uses Dexie
+| Package | Version |
+|---------|---------|
+| Next.js | ^16.1.6 |
+| React | ^19.2.4 |
+| @xyflow/react (React Flow) | 12.10.1 |
+| Zustand | ^5.0.11 |
+| Dexie | ^4.3.0 |
+| Tailwind CSS | ^4.2.1 |
+| TypeScript | ^5 |
+| lucide-react | ^0.577.0 |
+| uuid | ^13.0.0 |
+| serwist (PWA/SW) | ^9.5.6 |
 
-Claude must:
-- Not introduce new state libraries
-- Not duplicate state between components and store
-- Always update state via store actions
-
----
-
-### Server vs Client
-
-- Default to client components
-- Use server components only when clearly beneficial
-
----
-
-## Canvas (React Flow)
-
-This is the core of the application.
-
-Claude must:
-- Not break node or edge structures
-- Preserve React Flow conventions
-- Keep node data serializable
-
-When modifying canvas logic:
-- Ensure performance (avoid unnecessary re-renders)
-- Avoid heavy computations inside render functions
+Extension: Manifest V3, Webpack 5, React 19, @types/chrome.
 
 ---
 
-## Data Layer (Dexie)
+## Shared Types (`packages/shared/types.ts`)
 
-- IndexedDB via Dexie is the single source of truth
-- Zustand synchronizes with Dexie
+```ts
+WhiteboardNode {
+  id: string           // UUID
+  type: 'bookmark' | 'tab' | 'note' | 'group'
+  position: { x, y }
+  width?: number
+  height?: number
+  data: {
+    title, url?, content?, favicon?, screenshot?,
+    tags: string[], color: string, description?
+  }
+  createdAt: string    // ISO timestamp
+  parentId?: string    // for child nodes inside groups
+}
 
-Claude must:
-- Not introduce external APIs
-- Not add server calls
-- Maintain a local-first architecture
+GroupFrame { id, label, color, nodeIds[] }
+RoomData   { id, name, emoji, nodes[], edges[], groups[] }
+Tag        { id, name, color: TagColor }
+```
+
+Node color constants: `BOOKMARK_COLORS`, `NOTE_COLORS`, `ACCENT_HEX`.
 
 ---
 
-## Extension Communication
+## Zustand Store (`packages/web/src/store/useStore.ts`)
 
-- Uses chrome.runtime.sendMessage
-- Communicates only with the web app
+**State shape:**
+```ts
+nodes, edges, groups, rooms, currentRoomId,
+tags, selectedNodes, previewNodeId, editingNodeId, contextMenuNodeId,
+clipboard,           // Node[] for copy/paste/cut
+_past, _future       // undo/redo history (max 50 entries)
+```
 
-Claude must:
-- Not introduce background servers
-- Respect Chrome Manifest V3 constraints
-- Keep messages minimal and structured
+**Rules:**
+- All state mutations go through store actions — never mutate directly in components.
+- Persist middleware + Dexie adapter handles IndexedDB sync automatically.
+- Undo snapshot: call before major mutations (add, delete, cut, drag). Drag snapshots only if movement > 0.5px.
+- Room switching: `switchRoom(id)` saves current state into rooms array then loads target room.
+- Module-level vars `_dragging` / `_preDragSnapshot` track drag state without triggering renders.
+
+**Paste pattern:** remap IDs with `idMap`, detect parents, adjust child offsets.
+
+---
+
+## React Flow (Canvas)
+
+- Node types registered: `bookmark`, `tab` → `BookmarkNode`; `note` → `NoteNode`; `group` → `GroupNode`.
+- All nodes have 4-directional handles (top/bottom/left/right).
+- Keep node `data` fully serializable (no functions, no class instances).
+- Do not break `parentId` relationships — `removeGroup` unparents children and recalculates absolute positions.
+- `Canvas.tsx` includes the `SyncHandler` that listens for `'sync-response'` custom events from the extension.
 
 ---
 
 ## Styling
 
-- Use Tailwind CSS only
-- Avoid inline styles unless necessary
-
-Guidelines:
-- Prefer utility classes
-- Keep UI minimal and clean
-- Avoid excessive styling
+- **Tailwind CSS only.** No CSS modules, no styled-components.
+- Inline styles only for dynamic values: colors, transforms, glassmorphism effects.
+- CSS variables: `--accent-color`, `--accent-glow` for per-node theming.
+- Glassmorphism: `backdrop-filter: blur(20px)` + semi-transparent backgrounds.
+- Utility: use `cn()` from `utils/cn.ts` (clsx + tailwind-merge).
 
 ---
 
-## Code Quality
+## Extension Communication
 
-Claude should:
-- Use clear and descriptive naming
-- Prefer early returns
-- Keep functions small
-- Avoid duplication
-- Prioritize readability over cleverness
-
----
-
-## Disallowed Changes
-
-Claude must not:
-- Add authentication systems
-- Add backend or API layers
-- Introduce major dependencies without strong justification
-- Break the local-first architecture
-- Store data outside IndexedDB
-- Over-engineer abstractions
+- Popup → background → web app via `chrome.runtime.sendMessage`.
+- Rooms list synced via `chrome.storage.local`.
+- Capture payload: `{ title, url, favicon, tags, roomId, screenshot? }`.
+- New captures placed in a `sqrt(N)` grid centered on viewport.
+- New tab hijacking: detects browser-specific URLs (including Vivaldi), redirects to `APP_URL`.
+- Manifest V3 only — no background servers, no persistent connections.
 
 ---
 
-## Preferred Patterns
+## Scripts
 
-- Custom hooks for reusable logic
-- Co-located component files
-- Strong typing via shared
-- Simple and predictable data flow
+```bash
+npm run web:dev          # Next.js dev server (port 3000)
+npm run web:build        # Next.js production build
+npm run extension:dev    # Webpack watch
+npm run extension:build  # Webpack production build
+```
+
+---
+
+## Component Patterns
+
+- Wrap node components in `memo()`.
+- Local UI state (edit mode, color picker, tag input) lives in the component.
+- Store-connected state always goes through Zustand actions.
+- Double-click → edit mode; `Cmd+Enter` → save; `Escape` → cancel.
+- Context menus close on `Escape` or outside click.
 
 ---
 
 ## Adding Features
 
-When adding new features, Claude should:
-1. Check if similar logic already exists
-2. Reuse existing patterns
-3. Update types in shared if needed
-4. Keep changes minimal and consistent
+1. Check if similar logic exists in `useStore.ts` or `clustering.ts`.
+2. Reuse existing node types before adding new ones.
+3. Update `packages/shared/types.ts` if new data shapes are needed.
+4. Keep changes minimal — one concern per PR.
 
 ---
 
-## Decision Heuristics
+## Hard Rules
 
-When uncertain, prefer:
-1. Simplicity over complexity
-2. Consistency over novelty
-3. Local-first over networked solutions
-4. Explicit behavior over implicit behavior
-
----
-
-## Output Style
-
-When generating code:
-- Provide complete, working snippets
-- Avoid placeholders unless necessary
-- Keep explanations concise unless requested otherwise
-
----
-
-## Summary
-
-BoardBack is:
-- Local-first
-- Visual
-- Fast
-- Minimal
-
-Claude should act as a senior React engineer focused on clarity, performance, and simplicity.
+- No auth, no backend, no external APIs.
+- No new state libraries.
+- No data stored outside IndexedDB.
+- No major new dependencies without strong justification.
+- No server components unless clearly beneficial.
+- No duplication of shared types.

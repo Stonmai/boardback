@@ -185,7 +185,7 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
           id: nodeId,
           type: 'bookmark',
           position,
-          width: 180,
+          width: 300,
           data: { title: displayTitle, url: text, tags: ['pasted url'] },
           createdAt: new Date().toISOString(),
         });
@@ -199,7 +199,7 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
           id: uuidv4(),
           type: 'note',
           position,
-          width: 300,
+          width: 360,
           data: { title, content, tags: ['pasted note'] },
           createdAt: new Date().toISOString(),
         });
