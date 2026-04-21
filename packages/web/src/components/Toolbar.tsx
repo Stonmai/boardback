@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, Wrench } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useStore, RoomData } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -1579,7 +1579,7 @@ const Toolbar = () => {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; }}
                           >
-                            <Wrench size={13} strokeWidth={2} />
+                            <CircleEllipsis size={13} strokeWidth={2} />
                           </button>
                         </div>
                       );
@@ -1600,7 +1600,7 @@ const Toolbar = () => {
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(200,241,53,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = '#c8f135'; }}
                     onMouseLeave={e => { const isActive = showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId)); (e.currentTarget as HTMLButtonElement).style.background = isActive ? 'rgba(200,241,53,0.12)' : 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = isActive ? '#c8f135' : 'rgba(255,255,255,0.5)'; }}
                   >
-                    <MoreHorizontal size={18} strokeWidth={2} />
+                    {(() => { const activeOverflow = overflowRooms.find(r => r.id === currentRoomId); return activeOverflow ? <span style={{ fontSize: 20, lineHeight: 1 }}>{getRoomEmoji(activeOverflow)}</span> : <MoreHorizontal size={18} strokeWidth={2} />; })()}
                   </button>
                   <span style={{ ...labelStyle, color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>More</span>
                 </div>
