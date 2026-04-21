@@ -1598,13 +1598,13 @@ const Toolbar = () => {
                       setShowOverflow(true);
                     }
                   }}
-                    style={{ width: 44, height: 36, borderRadius: 13, background: showOverflow ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showOverflow ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
-                    onMouseEnter={e => { if (!showOverflow) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
-                    onMouseLeave={e => { if (!showOverflow) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)'; } }}
+                    style={{ width: 44, height: 36, borderRadius: 13, background: showOverflow || overflowRooms.some(r => r.id === currentRoomId) ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showOverflow || overflowRooms.some(r => r.id === currentRoomId) ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(200,241,53,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = '#c8f135'; }}
+                    onMouseLeave={e => { const isActive = overflowRooms.some(r => r.id === currentRoomId); (e.currentTarget as HTMLButtonElement).style.background = isActive ? 'rgba(200,241,53,0.12)' : 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = isActive ? '#c8f135' : 'rgba(255,255,255,0.5)'; }}
                   >
                     <MoreHorizontal size={18} strokeWidth={2} />
                   </button>
-                  <span style={labelStyle}>More</span>
+                  <span style={{ ...labelStyle, color: showOverflow || overflowRooms.some(r => r.id === currentRoomId) ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>More</span>
                 </div>
               </div>
             )}
@@ -1681,8 +1681,8 @@ const Toolbar = () => {
             ref={tagsBtnRef}
             style={{ ...mkBtnStyle(hasActiveFilters), top: '-5px' }}
             onClick={() => { setShowTags(true); setShowRooms(false); }}
-            onMouseEnter={e => onEnter(e, hasActiveFilters || showTags)}
-            onMouseLeave={e => onLeave(e, hasActiveFilters || showTags)}
+            onMouseEnter={e => onEnter(e, hasActiveFilters)}
+            onMouseLeave={e => onLeave(e, hasActiveFilters)}
             onMouseDown={onDown}
           >
             <Tag size={20} strokeWidth={2} />
