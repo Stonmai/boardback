@@ -1479,8 +1479,8 @@ const Toolbar = () => {
             {/* Overflow menu */}
             {overflowRooms.length > 0 && (
               <div className="relative" ref={overflowRef} style={{ margin: '0 2px' }}
-                onMouseEnter={() => { if (overflowCloseTimer.current) clearTimeout(overflowCloseTimer.current); setShowOverflow(true); }}
-                onMouseLeave={() => { overflowCloseTimer.current = setTimeout(() => setShowOverflow(false), 150); }}
+                onMouseEnter={() => { if (renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId)) return; if (overflowCloseTimer.current) clearTimeout(overflowCloseTimer.current); setShowOverflow(true); }}
+                onMouseLeave={() => { if (renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId)) return; overflowCloseTimer.current = setTimeout(() => setShowOverflow(false), 150); }}
               >
                 {/* Edit panel for overflow rooms — shown instead of overflow list */}
                 {renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId) && (() => {
@@ -1593,18 +1593,16 @@ const Toolbar = () => {
                       commitRename();
                       setRenamingRoomId(null);
                       setEmojiPickerFor(null);
-                      setShowOverflow(true);
-                    } else {
-                      setShowOverflow(true);
                     }
+                    setShowOverflow(v => !v);
                   }}
-                    style={{ width: 44, height: 36, borderRadius: 13, background: showOverflow || overflowRooms.some(r => r.id === currentRoomId) ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showOverflow || overflowRooms.some(r => r.id === currentRoomId) ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                    style={{ width: 44, height: 36, borderRadius: 13, background: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(200,241,53,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = '#c8f135'; }}
-                    onMouseLeave={e => { const isActive = overflowRooms.some(r => r.id === currentRoomId); (e.currentTarget as HTMLButtonElement).style.background = isActive ? 'rgba(200,241,53,0.12)' : 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = isActive ? '#c8f135' : 'rgba(255,255,255,0.5)'; }}
+                    onMouseLeave={e => { const isActive = showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId)); (e.currentTarget as HTMLButtonElement).style.background = isActive ? 'rgba(200,241,53,0.12)' : 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = isActive ? '#c8f135' : 'rgba(255,255,255,0.5)'; }}
                   >
                     <MoreHorizontal size={18} strokeWidth={2} />
                   </button>
-                  <span style={{ ...labelStyle, color: showOverflow || overflowRooms.some(r => r.id === currentRoomId) ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>More</span>
+                  <span style={{ ...labelStyle, color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>More</span>
                 </div>
               </div>
             )}
