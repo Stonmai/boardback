@@ -399,17 +399,34 @@ const Toolbar = () => {
   const [activeExtIds, setActiveExtIds] = React.useState<string[]>([]);
   const EXT_IDS = ['cnopkpkjbkbccgikjggidpojcjchclpe', 'eknaebeohhiajlpglnamkdmbgggblomb'];
 
+  const tagsCloseTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settingsCloseTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const overflowCloseTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const reorderRoomsAction = useStore((s) => s.reorderRooms);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('text/plain', id);
     e.dataTransfer.effectAllowed = 'move';
-    
-    // Delay setting the state so the browser captures the original element 
-    // for the drag ghost image at full opacity.
-    requestAnimationFrame(() => {
-      setDraggedRoomId(id);
-    });
+
+    const room = rooms.find(r => r.id === id);
+    if (room) {
+      const ghost = document.createElement('div');
+      ghost.style.cssText = 'position:fixed;top:-1000px;left:-1000px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 14px;background:rgba(10,11,22,0.92);border:1px solid rgba(255,255,255,0.14);border-radius:14px;pointer-events:none;';
+      const emoji = document.createElement('div');
+      emoji.style.cssText = 'font-size:22px;line-height:1;';
+      emoji.textContent = getRoomEmoji(room);
+      const name = document.createElement('div');
+      name.style.cssText = 'font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.6);white-space:nowrap;';
+      name.textContent = room.name.length > 10 ? room.name.slice(0, 9) + '…' : room.name;
+      ghost.appendChild(emoji);
+      ghost.appendChild(name);
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+      requestAnimationFrame(() => { document.body.removeChild(ghost); setDraggedRoomId(id); });
+    } else {
+      requestAnimationFrame(() => setDraggedRoomId(id));
+    }
   };
 
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
@@ -444,6 +461,12 @@ const Toolbar = () => {
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  React.useEffect(() => {
+    const clear = () => setDraggedRoomId(null);
+    window.addEventListener('mouseup', clear);
+    return () => window.removeEventListener('mouseup', clear);
   }, []);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
@@ -710,27 +733,33 @@ const Toolbar = () => {
       roomNodes.forEach(n => {
         const pos = absPos.get(n.id) ?? n.position;
         if (n.type === 'bookmark' || n.type === 'tab') {
-          const title = (n.data.title as string || '').toLowerCase();
-          const url = (n.data.url as string || '').toLowerCase();
-          const desc = (n.data.description as string || '').toLowerCase();
+          const title = (typeof n.data.title === 'string' ? n.data.title : '').toLowerCase();
+          const url = (typeof n.data.url === 'string' ? n.data.url : '').toLowerCase();
+          const desc = (typeof n.data.description === 'string' ? n.data.description : '').toLowerCase();
           if (title.includes(q) || url.includes(q) || desc.includes(q)) {
             results.push({ id: n.id, type: 'bookmark', title: (n.data.title as string) || (n.data.url as string) || 'Untitled', subtitle: n.data.url as string, position: pos, width: n.width ?? 180, height: n.height ?? 120, roomId: room.id, roomName: room.name, roomEmoji });
           }
         } else if (n.type === 'note') {
-          const title = (n.data.title as string || '').toLowerCase();
-          const content = (n.data.content as string || '').toLowerCase();
+          const title = (typeof n.data.title === 'string' ? n.data.title : '').toLowerCase();
+          const content = (typeof n.data.content === 'string' ? n.data.content : '').toLowerCase();
           if (title.includes(q) || content.includes(q)) {
             results.push({ id: n.id, type: 'note', title: (n.data.title as string) || 'Untitled Note', subtitle: n.data.content as string, position: pos, width: n.width ?? 180, height: n.height ?? 180, roomId: room.id, roomName: room.name, roomEmoji });
           }
         } else if (n.type === 'group') {
-          const title = (n.data.title as string || '').toLowerCase();
+          const title = (typeof n.data.title === 'string' ? n.data.title : '').toLowerCase();
           if (title.includes(q)) {
             results.push({ id: n.id, type: 'group', title: (n.data.title as string) || 'Untitled Group', position: pos, width: n.width ?? 800, height: n.height ?? 600, roomId: room.id, roomName: room.name, roomEmoji });
           }
         }
       });
     });
-    return results;
+    const seen = new Set<string>();
+    return results.filter(r => {
+      const key = `${r.id}-${r.roomId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [searchQuery, rooms, nodes, currentRoomId]);
 
   const handleSearchResultClick = (result: { roomId: string; position: { x: number; y: number }; width?: number; height?: number }) => {
@@ -1058,7 +1087,7 @@ const Toolbar = () => {
             <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 12, padding: '16px 0' }}>No results found</div>
           ) : (
             searchResults.map(result => (
-              <button key={result.id} onClick={() => handleSearchResultClick(result)}
+              <button key={`${result.id}-${result.roomId}`} onClick={() => handleSearchResultClick(result)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', marginBottom: 4, transition: 'all 0.15s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; }}
@@ -1337,7 +1366,6 @@ const Toolbar = () => {
                     flexDirection: 'column',
                     alignItems: 'center',
                     margin: '0 2px',
-                    opacity: room.id === draggedRoomId ? 0.3 : 1,
                     transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)',
                     transform: room.id === draggedRoomId ? 'scale(0.95)' : 'scale(1)',
                     cursor: 'grab'
@@ -1450,7 +1478,10 @@ const Toolbar = () => {
 
             {/* Overflow menu */}
             {overflowRooms.length > 0 && (
-              <div className="relative" ref={overflowRef} style={{ margin: '0 2px' }}>
+              <div className="relative" ref={overflowRef} style={{ margin: '0 2px' }}
+                onMouseEnter={() => { if (overflowCloseTimer.current) clearTimeout(overflowCloseTimer.current); setShowOverflow(true); }}
+                onMouseLeave={() => { overflowCloseTimer.current = setTimeout(() => setShowOverflow(false), 150); }}
+              >
                 {/* Edit panel for overflow rooms — shown instead of overflow list */}
                 {renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId) && (() => {
                   const room = overflowRooms.find(r => r.id === renamingRoomId)!;
@@ -1564,7 +1595,7 @@ const Toolbar = () => {
                       setEmojiPickerFor(null);
                       setShowOverflow(true);
                     } else {
-                      setShowOverflow(v => !v);
+                      setShowOverflow(true);
                     }
                   }}
                     style={{ width: 44, height: 36, borderRadius: 13, background: showOverflow ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showOverflow ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
@@ -1641,12 +1672,15 @@ const Toolbar = () => {
         </div>
 
         {/* Tags */}
-        <div className="relative flex flex-col items-center justify-center">
+        <div className="relative flex flex-col items-center justify-center"
+          onMouseEnter={() => { if (tagsCloseTimer.current) clearTimeout(tagsCloseTimer.current); setShowTags(true); }}
+          onMouseLeave={() => { tagsCloseTimer.current = setTimeout(() => setShowTags(false), 150); }}
+        >
           {showTags && renderTagsPanel()}
           <button
             ref={tagsBtnRef}
             style={{ ...mkBtnStyle(hasActiveFilters), top: '-5px' }}
-            onClick={() => { setShowTags(v => !v); setShowRooms(false); }}
+            onClick={() => { setShowTags(true); setShowRooms(false); }}
             onMouseEnter={e => onEnter(e, hasActiveFilters || showTags)}
             onMouseLeave={e => onLeave(e, hasActiveFilters || showTags)}
             onMouseDown={onDown}
@@ -1669,7 +1703,7 @@ const Toolbar = () => {
           <button
             ref={searchBtnRef}
             style={{ ...mkBtnStyle(showSearch), top: '-5px' }}
-            onClick={() => { setShowSearch(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); }}
+            onClick={() => { setShowSearch(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); setSearchQuery(''); }}
             onMouseEnter={e => onEnter(e, showSearch)}
             onMouseLeave={e => onLeave(e, showSearch)}
             onMouseDown={onDown}
@@ -1679,12 +1713,15 @@ const Toolbar = () => {
           <span style={{ ...labelStyle, color: showSearch ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Search</span>
         </div>
 
-        <div className="relative flex flex-col items-center justify-center">
+        <div className="relative flex flex-col items-center justify-center"
+          onMouseEnter={() => { if (settingsCloseTimer.current) clearTimeout(settingsCloseTimer.current); setShowSettings(true); }}
+          onMouseLeave={() => { settingsCloseTimer.current = setTimeout(() => setShowSettings(false), 150); }}
+        >
           {showSettings && renderSettingsPanel()}
           <button
             ref={settingsBtnRef}
             style={mkBtnStyle(showSettings)}
-            onClick={() => { setShowSettings(v => !v); setShowRooms(false); setShowTags(false); }}
+            onClick={() => { setShowSettings(true); setShowRooms(false); setShowTags(false); }}
             onMouseEnter={e => onEnter(e, showSettings)}
             onMouseLeave={e => onLeave(e, showSettings)}
             onMouseDown={onDown}

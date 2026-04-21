@@ -237,7 +237,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
             <div className="absolute bottom-full left-0 mb-3 p-2.5 glass-dark rounded-2xl shadow-2xl border border-white/20" style={{ width: 180, zIndex: 100 }} onClick={e => e.stopPropagation()}>
               {(data.tags as string[] || []).length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
-                  {(data.tags as string[]).map((tag) => (
+                  {[...new Set(data.tags as string[])].map((tag) => (
                     <span
                       key={tag}
                       className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase cursor-pointer transition-colors hover:bg-red-500/20 hover:text-red-400"
