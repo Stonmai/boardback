@@ -346,6 +346,9 @@ const Canvas = () => {
 
   useEffect(() => {
     setIsMounted(true);
+    if (navigator.storage?.persist) {
+      navigator.storage.persist();
+    }
   }, []);
 
   const storeOnNodesChange = useStore((state) => state.onNodesChange);
