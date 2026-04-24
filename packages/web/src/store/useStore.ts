@@ -815,6 +815,8 @@ export const useStore = create<WhiteboardState>()(
     autoOpenBookmarks: state.autoOpenBookmarks,
   }),
   onRehydrateStorage: () => async (state: any) => {
+    // Unblock Dexie writes — getItem has resolved so it's safe to persist now.
+    dexieStorage.markHydrated();
     // One-time migration: copy localStorage data into Dexie then remove it
     if (typeof window !== 'undefined' && !state) {
       const LS_KEY = 'boardback-storage';
