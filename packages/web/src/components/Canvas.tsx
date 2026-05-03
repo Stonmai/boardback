@@ -255,8 +255,8 @@ const ZoomHandler = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
-      if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn({ duration: 200 }); }
-      if (e.key === '-') { e.preventDefault(); zoomOut({ duration: 200 }); }
+      if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn({ duration: 0 }); }
+      if (e.key === '-') { e.preventDefault(); zoomOut({ duration: 0 }); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -635,6 +635,7 @@ const Canvas = () => {
         panActivationKeyCode={["Space", "Meta"]}
         panOnScroll={true}
         zoomOnScroll={false}
+        zoomOnDoubleClick={false}
         zoomOnPinch={true}
         selectionOnDrag={true}
         selectionKeyCode={null}
