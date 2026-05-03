@@ -574,11 +574,11 @@ export const useStore = create<WhiteboardState>()(
     // Group label floats above the frame (top: -65px), so no title bar inside
     const GROUP_TITLE_H = 80;
 
-    // Actual node dimensions — check width/height first, then style, then fallback
+    // Actual node dimensions — measured (post-render) is most accurate, fall back to explicit/style
     const nodeW = (n: Node): number =>
-      (n.width as number) ?? (n.style?.width as number) ?? NODE_W;
+      (n as any).measured?.width ?? (n.width as number) ?? (n.style?.width as number) ?? NODE_W;
     const nodeH = (n: Node): number =>
-      (n.height as number) ?? (n.style?.height as number) ?? NODE_H;
+      (n as any).measured?.height ?? (n.height as number) ?? (n.style?.height as number) ?? NODE_H;
 
     /**
      * Row-packing layout: places nodes left-to-right, wrapping to a new row
@@ -739,14 +739,22 @@ export const useStore = create<WhiteboardState>()(
     ];
 
     compMap.forEach((compNodes, root) => {
-      const { positions, totalW, totalH } = packRows(
-        compNodes, NODE_GAP, targetRowW(compNodes),
-      );
-      blocks.push({
-        repId: root, nodes: compNodes,
-        w: totalW, h: totalH,
-        isGroup: false, packed: positions,
-      });
+      if (compNodes.length === 1) {
+        // Standalone node — place individually
+        const { positions, totalW, totalH } = packRows(compNodes, NODE_GAP, targetRowW(compNodes));
+        blocks.push({ repId: root, nodes: compNodes, w: totalW, h: totalH, isGroup: false, packed: positions });
+      } else {
+        // Connected group — preserve internal relative positions, move as one unit
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        compNodes.forEach(n => {
+          const x = n.position.x, y = n.position.y;
+          minX = Math.min(minX, x); minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x + nodeW(n)); maxY = Math.max(maxY, y + nodeH(n));
+        });
+        const relPositions = new Map<string, { x: number; y: number }>();
+        compNodes.forEach(n => relPositions.set(n.id, { x: n.position.x - minX, y: n.position.y - minY }));
+        blocks.push({ repId: root, nodes: compNodes, w: maxX - minX, h: maxY - minY, isGroup: false, packed: relPositions });
+      }
     });
 
     // Sort: groups first, then larger clusters
