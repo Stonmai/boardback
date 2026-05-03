@@ -299,6 +299,13 @@ const PaneContextMenu = ({ x, y, canvasPos }: { x: number; y: number; canvasPos:
 
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
+  const [isSmallScreen, setIsSmallScreen] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  React.useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsSmallScreen(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   const currentRoomId = useStore(s => s.currentRoomId);
   const clipboard = useStore(s => s.clipboard);
   const paneContextMenu = useStore(s => s.paneContextMenu);
@@ -632,13 +639,13 @@ const Canvas = () => {
         snapToGrid={false}
         nodesDraggable={true}
         elevateNodesOnSelect={true}
-        panOnDrag={[1, 2]}
+        panOnDrag={isSmallScreen ? true : [1, 2]}
         panActivationKeyCode={["Space", "Meta"]}
         panOnScroll={true}
         zoomOnScroll={false}
         zoomOnDoubleClick={false}
         zoomOnPinch={true}
-        selectionOnDrag={true}
+        selectionOnDrag={!isSmallScreen}
         selectionKeyCode={null}
         multiSelectionKeyCode={["Meta", "Control"]}
         selectionMode={SelectionMode.Partial}
