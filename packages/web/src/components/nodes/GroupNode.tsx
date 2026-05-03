@@ -20,6 +20,15 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
   const nodes = useStore(s => s.nodes);
   const getParentId = (n: any) => n.parentId || n.parentNode;
 
+  const thisNode = nodes.find(n => n.id === id);
+  const nodeHeight = thisNode?.height ?? 150;
+  const toolbarOnTop = React.useMemo(() => {
+    return nodes.some(n => {
+      if (getParentId(n) !== id) return false;
+      return n.position.y + (n.height ?? 120) > nodeHeight + 150;
+    });
+  }, [id, nodes, nodeHeight]);
+
   const [isEditingName, setIsEditingName] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
   const getRect = useCallback(() => nodeRef.current?.getBoundingClientRect() ?? null, []);
@@ -223,11 +232,17 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
       {/* Floating action bar */}
       <div
         className={cn(
-          'nodrag absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200',
+          toolbarOnTop
+            ? 'nodrag absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200'
+            : 'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200',
           selected
             ? 'opacity-100 translate-y-0 z-9999'
-            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
+            : toolbarOnTop
+              ? 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
+              : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
         )}
+        onPointerDown={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <button
           className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"

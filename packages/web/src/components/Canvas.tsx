@@ -196,9 +196,9 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
         const title = firstLine.length > 60 ? firstLine.slice(0, 60) + '…' : firstLine;
         const content = text;
         const noteLines = text.split('\n');
-        const estimatedHeight = 50 + 46 + noteLines.length * 40; // padding + title (30px font) + lines (22px * 1.625)
+        const estimatedHeight = 40 + 46 + noteLines.length * 36; // padding + title (30px font) + lines (22px * 1.625)
         const noteWidth = Math.min(700, Math.max(360, Math.round(estimatedHeight * 1.6)));
-        const noteHeight = Math.min(1200, Math.max(240, estimatedHeight));
+        const noteHeight = Math.min(1000, Math.max(240, estimatedHeight));
         addNode({
           id: uuidv4(),
           type: 'note',
@@ -631,6 +631,7 @@ const Canvas = () => {
         connectionRadius={40}
         snapToGrid={false}
         nodesDraggable={true}
+        elevateNodesOnSelect={true}
         panOnDrag={[1, 2]}
         panActivationKeyCode={["Space", "Meta"]}
         panOnScroll={true}

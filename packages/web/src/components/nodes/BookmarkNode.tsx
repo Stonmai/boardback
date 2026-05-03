@@ -37,6 +37,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
 
   const deleteNode = useStore((s) => s.deleteNode);
   const updateNode = useStore((s) => s.updateNode);
+  const nodes = useStore((s) => s.nodes);
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
@@ -48,6 +49,27 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
 
   const contextMenu = contextMenuNodeId === id && contextMenuPos;
   const closeContextMenu = () => { setContextMenuNodeId(null); setPaneContextMenu(null); };
+
+  const toolbarOnTop = React.useMemo(() => {
+    const self = nodes.find(n => n.id === id);
+    if (!self) return false;
+    const myX = self.position.x;
+    const myY = self.position.y;
+    const myW = self.width ?? 300;
+    const myH = self.height ?? 120;
+    const tbX1 = myX + myW / 2 - 120;
+    const tbX2 = myX + myW / 2 + 120;
+    const tbY1 = myY + myH;
+    const tbY2 = tbY1 + 56;
+    return nodes.some(n => {
+      if (n.id === id || (n as any).parentId || (n as any).parentNode) return false;
+      const nx = n.position.x;
+      const ny = n.position.y;
+      const nw = n.width ?? 180;
+      const nh = n.height ?? 120;
+      return nx < tbX2 && nx + nw > tbX1 && ny < tbY2 && ny + nh > tbY1;
+    });
+  }, [id, nodes]);
 
   React.useEffect(() => {
     if (editingNodeId === id) {
@@ -392,11 +414,17 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       {/* Floating action bar */}
       <div
         className={cn(
-          'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
+          toolbarOnTop
+            ? 'nodrag absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50'
+            : 'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
           isEditing || selected
             ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+            : toolbarOnTop
+              ? 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+              : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
         )}
+        onPointerDown={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="relative">
           <button

@@ -675,7 +675,7 @@ const Toolbar = () => {
 
   const handleAddSticker = () => {
     const id = uuidv4();
-    addNode({ id, type: 'note', position: center(150, 90), width: 360, data: { title: '', content: '' }, createdAt: new Date().toISOString() });
+    addNode({ id, type: 'note', position: center(150, 240), width: 400, height: 280, data: { title: '', content: '' }, createdAt: new Date().toISOString() });
     setEditingNodeId(id);
   };
 

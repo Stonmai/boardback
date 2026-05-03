@@ -432,6 +432,7 @@ export const useStore = create<WhiteboardState>()(
     });
   },
 
+
   updateGroupSize: (id: string, x: number, y: number, width: number, height: number) => {
     set({
       nodes: get().nodes.map((node: Node) =>

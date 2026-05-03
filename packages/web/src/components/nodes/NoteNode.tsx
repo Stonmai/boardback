@@ -78,6 +78,7 @@ const COLORS: Record<
 
 const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>>) => {
   const nodeRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   const getRect = useCallback(() => nodeRef.current?.getBoundingClientRect() ?? null, []);
   const [isEditing, setIsEditing] = useState(false);
   const [focusedField, setFocusedField] = useState<'title' | 'content' | null>(null);
@@ -93,6 +94,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
 
   const updateNode = useStore((s) => s.updateNode);
   const deleteNode = useStore((s) => s.deleteNode);
+  const nodes = useStore((s) => s.nodes);
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
   const copyNodeById = useStore((s) => s.copyNodeById);
@@ -104,11 +106,33 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const contextMenu = contextMenuNodeId === id && contextMenuPos;
   const closeContextMenu = () => { setContextMenuNodeId(null); setPaneContextMenu(null); };
 
+  const toolbarOnTop = React.useMemo(() => {
+    const self = nodes.find(n => n.id === id);
+    if (!self) return false;
+    const myX = self.position.x;
+    const myY = self.position.y;
+    const myW = self.width ?? 360;
+    const myH = self.height ?? 280;
+    const tbX1 = myX + myW / 2 - 120;
+    const tbX2 = myX + myW / 2 + 120;
+    const tbY1 = myY + myH;
+    const tbY2 = tbY1 + 56;
+    return nodes.some(n => {
+      if (n.id === id || (n as any).parentId || (n as any).parentNode) return false;
+      const nx = n.position.x;
+      const ny = n.position.y;
+      const nw = n.width ?? 180;
+      const nh = n.height ?? 120;
+      return nx < tbX2 && nx + nw > tbX1 && ny < tbY2 && ny + nh > tbY1;
+    });
+  }, [id, nodes]);
+
   const enterEditing = useCallback(() => {
     if (nodeRef.current) {
       rfUpdateNode(id, { height: nodeRef.current.offsetHeight });
     }
     setIsEditing(true);
+    setTimeout(() => { contentRef.current?.focus(); contentRef.current?.setSelectionRange(contentRef.current.value.length, contentRef.current.value.length); }, 0);
   }, [id, rfUpdateNode]);
 
   React.useEffect(() => {
@@ -214,7 +238,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Title"
-                className="w-full rounded-lg px-2.5 py-1.5 text-[30px] font-bold outline-none flex-shrink-0"
+                className="w-full rounded-lg px-2.5 py-1.5 text-[18px] font-bold outline-none flex-shrink-0"
                 style={{
                   background: 'rgba(0,0,0,0.15)',
                   color: style.text,
@@ -222,9 +246,9 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                 }}
                 onFocus={() => setFocusedField('title')}
                 onBlur={() => setFocusedField(null)}
-                autoFocus
               />
               <textarea
+                ref={contentRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onKeyDown={(e) => {
@@ -232,7 +256,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Start typing..."
-                className="w-full rounded-lg px-2.5 py-1.5 text-[22px] outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
+                className="w-full rounded-lg px-2.5 py-1.5 text-[18px] outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
                 style={{
                   background: 'rgba(0,0,0,0.15)',
                   color: style.text,
@@ -264,13 +288,13 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
               onDoubleClick={() => enterEditing()}
             >
               <h3
-                className="font-bold text-[30px] mb-1.5 wrap-break-word leading-tight"
+                className="font-bold text-[18px] mb-1.5 wrap-break-word leading-tight"
                 style={{ color: style.text, textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
               >
                 {title || 'New Note 🔖'}
               </h3>
               <p
-                className="text-[22px] whitespace-pre-wrap leading-relaxed wrap-break-word font-medium"
+                className="text-[18px] whitespace-pre-wrap leading-relaxed wrap-break-word font-medium"
                 style={{ color: style.text, opacity: 0.88 }}
               >
                 {content || 'Click to add content…'}
@@ -317,11 +341,17 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
         {/* Floating action bar */}
         <div
           className={cn(
-            'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
+            toolbarOnTop
+              ? 'nodrag absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50'
+              : 'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
             isEditing || selected
               ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+              : toolbarOnTop
+                ? 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+                : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
           )}
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         >
           <div className="relative">
             <button
