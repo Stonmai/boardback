@@ -73,16 +73,27 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
     setTimeout(() => inputRef.current?.select(), 0);
   };
 
-  const handleSaveName = () => {
+  const handleSaveName = useCallback(() => {
     const trimmed = nameInput.trim() || 'New Group 📦';
     if (trimmed) updateNode(id, { title: trimmed} as any);
     setIsEditingName(false);
-  };
+  }, [id, nameInput, updateNode]);
 
-  const handleCancelName = () => {
+  const handleCancelName = useCallback(() => {
     setNameInput(data.title || 'New Group 📦');
     setIsEditingName(false);
-  };
+  }, [data.title]);
+
+  React.useEffect(() => {
+    if (!isEditingName) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (nodeRef.current && !nodeRef.current.contains(e.target as unknown as globalThis.Node)) {
+        handleSaveName();
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [isEditingName, handleSaveName]);
   
   const handleOpenAll = (e: React.MouseEvent) => {
     e.stopPropagation();

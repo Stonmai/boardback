@@ -192,14 +192,19 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
 
         fetchMetadata(text).then(metadata => { updateNode(nodeId, metadata); });
       } else {
-        const lines = text.split('\n');
-        const title = "New Note 🔖"
-        const content = lines || 'Pasted Note';
+        const firstLine = text.split('\n').find(l => l.trim()) || 'New Note 🔖';
+        const title = firstLine.length > 60 ? firstLine.slice(0, 60) + '…' : firstLine;
+        const content = text;
+        const noteLines = text.split('\n');
+        const estimatedHeight = 50 + 46 + noteLines.length * 40; // padding + title (30px font) + lines (22px * 1.625)
+        const noteWidth = Math.min(700, Math.max(360, Math.round(estimatedHeight * 1.6)));
+        const noteHeight = Math.min(1200, Math.max(240, estimatedHeight));
         addNode({
           id: uuidv4(),
           type: 'note',
           position,
-          width: 360,
+          width: noteWidth,
+          height: noteHeight,
           data: { title, content, tags: ['pasted note'] },
           createdAt: new Date().toISOString(),
         });
@@ -620,7 +625,7 @@ const Canvas = () => {
         nodeTypes={nodeTypes as any}
         fitView
         fitViewOptions={{ padding: 0.6, maxZoom: 1 }}
-        minZoom={0.25}
+        minZoom={0.1}
         defaultViewport={{ x: 0, y: 0, zoom: 0.55 }}
         connectionMode={'loose' as any}
         connectionRadius={40}

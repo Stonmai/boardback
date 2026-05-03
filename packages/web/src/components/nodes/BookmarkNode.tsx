@@ -77,7 +77,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
     updateNode(id, { tags: existing.filter(t => t !== tag) });
   };
 
-  const handleSave = () => {
+  const handleSave = React.useCallback(() => {
     const urlChanged = tempUrl !== data.url;
     updateNode(id, { title: tempTitle, url: tempUrl, description: tempDescription });
     if (urlChanged && tempUrl) {
@@ -85,14 +85,14 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       fetchMetadata(tempUrl).then(metadata => updateNode(id, metadata));
     }
     setIsEditing(false);
-  };
+  }, [id, tempTitle, tempUrl, tempDescription, data.url, updateNode]);
 
-  const handleCancel = () => {
+  const handleCancel = React.useCallback(() => {
     setTempTitle(data.title || '');
     setTempUrl(data.url || '');
     setTempDescription(data.description || '');
     setIsEditing(false);
-  };
+  }, [data.title, data.url, data.description]);
 
   React.useEffect(() => {
     if (!isEditing) {
@@ -110,6 +110,17 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
     window.addEventListener('click', onClick);
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('click', onClick); };
   }, [contextMenu]);
+
+  React.useEffect(() => {
+    if (!isEditing) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (nodeRef.current && !nodeRef.current.contains(e.target as unknown as globalThis.Node)) {
+        handleSave();
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [isEditing, handleSave]);
 
   return (
     <div
@@ -157,13 +168,13 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       <NodeResizer color="rgba(255,255,255,0.5)" isVisible={selected} minWidth={160} minHeight={80} />
 
       {/* Card body */}
-      <div 
-        className="w-full h-full min-h-40 rounded-[14px] overflow-hidden" 
+      <div
+        className="w-full h-full min-h-40 rounded-[14px] overflow-hidden flex flex-col"
         onDoubleClick={() => { if (!isEditing) setIsEditing(true); }}
       >
-        <div className="p-3 pl-4">
+        <div className="p-3 pl-4 flex flex-col flex-1 min-h-0">
           {isEditing ? (
-            <div className="nodrag space-y-2">
+            <div className="nodrag flex flex-col flex-1 min-h-0 gap-2">
               <input
                 type="text"
                 value={tempTitle}
@@ -173,7 +184,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Title"
-                className="w-full rounded-lg px-2.5 py-1 text-[25px] font-bold text-white outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full rounded-lg px-2.5 py-1 text-[25px] font-bold text-white outline-none focus:ring-2 focus:ring-white/30 flex-shrink-0"
                 style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
                 autoFocus
               />
@@ -186,7 +197,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="URL"
-                className="w-full rounded-lg px-2.5 py-1 text-[15px] text-white/70 outline-none focus:ring-2 focus:ring-white/20"
+                className="w-full rounded-lg px-2.5 py-1 text-[15px] text-white/70 outline-none focus:ring-2 focus:ring-white/20 flex-shrink-0"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
               <textarea
@@ -197,10 +208,10 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Description (optional)"
-                className="w-full rounded-lg px-2.5 py-1 text-[18px] text-white/80 outline-none resize-none min-h-40 focus:ring-2 focus:ring-white/20"
+                className="w-full rounded-lg px-2.5 py-1 text-[18px] text-white/80 outline-none resize-none focus:ring-2 focus:ring-white/20 flex-1 min-h-0 nowheel overflow-y-auto"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 flex-shrink-0">
                 <button
                   onClick={handleCancel}
                   className="p-2 rounded-xl transition-colors"
@@ -338,24 +349,25 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                 </div>
               )}
 
-              {data.tags && (data.tags as string[]).length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                  {(data.tags as string[]).map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase"
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        color: 'rgba(255,255,255,0.65)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
             </>
+          )}
+
+          {!isEditing && data.tags && (data.tags as string[]).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-auto pt-2">
+              {(data.tags as string[]).map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase"
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'rgba(255,255,255,0.65)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           )}
         </div>
       </div>
