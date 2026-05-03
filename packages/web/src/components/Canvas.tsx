@@ -620,17 +620,19 @@ const Canvas = () => {
         nodeTypes={nodeTypes as any}
         fitView
         fitViewOptions={{ padding: 0.6, maxZoom: 1 }}
+        minZoom={0.25}
         defaultViewport={{ x: 0, y: 0, zoom: 0.55 }}
         connectionMode={'loose' as any}
         connectionRadius={40}
         snapToGrid={false}
         nodesDraggable={true}
-        panOnDrag={true}
-        panActivationKeyCode="Space"
-        panOnScroll={false}
-        zoomOnScroll={true}
+        panOnDrag={[1, 2]}
+        panActivationKeyCode={["Space", "Meta"]}
+        panOnScroll={true}
+        zoomOnScroll={false}
+        zoomOnPinch={true}
         selectionOnDrag={true}
-        selectionKeyCode="Shift"
+        selectionKeyCode={null}
         multiSelectionKeyCode={["Meta", "Control"]}
         selectionMode={SelectionMode.Partial}
         onNodeDragStart={onNodeDragStart}

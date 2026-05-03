@@ -461,14 +461,14 @@ const IntroModal = () => {
       `}</style>
 
       <div
-        style={{ position: 'relative', width: '100%', maxWidth: 480, borderRadius: 28, overflow: 'hidden', background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(200,241,53,0.04)' }}
+        style={{ position: 'relative', width: '100%', maxWidth: 480, maxHeight: 'calc(100dvh - 32px)', borderRadius: 28, overflow: 'hidden', background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(200,241,53,0.04)', display: 'flex', flexDirection: 'column' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Top accent line */}
-        <div style={{ height: 2, background: 'linear-gradient(90deg, transparent 0%, #c8f135 50%, transparent 100%)' }} />
+        <div style={{ flexShrink: 0, height: 2, background: 'linear-gradient(90deg, transparent 0%, #c8f135 50%, transparent 100%)' }} />
 
-        {/* Page content */}
-        <div key={animKey} className="intro-page" style={{ padding: '24px 24px 0' }}>
+        {/* Page content — scrollable on small screens */}
+        <div key={animKey} className="intro-page" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '24px 24px 0' }}>
           {isWelcome ? (
             <WelcomePage />
           ) : isSetup ? (
@@ -500,8 +500,8 @@ const IntroModal = () => {
           ) : null}
         </div>
 
-        {/* Navigation bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px 22px' }}>
+        {/* Navigation bar — always visible at bottom */}
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px 22px' }}>
           {/* Dot indicators */}
           <div style={{ display: 'flex', gap: 6 }}>
             {Array.from({ length: TOTAL_PAGES }, (_, i) => (
