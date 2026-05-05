@@ -35,6 +35,24 @@ export interface RoomData {
   groups: GroupFrame[];
 }
 
+export interface Dossier {
+  id: string;
+  name: string;
+  emoji: string;
+  rooms: RoomData[];
+  tags: Tag[];
+  currentRoomId: string;
+}
+
+const DEFAULT_TAGS: Tag[] = [
+  { id: 'work', label: 'Work', color: 'slate' },
+  { id: 'personal', label: 'Personal', color: 'slate' },
+  { id: 'urgent', label: 'Urgent', color: 'slate' },
+  { id: 'idea', label: 'Idea', color: 'slate' },
+  { id: 'reference', label: 'Reference', color: 'slate' },
+  { id: 'later', label: 'Later', color: 'slate' },
+];
+
 const DEFAULT_ROOMS: RoomData[] = [
   { id: 'personal',     name: 'Personal',     emoji: '😎', nodes: [], edges: [], groups: [] },
   { id: 'office',       name: 'Office',       emoji: '💼', nodes: [], edges: [], groups: [] },
@@ -42,6 +60,15 @@ const DEFAULT_ROOMS: RoomData[] = [
   { id: 'learning',     name: 'Learning',     emoji: '🧠', nodes: [], edges: [], groups: [] },
   { id: 'favorites',     name: 'Favorites',     emoji: '♥️', nodes: [], edges: [], groups: [] },
 ];
+
+const DEFAULT_DOSSIER: Dossier = {
+  id: 'default',
+  name: 'Default',
+  emoji: '📁',
+  rooms: DEFAULT_ROOMS,
+  tags: DEFAULT_TAGS,
+  currentRoomId: 'personal',
+};
 
 const ACCENT_HEX: Record<string, string> = {
   white: '#94a3b8', blue: '#3b82f6', green: '#32d4a1', amber: '#f5d70b',
@@ -66,6 +93,8 @@ interface WhiteboardState {
   _future: HistoryEntry[];
   rooms: RoomData[];
   currentRoomId: RoomType;
+  dossiers: Dossier[];
+  currentDossierId: string;
   hasSeenIntro: boolean;
   activeTagFilters: string[];
   autoOpenBookmarks: boolean;
@@ -103,6 +132,14 @@ interface WhiteboardState {
   updateRoomEmoji: (id: string, emoji: string) => void;
   updateRoomName: (id: string, name: string) => void;
   reorderRooms: (rooms: RoomData[]) => void;
+  switchDossier: (id: string) => void;
+  addDossier: (name: string, emoji: string) => void;
+  deleteDossier: (id: string) => void;
+  updateDossierName: (id: string, name: string) => void;
+  updateDossierEmoji: (id: string, emoji: string) => void;
+  exportDossier: (name: string) => void;
+  parseDossierFile: (file: File) => Promise<Dossier | null>;
+  commitImportDossier: (dossier: Dossier, name: string) => void;
   snapshot: () => void;
   undo: () => void;
   redo: () => void;
@@ -113,6 +150,14 @@ interface WhiteboardState {
   _getParentId: (n: Node) => string | undefined;
 }
 
+function uniqueDossierName(base: string, existing: Dossier[]): string {
+  const names = new Set(existing.map(d => d.name));
+  if (!names.has(base)) return base;
+  let i = 1;
+  while (names.has(`${base} (${i})`)) i++;
+  return `${base} (${i})`;
+}
+
 export const useStore = create<WhiteboardState>()(
   persist(
     (set, get) => ({
@@ -121,14 +166,9 @@ export const useStore = create<WhiteboardState>()(
   groups: [] as GroupFrame[],
   rooms: DEFAULT_ROOMS,
   currentRoomId: 'personal' as RoomType,
-  tags: [
-    { id: 'work', label: 'Work', color: 'slate' },
-    { id: 'personal', label: 'Personal', color: 'slate' },
-    { id: 'urgent', label: 'Urgent', color: 'slate' },
-    { id: 'idea', label: 'Idea', color: 'slate' },
-    { id: 'reference', label: 'Reference', color: 'slate' },
-    { id: 'later', label: 'Later', color: 'slate' },
-  ] as Tag[],
+  dossiers: [DEFAULT_DOSSIER],
+  currentDossierId: 'default',
+  tags: DEFAULT_TAGS,
   selectedNodes: [] as string[],
   previewNodeId: null,
   editingNodeId: null,
@@ -565,6 +605,116 @@ export const useStore = create<WhiteboardState>()(
     set({ rooms });
   },
 
+  switchDossier: (id: string) => {
+    const { dossiers, currentDossierId, rooms, tags, currentRoomId, nodes, edges, groups } = get();
+    if (id === currentDossierId) return;
+    const flushedRooms = rooms.map((r: RoomData) =>
+      r.id === currentRoomId ? { ...r, nodes, edges, groups } : r
+    );
+    const updatedDossiers = dossiers.map((d: Dossier) =>
+      d.id === currentDossierId
+        ? { ...d, rooms: flushedRooms, tags, currentRoomId }
+        : d
+    );
+    const target = updatedDossiers.find((d: Dossier) => d.id === id);
+    if (!target) return;
+    const targetRoomId = target.currentRoomId || target.rooms[0]?.id;
+    const targetRoom = target.rooms.find((r: RoomData) => r.id === targetRoomId) ?? target.rooms[0];
+    if (!targetRoom) return;
+    set({
+      dossiers: updatedDossiers,
+      currentDossierId: id,
+      rooms: target.rooms,
+      tags: target.tags,
+      currentRoomId: targetRoom.id,
+      nodes: targetRoom.nodes,
+      edges: targetRoom.edges,
+      groups: targetRoom.groups,
+      _past: [],
+      _future: [],
+      activeTagFilters: [],
+    });
+  },
+
+  addDossier: (name: string, emoji: string) => {
+    const { dossiers } = get();
+    const uniqueName = uniqueDossierName(name, dossiers);
+    const slug = uniqueName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'dossier';
+    const id = `${slug}-${Date.now()}`;
+    const firstRoom: RoomData = { id: `room-${Date.now()}`, name: 'Main', emoji: '📌', nodes: [], edges: [], groups: [] };
+    const newDossier: Dossier = { id, name: uniqueName, emoji, rooms: [firstRoom], tags: [], currentRoomId: firstRoom.id };
+    set({ dossiers: [...dossiers, newDossier] });
+  },
+
+  deleteDossier: (id: string) => {
+    const { dossiers, currentDossierId } = get();
+    if (dossiers.length <= 1) return;
+    if (id === currentDossierId) {
+      const next = dossiers.find((d: Dossier) => d.id !== id)!;
+      get().switchDossier(next.id);
+    }
+    set({ dossiers: get().dossiers.filter((d: Dossier) => d.id !== id) });
+  },
+
+  updateDossierName: (id: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    set({ dossiers: get().dossiers.map((d: Dossier) => d.id === id ? { ...d, name: trimmed } : d) });
+  },
+
+  updateDossierEmoji: (id: string, emoji: string) => {
+    set({ dossiers: get().dossiers.map((d: Dossier) => d.id === id ? { ...d, emoji } : d) });
+  },
+
+  exportDossier: (name: string) => {
+    const { dossiers, currentDossierId, rooms, tags, currentRoomId, nodes, edges, groups } = get();
+    const flushedRooms = rooms.map((r: RoomData) =>
+      r.id === currentRoomId ? { ...r, nodes, edges, groups } : r
+    );
+    const currentDossier = dossiers.find((d: Dossier) => d.id === currentDossierId);
+    if (!currentDossier) return;
+    const exportData = {
+      version: 1,
+      type: 'boardback-dossier',
+      dossier: { ...currentDossier, name, rooms: flushedRooms, tags, currentRoomId },
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name.replace(/\s+/g, '-').toLowerCase()}.boardback`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  parseDossierFile: async (file: File): Promise<Dossier | null> => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (
+        parsed?.version !== 1 ||
+        parsed?.type !== 'boardback-dossier' ||
+        typeof parsed?.dossier !== 'object' ||
+        !Array.isArray(parsed.dossier.rooms)
+      ) {
+        console.error('[boardback] Invalid .boardback file');
+        return null;
+      }
+      return parsed.dossier as Dossier;
+    } catch (err) {
+      console.error('[boardback] Import parse failed:', err);
+      return null;
+    }
+  },
+
+  commitImportDossier: (dossier: Dossier, name: string) => {
+    const { dossiers } = get();
+    const newId = `imported-${Date.now()}`;
+    const importedDossier: Dossier = { ...dossier, id: newId, name: uniqueDossierName(name, dossiers) };
+    set({ dossiers: [...dossiers, importedDossier] });
+    get().switchDossier(newId);
+  },
+
   autoArrange: () => {
     const allNodes = get().nodes;
 
@@ -822,6 +972,8 @@ export const useStore = create<WhiteboardState>()(
     tags: state.tags,
     hasSeenIntro: state.hasSeenIntro,
     autoOpenBookmarks: state.autoOpenBookmarks,
+    dossiers: state.dossiers,
+    currentDossierId: state.currentDossierId,
   }),
   onRehydrateStorage: () => async (state: any) => {
     // Unblock Dexie writes — getItem has resolved so it's safe to persist now.
@@ -856,6 +1008,26 @@ export const useStore = create<WhiteboardState>()(
         r.id === roomId
           ? { ...r, nodes: state.nodes || [], edges: state.edges || [], groups: state.groups || [] }
           : r
+      );
+    }
+    // Dossier migration: wrap existing rooms/tags into Default dossier on first load
+    if (!state.dossiers || state.dossiers.length === 0) {
+      state.dossiers = [{
+        id: 'default',
+        name: 'Default',
+        emoji: '📁',
+        rooms: state.rooms,
+        tags: state.tags || [],
+        currentRoomId: state.currentRoomId || 'personal',
+      }];
+      state.currentDossierId = 'default';
+    } else {
+      // Sync live rooms/tags back into the active dossier
+      const dossierId = state.currentDossierId || 'default';
+      state.dossiers = state.dossiers.map((d: Dossier) =>
+        d.id === dossierId
+          ? { ...d, rooms: state.rooms, tags: state.tags, currentRoomId: state.currentRoomId }
+          : d
       );
     }
   },

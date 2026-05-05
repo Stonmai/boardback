@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis, Download, Upload, FolderOpen, FolderDown } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
-import { useStore, RoomData } from '@/store/useStore';
+import { useStore, RoomData, Dossier } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 
 // ── Emoji helpers ─────────────────────────────────────────────────────────────
@@ -233,6 +233,143 @@ const FALLBACK_EMOJI: Record<string, string> = {
 const getRoomEmoji = (room: Pick<RoomData, 'id' | 'emoji'>): string =>
   room.emoji || FALLBACK_EMOJI[room.id] || '📌';
 
+// ── Emoji keyword map ─────────────────────────────────────────────────────────
+const EMOJI_KEYWORDS: Record<string, string> = {
+  // Faces & Emotions
+  '😁':'smile happy grin','😋':'yummy tasty food','😎':'cool sunglasses','😍':'love heart eyes',
+  '🥰':'love hearts affection','😂':'laugh cry funny','🤣':'rofl laugh funny',
+  '😢':'sad cry tear','😭':'sob cry sad','😡':'angry mad rage','😤':'frustrated annoyed',
+  '😱':'shocked scared surprise','😴':'sleep tired','🤔':'think hmm question',
+  '😇':'angel halo good','🤩':'star eyes excited wow','😈':'devil evil mischief',
+  '🥺':'pleading cute sad eyes','😬':'awkward nervous','🫠':'melting hot stress',
+  '😮':'surprised wow open mouth','🤯':'mind blown explode','😵':'dizzy confused',
+  '🤐':'zip mouth secret quiet','😏':'smirk sly','😒':'unamused boring',
+  // Hands & Body
+  '👍':'like thumbs up good yes','👎':'dislike thumbs down bad no',
+  '👏':'clap applause','🙌':'celebrate hands up','🤝':'handshake deal agree',
+  '🙏':'pray thank please','✌️':'peace victory two','👌':'ok perfect','🤞':'fingers crossed luck',
+  '🫶':'heart hands love','👀':'eyes look watch','🧠':'brain mind smart think',
+  '💪':'strong muscle flex arm','🤜':'fist bump punch','✊':'fist power',
+  // People
+  '👶':'baby infant child','👧':'girl child kid','👦':'boy child kid',
+  '👩':'woman female','👨':'man male','👴':'old man grandpa','👵':'old woman grandma',
+  '🧑‍💻':'developer coder programmer tech','🧑‍🎨':'artist designer creative',
+  '🧑‍🍳':'chef cook food','🧑‍🏫':'teacher education','🧑‍⚕️':'doctor health medical',
+  '🧑‍🔬':'scientist lab research','🧑‍✈️':'pilot flight','🧑‍🚀':'astronaut space',
+  '👮':'police officer security','💂':'guard security','🕵️':'detective spy',
+  // Places & Buildings
+  '🏠':'home house','🏡':'house garden home','🏢':'office building work',
+  '🏰':'castle fantasy','🏯':'castle japan','🏗️':'construction build',
+  '🏖️':'beach sea vacation','🏔️':'mountain peak snow','🌃':'night city lights',
+  '🏙️':'city skyline urban','🌆':'city sunset','🌉':'bridge night',
+  '🏕️':'camp tent outdoor','🏝️':'island tropical vacation',
+  // Work & Productivity
+  '💼':'briefcase work business','📝':'note write memo','📌':'pin location mark',
+  '📎':'paperclip attach','🔧':'wrench tool fix','⚙️':'gear settings config',
+  '💡':'idea lightbulb thought','🔑':'key lock access','📚':'books study learn',
+  '📊':'chart bar graph data','📈':'growth up trend stats','📋':'clipboard list',
+  '🗂️':'folder files organize','📦':'box package ship','📬':'mail inbox message',
+  '✏️':'pencil write edit','📐':'ruler measure','✂️':'scissors cut',
+  '🔒':'lock secure private','🔓':'unlock open access','🪝':'hook link attach',
+  '📅':'calendar date schedule','⏰':'alarm clock time','🗓️':'calendar plan',
+  '📧':'email mail message','💬':'chat message talk','📢':'announce broadcast',
+  '🖊️':'pen write sign','🖋️':'fountain pen write','📓':'notebook journal',
+  '📕':'book red','📗':'book green','📘':'book blue','📙':'book orange',
+  // Entertainment & Art
+  '🎨':'art paint creative design','🎬':'movie film cinema','🎵':'music note song',
+  '🎸':'guitar music rock','🎹':'piano keyboard music','🎷':'saxophone jazz music',
+  '🎺':'trumpet music','🥁':'drum beat music','🎭':'theater drama act',
+  '🎪':'circus show festival','📸':'camera photo picture','🎤':'mic sing vocal',
+  '🎧':'headphones music listen','🎞️':'film movie reel','🎉':'party celebrate confetti',
+  '🎯':'target aim goal dart','🏆':'trophy win champion award','🥇':'gold medal first win',
+  '🎮':'game controller play','🕹️':'joystick arcade game','🎲':'dice random board game',
+  '🧩':'puzzle piece jigsaw','🎰':'slot machine casino','🎳':'bowling',
+  // Shopping & Fashion
+  '💄':'lipstick makeup beauty','💍':'ring jewelry diamond','⌚':'watch time wrist',
+  '💰':'money bag rich cash','💳':'card payment credit','🛒':'cart shop buy',
+  '👗':'dress fashion clothes','👠':'heel shoe fashion','👟':'sneaker shoe sport',
+  '🧴':'lotion bottle skin','🧼':'soap clean wash','💵':'dollar money cash',
+  '💸':'money flying spend cash','🏷️':'tag label price','🎒':'backpack school bag',
+  '👔':'suit tie formal business','👜':'purse bag fashion',
+  // Transport & Travel
+  '✈️':'plane flight travel air','🚂':'train rail transport','🚢':'ship cruise ocean',
+  '🚗':'car drive road','🏎️':'race car fast sports','🚲':'bike bicycle ride',
+  '🚁':'helicopter fly rotor','🚀':'rocket space launch','🛸':'ufo space alien',
+  '🚕':'taxi cab ride','🚓':'police car','🚑':'ambulance emergency medical',
+  '🚒':'fire truck emergency','🛻':'truck pickup','🧳':'luggage travel bag suitcase',
+  '🗺️':'map navigate explore world','🌍':'earth world globe','🌐':'globe world internet',
+  // Technology
+  '💻':'laptop computer work code','📱':'phone mobile app','🖥️':'desktop monitor screen',
+  '📷':'camera photo capture','🔭':'telescope space observe','🤖':'robot ai machine',
+  '🔌':'plug power electric','🔋':'battery power charge','💾':'disk save storage',
+  '🖨️':'printer print','⌨️':'keyboard type input','🖱️':'mouse click cursor',
+  '📡':'satellite signal antenna','💿':'cd disk data','📀':'dvd disk data',
+  '🧬':'dna science biology','🔬':'microscope science lab','🧪':'flask lab science test',
+  '📲':'phone notification','☎️':'phone call old',
+  '🛡️':'shield security protect','🔐':'lock key secure','🔏':'locked pen sign',
+  // Animals
+  '🐷':'pig animal oink','🦊':'fox animal clever','🐱':'cat animal pet meow',
+  '🐶':'dog animal pet woof','🦁':'lion animal king','🦋':'butterfly insect fly',
+  '🐙':'octopus ocean sea','🦄':'unicorn fantasy magic','🐸':'frog green hop',
+  '🦜':'parrot bird talk color','🦉':'owl wise bird night','🐺':'wolf howl',
+  '🐼':'panda bear china','🐉':'dragon fantasy fire','🦅':'eagle bird fly freedom',
+  '🐝':'bee honey insect','🐬':'dolphin ocean smart',
+  '🦈':'shark ocean danger','🐘':'elephant big animal','🦒':'giraffe tall africa',
+  '🐢':'turtle slow shell','🐍':'snake reptile slither','🐕':'dog pet','🐈':'cat pet',
+  '🦦':'otter cute water','🐓':'chicken bird','🦃':'turkey bird','🐌':'snail slow',
+  '🐞':'ladybug insect red','🐜':'ant insect small','🕷️':'spider web scary',
+  // Nature & Weather
+  '🌿':'plant green leaf nature','🌸':'flower blossom spring pink','🌊':'wave ocean sea water',
+  '⭐':'star shine bright','🌙':'moon night crescent','☀️':'sun shine warm bright day',
+  '🌈':'rainbow color sky','🌲':'tree forest pine','🌳':'tree nature park',
+  '🌴':'palm tree tropical beach','🌺':'flower tropical color','🌻':'sunflower yellow happy',
+  '🪷':'lotus flower zen','🌹':'rose flower love red','🍀':'clover luck green',
+  '🌱':'sprout grow plant seed','🌾':'wheat grain harvest','❄️':'snow cold winter ice',
+  '🌧️':'rain cloud wet','⛈️':'storm thunder rain','🌤️':'partly cloudy sky',
+  '🌬️':'wind blow cold air','🌋':'volcano fire erupt',
+  '🪨':'rock stone','🌵':'cactus desert dry','🌼':'flower yellow daisy',
+  '🍃':'leaves nature green','🍂':'fall autumn leaves brown','🍁':'maple fall leaf canada',
+  '💨':'wind air blow fast','🌀':'cyclone spin swirl','☔':'rain umbrella wet',
+  '⚡':'lightning bolt electric fast energy','🔥':'fire hot flame burn',
+  // Food & Drink
+  '☕':'coffee hot drink morning','🍵':'tea drink hot calm','🍕':'pizza food slice',
+  '🍔':'burger food fast','🌮':'taco food mexican','🍣':'sushi japanese food',
+  '🍜':'noodle ramen soup','🍩':'donut sweet dessert','🎂':'cake birthday celebrate',
+  '🍺':'beer drink alcohol cheers','🥂':'champagne wine celebrate toast',
+  '🍷':'wine red drink','🍎':'apple fruit red','🥗':'salad healthy food',
+  '🧁':'cupcake sweet dessert','🥤':'drink cup straw juice','🍿':'popcorn movie snack',
+  '🍪':'cookie sweet bake','🍫':'chocolate sweet candy','🍬':'candy sweet sugar',
+  '🍭':'lollipop candy sweet','🥐':'croissant bread breakfast french','🥞':'pancake breakfast',
+  '🍞':'bread bake food','🧀':'cheese food dairy','🍗':'chicken meat food',
+  '🍖':'meat food rib bbq','🍱':'bento box japanese food','🍛':'curry food spice',
+  '🍇':'grapes fruit purple','🍉':'watermelon fruit summer','🍓':'strawberry fruit red',
+  '🍌':'banana fruit yellow','🍑':'peach fruit','🍍':'pineapple tropical fruit',
+  '🥑':'avocado green healthy','🍅':'tomato red vegetable','🥦':'broccoli green vegetable',
+  '🌽':'corn yellow vegetable','🌶️':'pepper spicy hot red','🧄':'garlic vegetable',
+  '🥕':'carrot orange vegetable','🍠':'sweet potato food','🥜':'peanut nut snack',
+  '🍹':'cocktail tropical drink','🍸':'martini drink cocktail','🍾':'champagne celebrate wine',
+  '🥃':'whiskey drink alcohol','🧋':'bubble tea drink boba','🍶':'sake japanese drink',
+  '🫖':'teapot tea brew',
+  // Activities & Sports
+  '⛳':'golf sport',
+  '🏀':'basketball sport ball','⚽':'soccer football sport','🏈':'american football sport',
+  '🎾':'tennis sport ball','🏋️':'weightlifting gym strong','🚴':'cycling bike sport',
+  '🧘':'yoga meditate calm','🤸':'gymnastics flexible sport','🥊':'boxing fight glove',
+  '🏊':'swim water sport','🏄':'surf wave sport ocean',
+  '🏓':'pingpong table tennis','🏸':'badminton sport','🎣':'fish fishing hobby',
+  '🤿':'diving scuba underwater','🏹':'archery arrow bow','🛹':'skateboard skate',
+  '⛷️':'ski snow winter sport','🏂':'snowboard winter sport',
+};
+
+const searchEmoji = (q: string, emoji: string, groupTitle: string): boolean => {
+  if (!q) return true;
+  const lower = q.toLowerCase();
+  if (groupTitle.toLowerCase().includes(lower)) return true;
+  if (emoji.includes(q)) return true;
+  const kw = EMOJI_KEYWORDS[emoji];
+  return kw ? kw.toLowerCase().includes(lower) : false;
+};
+
 // ── Panel base style ──────────────────────────────────────────────────────────
 const panelStyle: React.CSSProperties = {
   position: 'absolute',
@@ -270,67 +407,51 @@ const Toolbar = () => {
     currentEmoji?: string,
     isInline = false
   ) => {
-    const content = (
-      <div style={{ maxHeight: isInline ? 200 : 260, paddingRight: 4, overflowY: "auto", overflowX: 'hidden' }}>
-        {EMOJI_GROUPS.map(group => (
-          <div key={group.title} style={{ marginBottom: 10 }}>
-            {/* Category title */}
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: "rgba(255,255,255,0.35)",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                marginBottom: 5,
-                paddingLeft: 2
-              }}
-            >
-              {group.title}
-            </div>
+    const q = emojiSearch.trim().toLowerCase();
+    const filteredGroups = q
+      ? EMOJI_GROUPS.map(g => ({
+          ...g,
+          emojis: g.emojis.filter(e => searchEmoji(q, e, g.title)),
+        })).filter(g => g.emojis.length > 0)
+      : EMOJI_GROUPS;
 
-            {/* Emoji grid */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(8, 1fr)",
-                gap: 2
-              }}
-            >
-              {group.emojis.map((emoji, emojiIdx) => {
-                const active = emoji === currentEmoji;
-                return (
-                  <button
-                    key={`${group.title}-${emojiIdx}`}
-                    onClick={() => onSelect(emoji)}
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 7,
-                      background: active ? "rgba(200,241,53,0.12)" : "transparent",
-                      border: active ? "1px solid rgba(200,241,53,0.3)" : "none",
-                      fontSize: 18,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transition: "all 0.1s"
-                    }}
-                    onMouseEnter={e => {
-                      if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-                    }}
-                    onMouseLeave={e => {
-                      if (!active) e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    {emoji}
-                  </button>
-                );
-              })}
+    const content = (
+      <>
+        <input
+          value={emojiSearch}
+          onChange={e => setEmojiSearch(e.target.value)}
+          placeholder="Search category…"
+          onClick={e => e.stopPropagation()}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+        />
+        <div style={{ maxHeight: isInline ? 180 : 230, paddingRight: 4, overflowY: "auto", overflowX: 'hidden' }}>
+          {filteredGroups.length === 0 ? (
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '16px 0' }}>No results</div>
+          ) : filteredGroups.map(group => (
+            <div key={group.title} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5, paddingLeft: 2 }}>
+                {group.title}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 2 }}>
+                {group.emojis.map((emoji, emojiIdx) => {
+                  const active = emoji === currentEmoji;
+                  return (
+                    <button
+                      key={`${group.title}-${emojiIdx}`}
+                      onClick={() => onSelect(emoji)}
+                      style={{ width: 30, height: 30, borderRadius: 7, background: active ? "rgba(200,241,53,0.12)" : "transparent", border: active ? "1px solid rgba(200,241,53,0.3)" : "none", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.1s" }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                    >
+                      {emoji}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </>
     );
 
     if (isInline) return <div style={{ marginTop: 8, marginBottom: 8 }}>{content}</div>;
@@ -363,6 +484,15 @@ const Toolbar = () => {
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
   const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
   const setPendingNavigation = useStore((s) => s.setPendingNavigation);
+  const dossiers = useStore((s) => s.dossiers);
+  const currentDossierId = useStore((s) => s.currentDossierId);
+  const switchDossier = useStore((s) => s.switchDossier);
+  const addDossier = useStore((s) => s.addDossier);
+  const deleteDossier = useStore((s) => s.deleteDossier);
+  const updateDossierName = useStore((s) => s.updateDossierName);
+  const exportDossier = useStore((s) => s.exportDossier);
+  const parseDossierFile = useStore((s) => s.parseDossierFile);
+  const commitImportDossier = useStore((s) => s.commitImportDossier);
   const { screenToFlowPosition, fitView, setCenter } = useReactFlow();
 
   const allTags = React.useMemo(() => {
@@ -377,6 +507,19 @@ const Toolbar = () => {
   const [showMenu, setShowMenu] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);
   const [deleteConfirm, setDeleteConfirm] = React.useState<{ id: string; name: string } | null>(null);
+  const [deleteDossierConfirm, setDeleteDossierConfirm] = React.useState<{ id: string; name: string } | null>(null);
+  const [showDossierModal, setShowDossierModal] = React.useState(false);
+  const [showAddDossier, setShowAddDossier] = React.useState(false);
+  const [newDossierName, setNewDossierName] = React.useState('');
+  const [dossierMenuId, setDossierMenuId] = React.useState<string | null>(null);
+  const [focusedDossierId, setFocusedDossierId] = React.useState<string | null>(null);
+  const [renamingDossierId, setRenamingDossierId] = React.useState<string | null>(null);
+  const [renameDossierValue, setRenameDossierValue] = React.useState('');
+  const [showExportModal, setShowExportModal] = React.useState(false);
+  const [exportNameValue, setExportNameValue] = React.useState('');
+  const [pendingImportDossier, setPendingImportDossier] = React.useState<Dossier | null>(null);
+  const [pendingImportName, setPendingImportName] = React.useState('');
+  const importDossierRef = React.useRef<HTMLInputElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
   const [isCompact, setIsCompact] = React.useState(false);
   const [maxInlineRooms, setMaxInlineRooms] = React.useState(8);
@@ -389,6 +532,8 @@ const Toolbar = () => {
   const [activeEmojiGroup, setActiveEmojiGroup] = React.useState(0);
   // ID of the room whose emoji is being edited; 'new' for add-workspace panel
   const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
+  const [emojiSearch, setEmojiSearch] = React.useState('');
+  React.useEffect(() => { setEmojiSearch(''); }, [emojiPickerFor]);
   // ID of room being renamed (inline edit panel)
   const [renamingRoomId, setRenamingRoomId] = React.useState<string | null>(null);
   const [renameValue, setRenameValue] = React.useState('');
@@ -523,6 +668,18 @@ const Toolbar = () => {
         void cr.runtime.lastError;
       });
     });
+  };
+
+  const handleDossierImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const parsed = await parseDossierFile(file);
+      if (parsed) {
+        setPendingImportDossier(parsed);
+        setPendingImportName(parsed.name);
+      }
+    }
+    e.target.value = '';
   };
 
   // ── Outside-click effects ─────────────────────────────────────────────────
@@ -961,8 +1118,37 @@ const Toolbar = () => {
   );
 
   const renderSettingsPanel = () => (
-    <div ref={settingsRef} style={{ ...panelStyle, minWidth: 280 }}>
+    <div ref={settingsRef} style={{ ...panelStyle, minWidth: 260 }}>
       <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Settings</div>
+
+      {/* Dossier menu row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', marginBottom: 8 }}
+        onClick={() => { setShowDossierModal(true); setShowSettings(false); }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <FolderOpen size={16} color="rgba(255,255,255,0.3)" />
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Dossier</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+              {(() => { const d = dossiers.find((d: Dossier) => d.id === currentDossierId); return d ? `${d.name}` : 'Manage dossiers'; })()}
+            </div>
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      {/* Share row — opens export modal */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', marginBottom: 8 }}
+        onClick={() => { const d = dossiers.find((d: Dossier) => d.id === currentDossierId); setExportNameValue(d?.name || 'Default'); setShowExportModal(true); }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Download size={16} color="rgba(255,255,255,0.3)" />
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Export</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Download dossier as .boardback file</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 8 }} />
       
       <div 
         style={{ 
@@ -1138,6 +1324,210 @@ const Toolbar = () => {
     </div>
   );
 
+  const dossierModal = showDossierModal && (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
+      onClick={() => { setShowDossierModal(false); setShowAddDossier(false); setNewDossierName(''); setEmojiPickerFor(null); setFocusedDossierId(null); setDossierMenuId(null); setRenamingDossierId(null); setRenameDossierValue(''); }}>
+      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 24, padding: '28px', width: 720, maxWidth: 'calc(100vw - 32px)', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+        onClick={e => { e.stopPropagation(); setFocusedDossierId(null); setDossierMenuId(null); setRenamingDossierId(null); setRenameDossierValue(''); if (showAddDossier) { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>Dossiers</div>
+          <button onClick={() => { setShowDossierModal(false); setShowAddDossier(false); setNewDossierName(''); setEmojiPickerFor(null); setFocusedDossierId(null); setDossierMenuId(null); setRenamingDossierId(null); setRenameDossierValue(''); }}
+            style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={14} />
+          </button>
+        </div>
+
+        {/* File grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isCompact ? 2 : isMobile ? 3 : 5}, 1fr)`, gap: 12, marginBottom: 20 }} onClick={() => { setDossierMenuId(null); setFocusedDossierId(null); setRenamingDossierId(null); setRenameDossierValue(''); }}>
+          {dossiers.map((d: Dossier) => {
+            const isActive = d.id === currentDossierId;
+            const isFocused = focusedDossierId === d.id && !isActive;
+            const menuOpen = dossierMenuId === d.id;
+            return (
+              <div key={d.id} style={{ position: 'relative', minWidth: 0 }}
+                onMouseEnter={e => { const btn = (e.currentTarget as HTMLDivElement).querySelector('.menu-btn') as HTMLElement; if (btn) btn.style.opacity = '1'; }}
+                onMouseLeave={e => { const btn = (e.currentTarget as HTMLDivElement).querySelector('.menu-btn') as HTMLElement; if (btn && !menuOpen) btn.style.opacity = '0'; }}>
+                {/* Card */}
+                {renamingDossierId === d.id ? (
+                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, height: 108, borderRadius: 16, background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.28)', padding: '0 8px', boxSizing: 'border-box', overflow: 'hidden' }}>
+                    <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>✏️</span>
+                    <input
+                      value={renameDossierValue}
+                      onChange={e => setRenameDossierValue(e.target.value)}
+                      autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter' && renameDossierValue.trim()) { updateDossierName(renamingDossierId, renameDossierValue.trim()); setRenamingDossierId(null); setRenameDossierValue(''); } if (e.key === 'Escape') { setRenamingDossierId(null); setRenameDossierValue(''); } }}
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 7, padding: '4px 7px', color: '#fff', fontSize: 11, fontWeight: 600, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    onClick={e => { e.stopPropagation(); if (!isActive) setFocusedDossierId(d.id); }}
+                    onDoubleClick={e => { e.stopPropagation(); if (!isActive) { switchDossier(d.id); setShowDossierModal(false); setFocusedDossierId(null); } }}
+                    onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setDossierMenuId(menuOpen ? null : d.id); }}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, height: 108, borderRadius: 16,
+                      background: isActive ? 'rgba(200,241,53,0.10)' : isFocused ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${isActive ? 'rgba(200,241,53,0.35)' : isFocused ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.07)'}`,
+                      boxShadow: isFocused ? '0 0 0 3px rgba(255,255,255,0.06)' : 'none',
+                      cursor: isActive ? 'default' : 'pointer', transition: 'all 0.15s', padding: '0 10px', boxSizing: 'border-box', overflow: 'hidden', userSelect: 'none',
+                    }}
+                    onMouseEnter={e => { if (!isActive && !isFocused) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                    onMouseLeave={e => { if (!isActive && !isFocused) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)'; }}>
+                    <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>{isActive || isFocused ? '📂' : '📁'}</span>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: isActive ? '#c8f135' : isFocused ? '#fff' : 'rgba(255,255,255,0.75)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{d.name}</div>
+                  </div>
+                )}
+
+                {/* ⋯ menu button */}
+                <button className="menu-btn"
+                  onClick={e => { e.stopPropagation(); setDossierMenuId(menuOpen ? null : d.id); }}
+                  style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: 6, background: menuOpen ? 'rgba(255,255,255,0.12)' : 'rgba(20,20,30,0.7)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, opacity: menuOpen ? 1 : 0, transition: 'opacity 0.15s' }}>
+                  <MoreHorizontal size={12} />
+                </button>
+
+                {/* Dropdown */}
+                {menuOpen && (
+                  <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 32, right: 0, zIndex: 10, background: '#1a1b2e', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: 120 }}>
+                    {[
+                      { label: 'Open', icon: <FolderOpen size={12} />, action: () => { if (!isActive) { switchDossier(d.id); } setShowDossierModal(false); setDossierMenuId(null); }, disabled: false },
+                      { label: 'Rename', icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { setRenamingDossierId(d.id); setRenameDossierValue(d.name); setDossierMenuId(null); } },
+                      { label: 'Export', icon: <Download size={12} />, action: () => { const activeDossier = dossiers.find((dd: Dossier) => dd.id === currentDossierId); setExportNameValue(activeDossier?.name || 'Default'); setShowExportModal(true); setDossierMenuId(null); } },
+                      { label: 'Delete', icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>, action: () => { setDeleteDossierConfirm({ id: d.id, name: d.name }); setDossierMenuId(null); }, danger: true, disabled: dossiers.length <= 1 },
+                    ].map(item => (
+                      <button key={item.label} onClick={item.action} disabled={item.disabled}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'transparent', border: 'none', color: item.danger ? '#ff6b6b' : 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: 500, cursor: item.disabled ? 'default' : 'pointer', opacity: item.disabled ? 0.3 : 1, textAlign: 'left' }}
+                        onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(255,60,60,0.1)' : 'rgba(255,255,255,0.06)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
+                        {item.icon}{item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {/* New dossier inline card */}
+          {showAddDossier && (
+            <div onClick={e => e.stopPropagation()} style={{ position: 'relative', minWidth: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, height: 108, borderRadius: 16, background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.28)', padding: '0 8px', boxSizing: 'border-box', overflow: 'hidden' }}>
+                <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>📁</span>
+                <input
+                  value={newDossierName}
+                  onChange={e => setNewDossierName(e.target.value)}
+                  autoFocus
+                  onFocus={e => e.target.select()}
+                  onKeyDown={e => { if (e.key === 'Enter') { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } if (e.key === 'Escape') { setShowAddDossier(false); setNewDossierName(''); } }}
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 7, padding: '4px 7px', color: '#fff', fontSize: 11, fontWeight: 600, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <input ref={importDossierRef} type="file" accept=".boardback" style={{ display: 'none' }} onChange={handleDossierImport} />
+
+        {/* New and Import buttons */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={e => { e.stopPropagation(); setShowAddDossier(true); setNewDossierName('New Dossier'); }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px 0', borderRadius: 12, background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.65)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)'; }}>
+            <Plus size={14} strokeWidth={2} /> New Dossier
+          </button>
+          <button onClick={e => { e.stopPropagation(); importDossierRef.current?.click(); }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px 0', borderRadius: 12, background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.65)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)'; }}>
+            <FolderDown size={14} strokeWidth={2} /> Import .boardback
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+
+  const deleteDossierModal = deleteDossierConfirm && (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
+      onClick={() => setDeleteDossierConfirm(null)}>
+      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: '24px', width: 300, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+          <FolderOpen size={18} color="rgba(255,100,100,0.9)" />
+        </div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete Dossier?</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.5 }}>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteDossierConfirm.name}"</span> and all its workspaces will be permanently removed.
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setDeleteDossierConfirm(null)}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={() => { deleteDossier(deleteDossierConfirm.id); setDeleteDossierConfirm(null); }}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'rgba(255,60,60,0.15)', border: '1px solid rgba(255,60,60,0.3)', color: '#ff6b6b', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const exportModal = showExportModal && (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.80)', backdropFilter: 'blur(12px)' }}
+      onClick={() => setShowExportModal(false)}>
+      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Export Dossier</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.6 }}>
+          Set a name for the exported dossier. The file will be downloaded as a <span style={{ color: 'rgba(200,241,53,0.8)', fontWeight: 600 }}>.boardback</span> file.
+        </div>
+        <input
+          value={exportNameValue}
+          onChange={e => setExportNameValue(e.target.value)}
+          placeholder="Dossier name…"
+          autoFocus
+          onKeyDown={e => { if (e.key === 'Enter' && exportNameValue.trim()) { exportDossier(exportNameValue.trim()); setShowExportModal(false); } if (e.key === 'Escape') setShowExportModal(false); }}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
+        />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setShowExportModal(false)}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+          <button disabled={!exportNameValue.trim()} onClick={() => { if (exportNameValue.trim()) { exportDossier(exportNameValue.trim()); setShowExportModal(false); } }}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: exportNameValue.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: exportNameValue.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: exportNameValue.trim() ? '#c8f135' : 'rgba(255,255,255,0.25)', fontSize: 12, fontWeight: 700, cursor: exportNameValue.trim() ? 'pointer' : 'default' }}>Export</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const importModal = pendingImportDossier && (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.80)', backdropFilter: 'blur(12px)' }}
+      onClick={() => setPendingImportDossier(null)}>
+      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Import Dossier</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.6 }}>
+          Set a name for the imported dossier.
+        </div>
+        <input
+          value={pendingImportName}
+          onChange={e => setPendingImportName(e.target.value)}
+          placeholder="Dossier name…"
+          autoFocus
+          onKeyDown={e => { if (e.key === 'Enter' && pendingImportName.trim()) { commitImportDossier(pendingImportDossier, pendingImportName.trim()); setPendingImportDossier(null); } if (e.key === 'Escape') setPendingImportDossier(null); }}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
+        />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setPendingImportDossier(null)}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+          <button disabled={!pendingImportName.trim()} onClick={() => { if (pendingImportName.trim()) { commitImportDossier(pendingImportDossier!, pendingImportName.trim()); setPendingImportDossier(null); } }}
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: pendingImportName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: pendingImportName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: pendingImportName.trim() ? '#c8f135' : 'rgba(255,255,255,0.25)', fontSize: 12, fontWeight: 700, cursor: pendingImportName.trim() ? 'pointer' : 'default' }}>Import</button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Compact mode (< 400px) ────────────────────────────────────────────────
   if (isCompact) {
     const menuItems = [
@@ -1152,6 +1542,10 @@ const Toolbar = () => {
     return (
       <>
       {deleteModal}
+      {deleteDossierModal}
+      {dossierModal}
+      {exportModal}
+      {importModal}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showSearch && renderSearchPanel()}
@@ -1216,6 +1610,10 @@ const Toolbar = () => {
     return (
       <>
       {deleteModal}
+      {deleteDossierModal}
+      {dossierModal}
+      {exportModal}
+      {importModal}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ userSelect: 'none' }}>
         <div className="relative" ref={menuRef}>
           {showSearch && renderSearchPanel()}
@@ -1271,6 +1669,10 @@ const Toolbar = () => {
   return (
     <>
     {deleteModal}
+    {deleteDossierModal}
+    {dossierModal}
+    {exportModal}
+    {importModal}
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ maxWidth: 'calc(100vw - 2rem)', userSelect: 'none' }}>
       <div className="flex items-center"
         style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
