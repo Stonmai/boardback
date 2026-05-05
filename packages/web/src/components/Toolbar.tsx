@@ -969,7 +969,7 @@ const Toolbar = () => {
   const renderAddWsPanel = () => (
     <div ref={addWsRef} style={{ ...panelStyle, minWidth: 230 }}>
       <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-        New workspace
+        New board
       </div>
       {/* Emoji selector */}
       <div style={{ marginBottom: 10 }}>
@@ -995,7 +995,7 @@ const Toolbar = () => {
           value={newWsName}
           onChange={e => setNewWsName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') setShowAddWs(false); }}
-          placeholder="Workspace name..."
+          placeholder="Board name..."
           style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
         />
         <button
@@ -1013,7 +1013,7 @@ const Toolbar = () => {
   const renderRoomsPanel = (width: number) => (
     <div ref={roomsRef} style={{ ...panelStyle, width: Math.min(width, window.innerWidth - 32) }}>
       <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>
-        Workspaces
+        Boards
       </div>
       {!showAddWs ? (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -1034,7 +1034,7 @@ const Toolbar = () => {
                   <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1, maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room.name}</span>
                 </button>
                 {!active && rooms.length > 1 && (
-                  <button onClick={e => { e.stopPropagation(); setDeleteConfirm({ id: room.id, name: room.name }); }} title="Delete workspace"
+                  <button onClick={e => { e.stopPropagation(); setDeleteConfirm({ id: room.id, name: room.name }); }} title="Delete board"
                     style={{ position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,60,60,0.75)', border: '1.5px solid rgba(10,11,22,0.85)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
                     ×
                   </button>
@@ -1064,7 +1064,7 @@ const Toolbar = () => {
               value={newWsName}
               onChange={e => setNewWsName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
-              placeholder="Workspace name..."
+              placeholder="Board name..."
               autoFocus
               style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
             />
@@ -1217,7 +1217,7 @@ const Toolbar = () => {
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Open BoardBack on new tab</div>
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
-              {extensionInstalled ? 'Replace new tab page with your workspace' : 'Requires the BoardBack extension'}
+              {extensionInstalled ? 'Replace new tab page with your board' : 'Requires the BoardBack extension'}
             </div>
             {newTabEnabled && /Vivaldi/i.test(navigator.userAgent) && (
               <div style={{ fontSize: 9, color: 'rgba(255,190,0,0.75)', fontWeight: 500, marginTop: 3 }}>
@@ -1306,7 +1306,7 @@ const Toolbar = () => {
         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,100,100,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete workspace?</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete board?</div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.5 }}>
           <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteConfirm.name}"</span> and all its content will be permanently removed.
         </div>
@@ -1460,7 +1460,7 @@ const Toolbar = () => {
         </div>
         <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete Dossier?</div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.5 }}>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteDossierConfirm.name}"</span> and all its workspaces will be permanently removed.
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteDossierConfirm.name}"</span> and all its boards will be permanently removed.
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setDeleteDossierConfirm(null)}
@@ -1679,13 +1679,13 @@ const Toolbar = () => {
       <div className="flex items-center"
         style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
 
-        {/* ── Workspaces ─────────────────────────────────────────────────── */}
+        {/* ── Boards ─────────────────────────────────────────────────── */}
         {maxInlineRooms === 0 ? (
           /* 540–640px: single dropdown */
           <div className="relative" ref={roomsRef}>
             {showRooms && (
               <div style={{ ...panelStyle, width: Math.min(230, window.innerWidth - 32) }}>
-                <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Workspaces</div>
+                <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Boards</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                   {rooms.map(room => {
                     const active = room.id === currentRoomId;
@@ -1722,7 +1722,7 @@ const Toolbar = () => {
                       </button>
                       <input ref={wsInputRef} value={newWsName} onChange={e => setNewWsName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
-                        placeholder="Workspace name..."
+                        placeholder="Board name..."
                         autoFocus
                         style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '7px 9px', color: '#ffffff', fontSize: 12, outline: 'none' }}
                       />
@@ -1785,7 +1785,7 @@ const Toolbar = () => {
                   {renamingRoomId === room.id && (
                     <div style={{ ...panelStyle, minWidth: 230 }}>
                       <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-                        Edit workspace
+                        Edit board
                       </div>
                       {/* Emoji selector */}
                       <div style={{ marginBottom: 10 }}>
@@ -1811,7 +1811,7 @@ const Toolbar = () => {
                             if (e.key === 'Enter') { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }
                             if (e.key === 'Escape') { setRenamingRoomId(null); setRenameValue(''); setEmojiPickerFor(null); }
                           }}
-                          placeholder="Workspace name..."
+                          placeholder="Board name..."
                           style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
                         />
                         <button
@@ -1822,7 +1822,7 @@ const Toolbar = () => {
                           <Check size={15} strokeWidth={2.5} />
                         </button>
                       </div>
-                      {/* Delete workspace */}
+                      {/* Delete board */}
                       {rooms.length > 1 && (
                         <button
                           onClick={() => { setRenamingRoomId(null); setEmojiPickerFor(null); setDeleteConfirm({ id: room.id, name: room.name }); }}
@@ -1831,7 +1831,7 @@ const Toolbar = () => {
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,60,60,0.2)'; }}
                         >
                           <Trash2 size={13} strokeWidth={2} />
-                          Delete workspace
+                          Delete board
                         </button>
                       )}
                     </div>
@@ -1855,7 +1855,7 @@ const Toolbar = () => {
                           setShowOverflow(false);
                         }
                       }}
-                      title={active ? 'Edit workspace' : room.name}
+                      title={active ? 'Edit board' : room.name}
                       style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
                       onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; } }}
                       onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'grayscale(0.2) opacity(0.7)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
@@ -1866,7 +1866,7 @@ const Toolbar = () => {
                     {!active && rooms.length > 1 && hoveredRoomId === room.id && (
                       <button
                         onClick={e => { e.stopPropagation(); setDeleteConfirm({ id: room.id, name: room.name }); }}
-                        title="Delete workspace"
+                        title="Delete board"
                         style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,60,60,0.85)', border: '1.5px solid rgba(10,11,22,0.9)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, zIndex: 10, lineHeight: 1, paddingBottom: 1 }}
                       >
                         ×
@@ -1893,7 +1893,7 @@ const Toolbar = () => {
                   return (
                     <div style={{ ...panelStyle, minWidth: 230 }}>
                       <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-                        Edit workspace
+                        Edit board
                       </div>
                       {/* Emoji selector */}
                       <div style={{ marginBottom: 10 }}>
@@ -1919,7 +1919,7 @@ const Toolbar = () => {
                             if (e.key === 'Enter') { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }
                             if (e.key === 'Escape') { setRenamingRoomId(null); setRenameValue(''); setEmojiPickerFor(null); }
                           }}
-                          placeholder="Workspace name..."
+                          placeholder="Board name..."
                           style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
                         />
                         <button
@@ -1930,7 +1930,7 @@ const Toolbar = () => {
                           <Check size={15} strokeWidth={2.5} />
                         </button>
                       </div>
-                      {/* Delete workspace */}
+                      {/* Delete board */}
                       {rooms.length > 1 && (
                         <button
                           onClick={() => { setRenamingRoomId(null); setEmojiPickerFor(null); setDeleteConfirm({ id: room.id, name: room.name }); }}
@@ -1939,7 +1939,7 @@ const Toolbar = () => {
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,60,60,0.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,60,60,0.2)'; }}
                         >
                           <Trash2 size={13} strokeWidth={2} />
-                          Delete workspace
+                          Delete board
                         </button>
                       )}
                     </div>
@@ -1947,7 +1947,7 @@ const Toolbar = () => {
                 })()}
                 {showOverflow && (
                   <div style={{ ...panelStyle, minWidth: 190 }}>
-                    <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>More workspaces</div>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Other boards</div>
                     {overflowRooms.map(room => {
                       const active = room.id === currentRoomId;
                       return (
@@ -1978,7 +1978,7 @@ const Toolbar = () => {
                           {/* Gear edit button */}
                           <button
                             onClick={() => { startRenaming(room); setShowOverflow(false); }}
-                            title="Edit workspace"
+                            title="Edit board"
                             style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; }}
