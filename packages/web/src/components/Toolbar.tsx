@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis, Download, Upload, FolderOpen, FolderDown, ChevronUp, Copy } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis, Download, Upload, FolderOpen, FolderDown, ChevronUp, ChevronDown, Copy } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useStore, RoomData, Dossier } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -896,6 +897,7 @@ const Toolbar = () => {
   const [renamingRoomId, setRenamingRoomId] = React.useState<string | null>(null);
   const [renameValue, setRenameValue] = React.useState('');
   const [hoveredRoomId, setHoveredRoomId] = React.useState<string | null>(null);
+  const [roomMenuPos, setRoomMenuPos] = React.useState<{ x: number; y: number; roomId: string } | null>(null);
   const [draggedRoomId, setDraggedRoomId] = React.useState<string | null>(null);
   const [newTabEnabled, setNewTabEnabled] = React.useState(false);
   const [extensionInstalled, setExtensionInstalled] = React.useState(false);
@@ -1115,6 +1117,18 @@ const Toolbar = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [renamingRoomId]);
+
+  // Room context menu outside-click
+  React.useEffect(() => {
+    if (!roomMenuPos) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-room-wrapper]')) return;
+      setRoomMenuPos(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [roomMenuPos]);
 
   // Emoji picker outside-click (for existing room tabs only; 'new' is inside addWsRef)
   React.useEffect(() => {
@@ -1655,6 +1669,36 @@ const Toolbar = () => {
     </div>
   );
 
+  // ── Room right-click context menu (portal) ───────────────────────────────
+  const roomCtxRoom = roomMenuPos ? rooms.find(r => r.id === roomMenuPos.roomId) : null;
+  const roomContextMenu = roomMenuPos && roomCtxRoom && typeof document !== 'undefined' && createPortal(
+    <div
+      className="glass-dark"
+      onMouseDown={e => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
+      onContextMenu={e => e.preventDefault()}
+      style={{ position: 'fixed', bottom: `calc(100vh - ${roomMenuPos.y}px + 24px)`, left: roomMenuPos.x, transform: 'translateX(-50%)', zIndex: 99999, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', overflow: 'hidden', minWidth: 140 }}
+    >
+      {([
+        { label: 'Edit', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { startRenaming(roomCtxRoom); setRoomMenuPos(null); setShowOverflow(false); }, danger: false, disabled: false },
+        { divider: true },
+        { label: 'Delete', icon: <Trash2 size={13} />, action: () => { setDeleteConfirm({ id: roomCtxRoom.id, name: roomCtxRoom.name }); setRoomMenuPos(null); }, danger: true, disabled: rooms.length <= 1 },
+      ] as any[]).map((item: any, i: number) => {
+        if (item.divider) return <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '2px 0' }} />;
+        return (
+          <button key={item.label} onClick={item.action} disabled={item.disabled}
+            className={item.danger ? 'text-red-400' : 'text-white/80'}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'transparent', border: 'none', fontSize: 13, cursor: item.disabled ? 'default' : 'pointer', opacity: item.disabled ? 0.3 : 1, textAlign: 'left', transition: 'background 0.15s' }}
+            onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.08)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
+            {item.icon}{item.label}
+          </button>
+        );
+      })}
+    </div>,
+    document.body
+  );
+
   // ── Delete confirmation modal ─────────────────────────────────────────────
   const deleteModal = deleteConfirm && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
@@ -1748,7 +1792,7 @@ const Toolbar = () => {
                     <MoreHorizontal size={12} />
                   </button>
                   {menuOpen && (
-                    <div onClick={e => e.stopPropagation()} className="glass-dark" style={{ position: 'absolute', top: 26, ...(isLastCol ? { right: 0 } : { left: 0 }), zIndex: 10, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', overflow: 'hidden', minWidth: 140 }}>
+                    <div onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} className="glass-dark" style={{ position: 'absolute', top: 26, ...(isLastCol ? { right: 0 } : { left: 0 }), zIndex: 10, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', overflow: 'hidden', minWidth: 140 }}>
                       {[
                         { label: 'Open', icon: <FolderOpen size={13} />, action: () => { if (!isActive) { switchDossier(d.id); } setShowDossierModal(false); setDossierMenuId(null); }, disabled: false },
                         { label: 'Rename', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { setRenamingDossierId(d.id); setRenameDossierValue(d.name); setDossierMenuId(null); } },
@@ -1907,6 +1951,7 @@ const Toolbar = () => {
 
     return (
       <>
+      {roomContextMenu}
       {deleteModal}
       {deleteDossierModal}
       {dossierModal}
@@ -1975,6 +2020,7 @@ const Toolbar = () => {
 
     return (
       <>
+      {roomContextMenu}
       {deleteModal}
       {deleteDossierModal}
       {dossierModal}
@@ -2034,7 +2080,8 @@ const Toolbar = () => {
   // ── Desktop layout ────────────────────────────────────────────────────────
   return (
     <>
-    {deleteModal}
+    {roomContextMenu}
+      {deleteModal}
     {deleteDossierModal}
     {dossierModal}
     {exportModal}
@@ -2138,8 +2185,10 @@ const Toolbar = () => {
                     transform: room.id === draggedRoomId ? 'scale(0.95)' : 'scale(1)',
                     cursor: 'grab'
                   }}
+                  data-room-wrapper=""
                   onMouseEnter={() => setHoveredRoomId(room.id)}
                   onMouseLeave={() => setHoveredRoomId(null)}
+                  onContextMenu={e => { e.preventDefault(); if (renamingRoomId === room.id) return; if (roomMenuPos?.roomId === room.id) { setRoomMenuPos(null); return; } const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setRoomMenuPos({ x: r.left + r.width / 2, y: r.top, roomId: room.id }); }}
                   draggable
                   onDragStart={(e) => handleDragStart(e, room.id)}
                   onDragOver={(e) => handleDragOver(e, room.id)}
@@ -2204,6 +2253,7 @@ const Toolbar = () => {
                   <div style={{ position: 'relative' }}>
                     <button
                       onClick={() => {
+                        if (roomMenuPos?.roomId === room.id) { setRoomMenuPos(null); return; }
                         if (active) {
                           if (renamingRoomId === room.id) {
                             commitRename();
@@ -2229,17 +2279,19 @@ const Toolbar = () => {
                     {/* Edit button — shown on hover for non-active rooms */}
                     {!active && hoveredRoomId === room.id && (
                       <button
-                        onClick={e => { e.stopPropagation(); setRenamingRoomId(room.id); setRenameValue(room.name); }}
-                        title="Edit board"
+                        onMouseDown={e => e.stopPropagation()}
+                        onClick={e => { e.stopPropagation(); if (renamingRoomId === room.id) return; const tabEl = (e.currentTarget as HTMLButtonElement).closest('[data-room-wrapper]') as HTMLElement; const r = (tabEl || (e.currentTarget as HTMLButtonElement).parentElement!.parentElement!).getBoundingClientRect(); setRoomMenuPos(p => p?.roomId === room.id ? null : { x: r.left + r.width / 2, y: r.top, roomId: room.id }); }}
+                        title="Board options"
                         style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, borderRadius: '50%', background: 'rgba(120,120,130,0.45)', border: '1.5px solid rgba(10,11,22,0.9)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
                       >
-                        <ChevronUp size={8} />
+                        {roomMenuPos?.roomId === room.id ? <ChevronDown size={8} /> : <ChevronUp size={8} />}
                       </button>
                     )}
                   </div>
                   <span style={{ ...labelStyle, color: active ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', maxWidth: 72 }}>
                     {room.name.length > 11 ? room.name.slice(0, 10) + '…' : room.name}
                   </span>
+
                 </div>
               );
             })}
@@ -2248,7 +2300,7 @@ const Toolbar = () => {
             {overflowRooms.length > 0 && (
               <div className="relative" ref={overflowRef} style={{ margin: '0 2px' }}
                 onMouseEnter={() => { if (renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId)) return; if (overflowCloseTimer.current) clearTimeout(overflowCloseTimer.current); setShowOverflow(true); }}
-                onMouseLeave={() => { if (renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId)) return; overflowCloseTimer.current = setTimeout(() => setShowOverflow(false), 150); }}
+                onMouseLeave={() => { if (renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId)) return; if (roomMenuPos) return; overflowCloseTimer.current = setTimeout(() => setShowOverflow(false), 150); }}
               >
                 {/* Edit panel for overflow rooms — shown instead of overflow list */}
                 {renamingRoomId && overflowRooms.some(r => r.id === renamingRoomId) && (() => {
@@ -2339,15 +2391,15 @@ const Toolbar = () => {
                             <span style={{ fontSize: 18 }}>{getRoomEmoji(room)}</span>
                             {room.name}
                           </button>
-                          {/* Gear edit button */}
+                          {/* Menu button */}
                           <button
-                            onClick={() => { startRenaming(room); setShowOverflow(false); }}
-                            title="Edit board"
+                            onClick={e => { e.stopPropagation(); if (overflowCloseTimer.current) clearTimeout(overflowCloseTimer.current); const r = (e.currentTarget as HTMLButtonElement).getBoundingClientRect(); setRoomMenuPos(p => p?.roomId === room.id ? null : { x: r.right, y: r.top, roomId: room.id }); }}
+                            title="Board options"
                             style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; }}
                           >
-                            <CircleEllipsis size={13} strokeWidth={2} />
+                            <MoreHorizontal size={13} strokeWidth={2} />
                           </button>
                         </div>
                       );
