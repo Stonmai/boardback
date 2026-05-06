@@ -2277,7 +2277,7 @@ const Toolbar = () => {
                       {getRoomEmoji(room)}
                     </button>
                     {/* Edit button — shown on hover for non-active rooms */}
-                    {!active && hoveredRoomId === room.id && (
+                    {!active && (hoveredRoomId === room.id || roomMenuPos?.roomId === room.id) && (
                       <button
                         onMouseDown={e => e.stopPropagation()}
                         onClick={e => { e.stopPropagation(); if (renamingRoomId === room.id) return; const tabEl = (e.currentTarget as HTMLButtonElement).closest('[data-room-wrapper]') as HTMLElement; const r = (tabEl || (e.currentTarget as HTMLButtonElement).parentElement!.parentElement!).getBoundingClientRect(); setRoomMenuPos(p => p?.roomId === room.id ? null : { x: r.left + r.width / 2, y: r.top, roomId: room.id }); }}
