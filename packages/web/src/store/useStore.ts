@@ -135,6 +135,7 @@ interface WhiteboardState {
   reorderRooms: (rooms: RoomData[]) => void;
   switchDossier: (id: string) => void;
   addDossier: (name: string, emoji: string) => void;
+  duplicateDossier: (id: string) => void;
   deleteDossier: (id: string) => void;
   updateDossierName: (id: string, name: string) => void;
   updateDossierEmoji: (id: string, emoji: string) => void;
@@ -294,9 +295,8 @@ export const useStore = create<WhiteboardState>()(
       const oldPid = _getParentId(n);
       const newParent = oldPid && clipboardIds.has(oldPid) ? idMap.get(oldPid) : undefined;
       const isChild = oldPid && clipboardIds.has(oldPid);
-      const sizeOverride =
-        (n.type === 'bookmark' || n.type === 'tab') ? { width: 300, height: undefined, measured: undefined } :
-        n.type === 'note' ? { width: 360, height: undefined, measured: undefined } : {};
+      // Preserve original dimensions; only clear measured so React Flow re-measures
+      const sizeOverride = { measured: undefined };
       return {
         ...n,
         ...sizeOverride,
@@ -430,7 +430,15 @@ export const useStore = create<WhiteboardState>()(
       style: { width: node.width, height: node.height },
     };
 
-    const finalNodes = node.type === 'group' ? [newNode, ...nodes] : [...nodes, newNode];
+    let finalNodes: Node[];
+    if (node.type === 'group') {
+      // Insert after the last existing group so new group renders on top of older groups,
+      // but still before non-group nodes (React Flow requires parents before children).
+      const insertAt = nodes.reduce((last: number, n: Node, i: number) => n.type === 'group' ? i + 1 : last, 0);
+      finalNodes = [...nodes.slice(0, insertAt), newNode, ...nodes.slice(insertAt)];
+    } else {
+      finalNodes = [...nodes, newNode];
+    }
     set({
       nodes: finalNodes,
       _past: [..._past.slice(-49), { nodes, edges }],
@@ -664,6 +672,32 @@ export const useStore = create<WhiteboardState>()(
     const firstRoom: RoomData = { id: `room-${Date.now()}`, name: 'Main', emoji: '📌', nodes: [], edges: [], groups: [] };
     const newDossier: Dossier = { id, name: uniqueName, emoji, rooms: [firstRoom], tags: [], currentRoomId: firstRoom.id };
     set({ dossiers: [...dossiers, newDossier] });
+  },
+
+  duplicateDossier: (id: string) => {
+    const { dossiers, currentDossierId, nodes, edges, groups, tags, currentRoomId } = get();
+    // Flush live state into active dossier before reading source
+    const flushed = dossiers.map((d: Dossier) =>
+      d.id === currentDossierId
+        ? { ...d, rooms: d.rooms.map((r: RoomData) => r.id === currentRoomId ? { ...r, nodes, edges, groups } : r), tags, currentRoomId }
+        : d
+    );
+    const source = flushed.find((d: Dossier) => d.id === id);
+    if (!source) return;
+    const uniqueName = uniqueDossierName(`${source.name} copy`, flushed);
+    const slug = uniqueName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'dossier';
+    const newId = `${slug}-${Date.now()}`;
+    const ts = Date.now();
+    const roomIdMap = new Map(source.rooms.map((r: RoomData, i: number) => [r.id, `room-${ts}-${i}`]));
+    const newRooms = source.rooms.map((r: RoomData) => ({ ...r, id: roomIdMap.get(r.id)! }));
+    const duplicate: Dossier = {
+      ...source,
+      id: newId,
+      name: uniqueName,
+      rooms: newRooms,
+      currentRoomId: roomIdMap.get(source.currentRoomId) ?? newRooms[0]?.id,
+    };
+    set({ dossiers: [...flushed, duplicate] });
   },
 
   deleteDossier: (id: string) => {

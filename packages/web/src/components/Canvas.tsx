@@ -635,7 +635,7 @@ const Canvas = () => {
   }, [nodes, previewNodeId]);
 
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts — undo/redo only; copy/cut are handled via native copy/cut events below
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
@@ -645,32 +645,60 @@ const Canvas = () => {
       const store = useStore.getState();
       if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); store.undo(); }
       if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); store.redo(); }
-      if (e.key === 'c' || e.key === 'x') {
-        e.preventDefault();
-        const { nodes: allNodes, selectedNodes: sel } = store;
-        const picked = allNodes.filter(n => sel.includes(n.id));
-        if (e.key === 'x') {
-          store.cutNodes();
-        } else {
-          store.copyNodes();
-        }
-        if (picked.length > 0) {
-          const token = `__bb_${Date.now()}__`;
-          _internalClipboardToken = token;
-          const urlLines = picked
-            .map(n => {
-              if ((n.type === 'bookmark' || n.type === 'tab') && n.data.url) return n.data.url as string;
-              return null;
-            })
-            .filter(Boolean) as string[];
-          // Write URLs (for cross-app paste) + token (for internal detection)
-          const systemText = urlLines.length > 0 ? `${urlLines.join('\n')}\n${token}` : token;
-          navigator.clipboard.writeText(systemText).catch(() => {});
-        }
+      // For 'c': call copyNodes() here so clipboard is ready before the copy event fires.
+      // Do NOT preventDefault — let the native copy event fire so we can use setData() synchronously.
+      if (e.key === 'c') {
+        const target2 = e.target as HTMLElement;
+        if (!target2.isContentEditable) store.copyNodes();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Native copy event — writes clipboard synchronously (reliable on all browsers/OS)
+  useEffect(() => {
+    const handleCopy = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      const { clipboard } = useStore.getState();
+      if (clipboard.length === 0) return;
+      const token = `__bb_${Date.now()}__`;
+      _internalClipboardToken = token;
+      const textLines = clipboard.flatMap((n: any) => {
+        if ((n.type === 'bookmark' || n.type === 'tab') && n.data?.url) return [n.data.url as string];
+        if (n.type === 'note' && n.data?.content) return [n.data.content as string];
+        return [];
+      });
+      e.preventDefault();
+      e.clipboardData!.setData('text/plain', textLines.length > 0 ? `${textLines.join('\n')}\n${token}` : token);
+    };
+    window.addEventListener('copy', handleCopy);
+    return () => window.removeEventListener('copy', handleCopy);
+  }, []);
+
+  // Native cut event — same as copy but also removes the nodes
+  useEffect(() => {
+    const handleCut = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      const store = useStore.getState();
+      if (store.selectedNodes.length === 0) return;
+      store.cutNodes();
+      const { clipboard } = useStore.getState();
+      if (clipboard.length === 0) return;
+      const token = `__bb_${Date.now()}__`;
+      _internalClipboardToken = token;
+      const textLines = clipboard.flatMap((n: any) => {
+        if ((n.type === 'bookmark' || n.type === 'tab') && n.data?.url) return [n.data.url as string];
+        if (n.type === 'note' && n.data?.content) return [n.data.content as string];
+        return [];
+      });
+      e.preventDefault();
+      e.clipboardData!.setData('text/plain', textLines.length > 0 ? `${textLines.join('\n')}\n${token}` : token);
+    };
+    window.addEventListener('cut', handleCut);
+    return () => window.removeEventListener('cut', handleCut);
   }, []);
 
   if (!isMounted) return null;

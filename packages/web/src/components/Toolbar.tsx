@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis, Download, Upload, FolderOpen, FolderDown, ChevronUp } from 'lucide-react';
+import { StickyNote, Plus, Tag, Group, Wand2, Undo2, Redo2, X, Menu, MoreHorizontal, Check, Settings, ExternalLink, LayersPlus, Search, Trash2, CircleEllipsis, Download, Upload, FolderOpen, FolderDown, ChevronUp, Copy } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useStore, RoomData, Dossier } from '@/store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -846,6 +846,7 @@ const Toolbar = () => {
   const switchDossier = useStore((s) => s.switchDossier);
   const addDossier = useStore((s) => s.addDossier);
   const deleteDossier = useStore((s) => s.deleteDossier);
+  const duplicateDossier = useStore((s) => s.duplicateDossier);
   const updateDossierName = useStore((s) => s.updateDossierName);
   const exportDossier = useStore((s) => s.exportDossier);
   const parseDossierFile = useStore((s) => s.parseDossierFile);
@@ -1747,20 +1748,26 @@ const Toolbar = () => {
                     <MoreHorizontal size={12} />
                   </button>
                   {menuOpen && (
-                    <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 26, ...(isLastCol ? { right: 0 } : { left: 0 }), zIndex: 10, background: '#1a1b2e', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', overflow: 'hidden', minWidth: 120 }}>
+                    <div onClick={e => e.stopPropagation()} className="glass-dark" style={{ position: 'absolute', top: 26, ...(isLastCol ? { right: 0 } : { left: 0 }), zIndex: 10, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', overflow: 'hidden', minWidth: 140 }}>
                       {[
-                        { label: 'Open', icon: <FolderOpen size={12} />, action: () => { if (!isActive) { switchDossier(d.id); } setShowDossierModal(false); setDossierMenuId(null); }, disabled: false },
-                        { label: 'Rename', icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { setRenamingDossierId(d.id); setRenameDossierValue(d.name); setDossierMenuId(null); } },
-                        { label: 'Export', icon: <Download size={12} />, action: () => { const activeDossier = dossiers.find((dd: Dossier) => dd.id === currentDossierId); setExportNameValue(activeDossier?.name || 'Default'); setShowExportModal(true); setDossierMenuId(null); } },
-                        { label: 'Delete', icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>, action: () => { setDeleteDossierConfirm({ id: d.id, name: d.name }); setDossierMenuId(null); }, danger: true, disabled: dossiers.length <= 1 },
-                      ].map(item => (
-                        <button key={item.label} onClick={item.action} disabled={item.disabled}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'transparent', border: 'none', color: item.danger ? '#ff6b6b' : 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: 500, cursor: item.disabled ? 'default' : 'pointer', opacity: item.disabled ? 0.3 : 1, textAlign: 'left' }}
-                          onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(255,60,60,0.1)' : 'rgba(255,255,255,0.06)'; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
-                          {item.icon}{item.label}
-                        </button>
-                      ))}
+                        { label: 'Open', icon: <FolderOpen size={13} />, action: () => { if (!isActive) { switchDossier(d.id); } setShowDossierModal(false); setDossierMenuId(null); }, disabled: false },
+                        { label: 'Rename', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { setRenamingDossierId(d.id); setRenameDossierValue(d.name); setDossierMenuId(null); } },
+                        { label: 'Duplicate', icon: <Copy size={13} />, action: () => { duplicateDossier(d.id); setDossierMenuId(null); } },
+                        { label: 'Export', icon: <Download size={13} />, action: () => { const activeDossier = dossiers.find((dd: Dossier) => dd.id === currentDossierId); setExportNameValue(activeDossier?.name || 'Default'); setShowExportModal(true); setDossierMenuId(null); } },
+                        { divider: true },
+                        { label: 'Delete', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>, action: () => { setDeleteDossierConfirm({ id: d.id, name: d.name }); setDossierMenuId(null); }, danger: true, disabled: dossiers.length <= 1 },
+                      ].map((item, i) => {
+                        if ('divider' in item) return <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '2px 0' }} />;
+                        return (
+                          <button key={item.label} onClick={item.action} disabled={item.disabled}
+                            className={item.danger ? 'text-red-400' : 'text-white/80'}
+                            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'transparent', border: 'none', fontSize: 13, cursor: item.disabled ? 'default' : 'pointer', opacity: item.disabled ? 0.3 : 1, textAlign: 'left', transition: 'background 0.15s' }}
+                            onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.08)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
+                            {item.icon}{item.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
