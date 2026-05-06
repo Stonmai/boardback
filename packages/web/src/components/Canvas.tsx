@@ -35,9 +35,9 @@ const nodeTypes = {
   group: GroupNode,
 };
 
-// Unique token written to the system clipboard on every internal copy/cut.
-// If the pasted text contains this token it came from within the app.
+// Set on every internal copy/cut; compared against paste to detect internal origin.
 let _internalClipboardToken = '';
+let _internalClipboardText = '';
 
 // Module-level ref so onPaneContextMenu (outside ReactFlow context) can convert coords.
 let _screenToFlowPosition: ((pos: { x: number; y: number }) => { x: number; y: number }) | null = null;
@@ -155,8 +155,8 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
 
       const plainText = event.clipboardData?.getData('text/plain')?.trim() || '';
 
-      // Text contains our internal token → paste nodes (covers groups, notes, bookmarks, connectors)
-      if (_internalClipboardToken && plainText.includes(_internalClipboardToken)) {
+      // Clipboard text matches what we wrote internally → paste nodes
+      if (_internalClipboardToken && plainText === _internalClipboardText) {
         const store = useStore.getState();
         if (store.clipboard.length > 0) {
           const vp = getViewportRef.current();
@@ -663,15 +663,15 @@ const Canvas = () => {
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
       const { clipboard } = useStore.getState();
       if (clipboard.length === 0) return;
-      const token = `__bb_${Date.now()}__`;
-      _internalClipboardToken = token;
+      _internalClipboardToken = `__bb_${Date.now()}__`;
       const textLines = clipboard.flatMap((n: any) => {
         if ((n.type === 'bookmark' || n.type === 'tab') && n.data?.url) return [n.data.url as string];
         if (n.type === 'note' && n.data?.content) return [n.data.content as string];
         return [];
       });
+      _internalClipboardText = textLines.join('\n');
       e.preventDefault();
-      e.clipboardData!.setData('text/plain', textLines.length > 0 ? `${textLines.join('\n')}\n${token}` : token);
+      e.clipboardData!.setData('text/plain', _internalClipboardText);
     };
     window.addEventListener('copy', handleCopy);
     return () => window.removeEventListener('copy', handleCopy);
@@ -687,15 +687,15 @@ const Canvas = () => {
       store.cutNodes();
       const { clipboard } = useStore.getState();
       if (clipboard.length === 0) return;
-      const token = `__bb_${Date.now()}__`;
-      _internalClipboardToken = token;
+      _internalClipboardToken = `__bb_${Date.now()}__`;
       const textLines = clipboard.flatMap((n: any) => {
         if ((n.type === 'bookmark' || n.type === 'tab') && n.data?.url) return [n.data.url as string];
         if (n.type === 'note' && n.data?.content) return [n.data.content as string];
         return [];
       });
+      _internalClipboardText = textLines.join('\n');
       e.preventDefault();
-      e.clipboardData!.setData('text/plain', textLines.length > 0 ? `${textLines.join('\n')}\n${token}` : token);
+      e.clipboardData!.setData('text/plain', _internalClipboardText);
     };
     window.addEventListener('cut', handleCut);
     return () => window.removeEventListener('cut', handleCut);
