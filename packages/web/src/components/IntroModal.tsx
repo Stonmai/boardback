@@ -335,7 +335,7 @@ const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks, newT
         onClick={extInstalled ? onNewTabToggle : undefined}
       >
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Open BoardBack on new tab</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Set as default new tab</div>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>
             {extInstalled ? 'Replace new tab page with your workspace' : 'Requires the BoardBack extension'}
           </div>

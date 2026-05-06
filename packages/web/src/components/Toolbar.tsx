@@ -1587,7 +1587,7 @@ const Toolbar = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Open BoardBack on new tab</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Set as default new tab</div>
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
               {extensionInstalled ? 'Replace new tab page with your board' : 'Requires the BoardBack extension'}
             </div>

@@ -34,7 +34,7 @@ const Options = () => {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#fff' }}>Open BoardBack on new tab</p>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#fff' }}>Set as default new tab</p>
           <p style={{ margin: '3px 0 0', fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Replace the new tab page with your workspace</p>
         </div>
         <button
