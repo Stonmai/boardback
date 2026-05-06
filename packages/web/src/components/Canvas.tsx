@@ -35,10 +35,9 @@ const nodeTypes = {
   group: GroupNode,
 };
 
-// Tracks the last text we wrote to the system clipboard from within the app.
-// If the pasted text matches this, it came from an internal copy/cut and we
-// should paste nodes rather than creating a new node from the text.
-let _internalClipboardText = '';
+// Unique token written to the system clipboard on every internal copy/cut.
+// If the pasted text contains this token it came from within the app.
+let _internalClipboardToken = '';
 
 // Module-level ref so onPaneContextMenu (outside ReactFlow context) can convert coords.
 let _screenToFlowPosition: ((pos: { x: number; y: number }) => { x: number; y: number }) | null = null;
@@ -156,8 +155,8 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
 
       const plainText = event.clipboardData?.getData('text/plain')?.trim() || '';
 
-      // No text, or text matches what we internally copied → paste nodes
-      if (!plainText || plainText === _internalClipboardText) {
+      // Text contains our internal token → paste nodes (covers groups, notes, bookmarks, connectors)
+      if (_internalClipboardToken && plainText.includes(_internalClipboardToken)) {
         const store = useStore.getState();
         if (store.clipboard.length > 0) {
           const vp = getViewportRef.current();
@@ -656,17 +655,17 @@ const Canvas = () => {
           store.copyNodes();
         }
         if (picked.length > 0) {
-          // Build a text representation for the system clipboard
-          const lines = picked
+          const token = `__bb_${Date.now()}__`;
+          _internalClipboardToken = token;
+          const urlLines = picked
             .map(n => {
               if ((n.type === 'bookmark' || n.type === 'tab') && n.data.url) return n.data.url as string;
-              if (n.type === 'note' && n.data.content) return n.data.content as string;
               return null;
             })
             .filter(Boolean) as string[];
-          const text = lines.join('\n');
-          _internalClipboardText = text;
-          navigator.clipboard.writeText(text).catch(() => {});
+          // Write URLs (for cross-app paste) + token (for internal detection)
+          const systemText = urlLines.length > 0 ? `${urlLines.join('\n')}\n${token}` : token;
+          navigator.clipboard.writeText(systemText).catch(() => {});
         }
       }
     };
