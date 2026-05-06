@@ -89,6 +89,7 @@ interface WhiteboardState {
   contextMenuNodeId: string | null;
   paneContextMenu: { x: number; y: number; canvasPos: { x: number; y: number } } | null;
   clipboard: Node<WhiteboardNode['data']>[];
+  clipboardEdges: Edge[];
   _past: HistoryEntry[];
   _future: HistoryEntry[];
   rooms: RoomData[];
@@ -175,6 +176,7 @@ export const useStore = create<WhiteboardState>()(
   contextMenuNodeId: null,
   paneContextMenu: null,
   clipboard: [] as Node<WhiteboardNode['data']>[],
+  clipboardEdges: [] as Edge[],
   _past: [] as HistoryEntry[],
   _future: [] as HistoryEntry[],
   hasSeenIntro: false,
@@ -198,7 +200,7 @@ export const useStore = create<WhiteboardState>()(
   _getParentId: (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode,
 
   copyNodes: () => {
-    const { nodes, selectedNodes, _getParentId } = get();
+    const { nodes, edges, selectedNodes, _getParentId } = get();
     const selected = nodes.filter((n: Node) => selectedNodes.includes(n.id));
     // Also include children of any selected groups
     const selectedGroupIds = new Set(selected.filter((n: Node) => n.type === 'group').map((n: Node) => n.id));
@@ -206,7 +208,10 @@ export const useStore = create<WhiteboardState>()(
       ? nodes.filter((n: Node) => { const pid = _getParentId(n); return pid && selectedGroupIds.has(pid) && !selectedNodes.includes(n.id); })
       : [];
     const copied = [...selected, ...children];
-    if (copied.length > 0) set({ clipboard: copied });
+    if (copied.length === 0) return;
+    const copiedIds = new Set(copied.map((n: Node) => n.id));
+    const copiedEdges = edges.filter((e: Edge) => copiedIds.has(e.source) && copiedIds.has(e.target));
+    set({ clipboard: copied, clipboardEdges: copiedEdges });
   },
 
   cutNodes: () => {
@@ -219,8 +224,10 @@ export const useStore = create<WhiteboardState>()(
     const cut = [...selected, ...children];
     if (cut.length === 0) return;
     const cutIds = new Set(cut.map((n: Node) => n.id));
+    const cutEdges = edges.filter((e: Edge) => cutIds.has(e.source) && cutIds.has(e.target));
     set({
       clipboard: cut,
+      clipboardEdges: cutEdges,
       nodes: nodes.filter((n: Node) => !cutIds.has(n.id)),
       edges: edges.filter((e: Edge) => !cutIds.has(e.source) && !cutIds.has(e.target)),
       selectedNodes: [],
@@ -230,13 +237,16 @@ export const useStore = create<WhiteboardState>()(
   },
 
   copyNodeById: (id: string) => {
-    const { nodes, _getParentId } = get();
+    const { nodes, edges, _getParentId } = get();
     const node = nodes.find((n: Node) => n.id === id);
     if (!node) return;
     const children = node.type === 'group'
       ? nodes.filter((n: Node) => _getParentId(n) === id)
       : [];
-    set({ clipboard: [node, ...children] });
+    const copied = [node, ...children];
+    const copiedIds = new Set(copied.map((n: Node) => n.id));
+    const copiedEdges = edges.filter((e: Edge) => copiedIds.has(e.source) && copiedIds.has(e.target));
+    set({ clipboard: copied, clipboardEdges: copiedEdges });
   },
 
   cutNodeById: (id: string) => {
@@ -248,8 +258,10 @@ export const useStore = create<WhiteboardState>()(
       : [];
     const cut = [node, ...children];
     const cutIds = new Set(cut.map((n: Node) => n.id));
+    const cutEdges = edges.filter((e: Edge) => cutIds.has(e.source) && cutIds.has(e.target));
     set({
       clipboard: cut,
+      clipboardEdges: cutEdges,
       nodes: nodes.filter((n: Node) => !cutIds.has(n.id)),
       edges: edges.filter((e: Edge) => !cutIds.has(e.source) && !cutIds.has(e.target)),
       selectedNodes: [],
@@ -259,7 +271,7 @@ export const useStore = create<WhiteboardState>()(
   },
 
   pasteNodes: (center?: { x: number; y: number }) => {
-    const { clipboard, nodes, edges, _past, _getParentId } = get();
+    const { clipboard, clipboardEdges, nodes, edges, _past, _getParentId } = get();
     if (clipboard.length === 0) return;
     const idMap = new Map<string, string>();
     // First pass: generate all new IDs
@@ -294,8 +306,16 @@ export const useStore = create<WhiteboardState>()(
         position: isChild ? n.position : { x: n.position.x + dx, y: n.position.y + dy },
       };
     });
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const pastedEdges = clipboardEdges.map((e: Edge) => ({
+      ...e,
+      id: `${e.id}-copy-${suffix}`,
+      source: idMap.get(e.source) || e.source,
+      target: idMap.get(e.target) || e.target,
+    }));
     set({
       nodes: [...nodes.map((n: Node) => ({ ...n, selected: false })), ...pasted],
+      edges: [...edges, ...pastedEdges],
       selectedNodes: pasted.map((n: Node) => n.id),
       _past: [..._past.slice(-49), { nodes, edges }],
       _future: [],
@@ -785,14 +805,19 @@ export const useStore = create<WhiteboardState>()(
     const childNodes = allNodes.filter((n: Node) => { const pid = getPid(n); return pid && existingGroupIds.has(pid); });
 
     // Top-level (ungrouped) nodes only
+    const allEdges = get().edges;
+    const connectedNodeIds = new Set<string>();
+    allEdges.forEach((e: Edge) => { connectedNodeIds.add(e.source); connectedNodeIds.add(e.target); });
+
     const topBookmarks = allNodes.filter(
       (n: Node) => (n.type === 'bookmark' || n.type === 'tab') && !getPid(n)
     );
     const topNotes = allNodes.filter((n: Node) => n.type === 'note' && !getPid(n));
 
-    // Group ungrouped bookmarks by domain
+    // Group ungrouped bookmarks by domain — skip nodes that have edges (they keep their position)
     const domainMap = new Map<string, Node[]>();
     topBookmarks.forEach((n: Node<WhiteboardNode['data']>) => {
+      if (connectedNodeIds.has(n.id)) return;
       const domain = extractDomain(n.data.url);
       if (domain) {
         if (!domainMap.has(domain)) domainMap.set(domain, []);
@@ -842,7 +867,6 @@ export const useStore = create<WhiteboardState>()(
     ];
 
     // Cluster remaining nodes by edge connectivity (union-find)
-    const allEdges = get().edges;
     const remainingIds = new Set(remainingNodes.map(n => n.id));
     const parent = new Map<string, string>();
     const find = (id: string): string => {

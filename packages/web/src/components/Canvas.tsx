@@ -152,10 +152,12 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
       const target = event.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
 
-      const text = event.clipboardData?.getData('text')?.trim();
+      const isUrl = (s: string) => /^https?:\/\/[^\s]+$/.test(s.trim());
+
+      const plainText = event.clipboardData?.getData('text/plain')?.trim() || '';
 
       // No text, or text matches what we internally copied → paste nodes
-      if (!text || text === _internalClipboardText) {
+      if (!plainText || plainText === _internalClipboardText) {
         const store = useStore.getState();
         if (store.clipboard.length > 0) {
           const vp = getViewportRef.current();
@@ -168,44 +170,99 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
         return;
       }
 
-      const isUrl = /^(https?:\/\/[^\s]+)$/.test(text);
-
       const vp = getViewportRef.current();
-      const position = {
-        x: (window.innerWidth * 0.5 - vp.x) / vp.zoom + (Math.random() - 0.5) * 80,
-        y: (window.innerHeight * 0.5 - vp.y) / vp.zoom + (Math.random() - 0.5) * 80,
-      };
+      const centerX = (window.innerWidth * 0.5 - vp.x) / vp.zoom;
+      const centerY = (window.innerHeight * 0.5 - vp.y) / vp.zoom;
 
-      if (isUrl) {
+      // Build { url, title } entries from plain text first
+      const entries: { url: string; title: string }[] = [];
+      const plainLines = plainText.split('\n').map(l => l.trim()).filter(Boolean);
+      let pendingTitle = '';
+      for (const line of plainLines) {
+        if (isUrl(line)) {
+          let fallback = line;
+          try { fallback = new URL(line).hostname.replace('www.', ''); } catch (e) {}
+          entries.push({ url: line, title: pendingTitle || fallback });
+          pendingTitle = '';
+        } else {
+          pendingTitle = line.length > 80 ? line.slice(0, 80) + '…' : line;
+        }
+      }
+
+      // If plain text had no URLs, try extracting from HTML clipboard (browser-copied links)
+      if (entries.length === 0) {
+        const html = event.clipboardData?.getData('text/html') || '';
+        if (html) {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          doc.querySelectorAll('a[href]').forEach(a => {
+            const href = (a as HTMLAnchorElement).href;
+            const title = a.textContent?.trim() || '';
+            if (isUrl(href)) {
+              let fallback = href;
+              try { fallback = new URL(href).hostname.replace('www.', ''); } catch (e) {}
+              entries.push({ url: href, title: title || fallback });
+            }
+          });
+        }
+      }
+
+      const text = plainText;
+      const lines = plainLines;
+
+      if (entries.length >= 2) {
+        // Multiple URLs — create one bookmark per URL in a grid layout
+        const COLS = Math.ceil(Math.sqrt(entries.length));
+        const NODE_W = 300, NODE_H = 200, GAP = 32;
+        const gridW = COLS * (NODE_W + GAP) - GAP;
+        const startX = centerX - gridW / 2;
+        const startY = centerY - Math.ceil(entries.length / COLS) * (NODE_H + GAP) / 2;
+
+        entries.forEach(({ url, title }, i) => {
+          const col = i % COLS;
+          const row = Math.floor(i / COLS);
+          const position = {
+            x: startX + col * (NODE_W + GAP),
+            y: startY + row * (NODE_H + GAP),
+          };
+          const nodeId = uuidv4();
+          addNode({
+            id: nodeId,
+            type: 'bookmark',
+            position,
+            width: NODE_W,
+            data: { title, url, tags: ['pasted url'] },
+            createdAt: new Date().toISOString(),
+          });
+          fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata); });
+        });
+      } else if (entries.length === 1) {
+        // Single URL
+        const { url, title } = entries[0];
         const nodeId = uuidv4();
-        let displayTitle = text;
-        try { displayTitle = new URL(text).hostname.replace('www.', ''); } catch (e) {}
-
         addNode({
           id: nodeId,
           type: 'bookmark',
-          position,
+          position: { x: centerX + (Math.random() - 0.5) * 80, y: centerY + (Math.random() - 0.5) * 80 },
           width: 300,
-          data: { title: displayTitle, url: text, tags: ['pasted url'] },
+          data: { title, url, tags: ['pasted url'] },
           createdAt: new Date().toISOString(),
         });
-
-        fetchMetadata(text).then(metadata => { updateNode(nodeId, metadata); });
+        fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata); });
       } else {
-        const firstLine = text.split('\n').find(l => l.trim()) || 'New Note 🔖';
+        // No URLs — paste as a note
+        const firstLine = lines[0] || 'New Note 🔖';
         const title = firstLine.length > 60 ? firstLine.slice(0, 60) + '…' : firstLine;
-        const content = text;
         const noteLines = text.split('\n');
-        const estimatedHeight = 40 + 46 + noteLines.length * 36; // padding + title (30px font) + lines (22px * 1.625)
+        const estimatedHeight = 40 + 46 + noteLines.length * 36;
         const noteWidth = Math.min(700, Math.max(360, Math.round(estimatedHeight * 1.6)));
         const noteHeight = Math.min(1000, Math.max(240, estimatedHeight));
         addNode({
           id: uuidv4(),
           type: 'note',
-          position,
+          position: { x: centerX + (Math.random() - 0.5) * 80, y: centerY + (Math.random() - 0.5) * 80 },
           width: noteWidth,
           height: noteHeight,
-          data: { title, content, tags: ['pasted note'] },
+          data: { title, content: text, tags: ['pasted note'] },
           createdAt: new Date().toISOString(),
         });
       }
