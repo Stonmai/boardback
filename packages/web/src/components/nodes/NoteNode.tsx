@@ -19,60 +19,60 @@ const COLORS: Record<
   }
 > = {
   purple: {
-    gradient: 'linear-gradient(135deg, #c084fc 0%, #a855f7 55%, #6d28d9 100%)',
-    glow: '0 0 0 2px rgba(168,85,247,0.5), 0 0 30px rgba(168,85,247,0.4)',
-    ring: 'rgba(168,85,247,0.7)',
-    text: '#1a0800',
+    gradient: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 60%, #d8b4fe 100%)',
+    glow: '0 0 0 2px rgba(168,85,247,0.4), 0 0 30px rgba(168,85,247,0.25)',
+    ring: 'rgba(168,85,247,0.6)',
+    text: '#2e1065',
     swatch: '#a855f7',
   },
   teal: {
-    gradient: 'linear-gradient(135deg, #a5f3fc 0%, #22d3ee 75%, #0d9488 100%)',
-    glow: '0 0 0 2px rgba(34,211,238,0.5), 0 0 30px rgba(34,211,238,0.4)',
-    ring: 'rgba(34,211,238,0.7)',
-    text: '#0a0b16',
-    swatch: '#22d3ee',
+    gradient: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 60%, #99f6e4 100%)',
+    glow: '0 0 0 2px rgba(20,184,166,0.4), 0 0 30px rgba(20,184,166,0.25)',
+    ring: 'rgba(20,184,166,0.6)',
+    text: '#042f2e',
+    swatch: '#14b8a6',
   },
   yellow: {
-    gradient: 'linear-gradient(135deg, #fff8a2 0%, #f9d566 75%, #ecd32e 100%)',
-    glow: '0 0 0 2px rgba(249,215,100,0.5), 0 0 30px rgba(249,215,100,0.4)',
-    ring: 'rgba(249,215,100,0.7)',
-    text: '#1a0800',
-    swatch: '#ecd32e',
+    gradient: 'linear-gradient(135deg, #fefce8 0%, #fef9c3 60%, #fef08a 100%)',
+    glow: '0 0 0 2px rgba(234,179,8,0.4), 0 0 30px rgba(234,179,8,0.25)',
+    ring: 'rgba(234,179,8,0.6)',
+    text: '#422006',
+    swatch: '#eab308',
   },
   pink: {
-    gradient: 'linear-gradient(135deg, #fda4af 0%, #f472b6 75%, #ec4899 100%)',
-    glow: '0 0 0 2px rgba(244,114,182,0.5), 0 0 30px rgba(244,114,182,0.4)',
-    ring: 'rgba(244,114,182,0.7)',
-    text: '#1a0800',
-    swatch: '#f472b6',
+    gradient: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 60%, #fbcfe8 100%)',
+    glow: '0 0 0 2px rgba(236,72,153,0.4), 0 0 30px rgba(236,72,153,0.25)',
+    ring: 'rgba(236,72,153,0.6)',
+    text: '#500724',
+    swatch: '#ec4899',
   },
   blue: {
-    gradient: 'linear-gradient(135deg, #a5b4fc 0%, #60a5fa 75%, #2563eb 100%)',
-    glow: '0 0 0 2px rgba(96,165,250,0.5), 0 0 30px rgba(96,165,250,0.4)',
-    ring: 'rgba(96,165,250,0.7)',
-    text: '#1a0800',
-    swatch: '#60a5fa',
+    gradient: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 60%, #bfdbfe 100%)',
+    glow: '0 0 0 2px rgba(59,130,246,0.4), 0 0 30px rgba(59,130,246,0.25)',
+    ring: 'rgba(59,130,246,0.6)',
+    text: '#1e3a5f',
+    swatch: '#3b82f6',
   },
   lime: {
-    gradient: 'linear-gradient(135deg, #d9f99d 0%, #a3e635 75%, #65a30d 100%)',
-    glow: '0 0 0 2px rgba(163,230,53,0.5), 0 0 30px rgba(163,230,53,0.4)',
-    ring: 'rgba(163,230,53,0.7)',
-    text: '#0c1a00',
-    swatch: '#a3e635',
+    gradient: 'linear-gradient(135deg, #f7fee7 0%, #ecfccb 60%, #d9f99d 100%)',
+    glow: '0 0 0 2px rgba(132,204,22,0.4), 0 0 30px rgba(132,204,22,0.25)',
+    ring: 'rgba(132,204,22,0.6)',
+    text: '#1a2e05',
+    swatch: '#84cc16',
   },
   orange: {
-    gradient: 'linear-gradient(135deg, #fde68a 0%, #fb923c 75%, #f97316 100%)',
-    glow: '0 0 0 2px rgba(249,115,22,0.5), 0 0 30px rgba(249,115,22,0.4)',
-    ring: 'rgba(249,115,22,0.7)',
-    text: '#1a0800',
+    gradient: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 60%, #fed7aa 100%)',
+    glow: '0 0 0 2px rgba(249,115,22,0.4), 0 0 30px rgba(249,115,22,0.25)',
+    ring: 'rgba(249,115,22,0.6)',
+    text: '#431407',
     swatch: '#f97316',
   },
   slate: {
-    gradient: 'linear-gradient(135deg, #878ba3 0%, #656588 60%, #494e69 100%)',
-    glow: '0 0 0 2px rgba(148,163,184,0.3), 0 0 20px rgba(148,163,184,0.2)',
-    ring: 'rgba(148,163,184,0.5)',
-    text: '#ffffff',
-    swatch: '#3e3f5f',
+    gradient: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%)',
+    glow: '0 0 0 2px rgba(100,116,139,0.4), 0 0 20px rgba(100,116,139,0.2)',
+    ring: 'rgba(100,116,139,0.5)',
+    text: '#1e293b',
+    swatch: '#64748b',
   },
 };
 
@@ -92,7 +92,6 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
 
   const updateNode = useStore((s) => s.updateNode);
   const deleteNode = useStore((s) => s.deleteNode);
-  const nodes = useStore((s) => s.nodes);
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
   const copyNodeById = useStore((s) => s.copyNodeById);
@@ -104,26 +103,6 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const contextMenu = contextMenuNodeId === id && contextMenuPos;
   const closeContextMenu = () => { setContextMenuNodeId(null); setPaneContextMenu(null); };
 
-  const toolbarOnTop = React.useMemo(() => {
-    const self = nodes.find(n => n.id === id);
-    if (!self) return false;
-    const myX = self.position.x;
-    const myY = self.position.y;
-    const myW = self.width ?? 360;
-    const myH = self.height ?? 280;
-    const tbX1 = myX + myW / 2 - 120;
-    const tbX2 = myX + myW / 2 + 120;
-    const tbY1 = myY + myH;
-    const tbY2 = tbY1 + 56;
-    return nodes.some(n => {
-      if (n.id === id || (n as any).parentId || (n as any).parentNode) return false;
-      const nx = n.position.x;
-      const ny = n.position.y;
-      const nw = n.width ?? 180;
-      const nh = n.height ?? 120;
-      return nx < tbX2 && nx + nw > tbX1 && ny < tbY2 && ny + nh > tbY1;
-    });
-  }, [id, nodes]);
 
   const enterEditing = useCallback(() => {
     if (nodeRef.current) {
@@ -173,6 +152,18 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [isEditing, handleSave]);
+
+  React.useEffect(() => {
+    if (!showTagInput && !showColorPicker) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (nodeRef.current && !nodeRef.current.contains(e.target as unknown as globalThis.Node)) {
+        setShowTagInput(false);
+        setShowColorPicker(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [showTagInput, showColorPicker]);
 
   const handleColorChange = (color: string) => {
     updateNode(id, { color });
@@ -297,14 +288,10 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
         {/* Floating action bar */}
         <div
           className={cn(
-            toolbarOnTop
-              ? 'nodrag absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50'
-              : 'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
+            'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 glass p-1.5 rounded-2xl shadow-xl transition-all duration-200 z-50',
             isEditing || selected
               ? 'opacity-100 translate-y-0'
-              : toolbarOnTop
-                ? 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
-                : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
+              : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0'
           )}
           onPointerDown={e => e.stopPropagation()}
           onClick={e => e.stopPropagation()}

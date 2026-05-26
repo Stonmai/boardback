@@ -17,17 +17,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
   const copyNodeById = useStore(s => s.copyNodeById);
   const cutNodeById = useStore(s => s.cutNodeById);
   const isDropTarget = !!(data as any).__dropTarget;
-  const nodes = useStore(s => s.nodes);
   const getParentId = (n: any) => n.parentId || n.parentNode;
-
-  const thisNode = nodes.find(n => n.id === id);
-  const nodeHeight = thisNode?.height ?? 150;
-  const toolbarOnTop = React.useMemo(() => {
-    return nodes.some(n => {
-      if (getParentId(n) !== id) return false;
-      return n.position.y + (n.height ?? 120) > nodeHeight + 150;
-    });
-  }, [id, nodes, nodeHeight]);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -103,7 +93,18 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [isEditingName, handleSaveName]);
-  
+
+  React.useEffect(() => {
+    if (!showTagInput) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (nodeRef.current && !nodeRef.current.contains(e.target as unknown as globalThis.Node)) {
+        setShowTagInput(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [showTagInput]);
+
   const handleOpenAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     const children = nodes.filter(n => getParentId(n) === id);
@@ -232,14 +233,10 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
       {/* Floating action bar */}
       <div
         className={cn(
-          toolbarOnTop
-            ? 'nodrag absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200'
-            : 'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200',
+          'nodrag absolute -bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1 glass p-1 rounded-xl shadow-xl transition-all duration-200',
           selected
             ? 'opacity-100 translate-y-0 z-9999'
-            : toolbarOnTop
-              ? 'opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
-              : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
+            : 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 z-50'
         )}
         onPointerDown={e => e.stopPropagation()}
         onClick={e => e.stopPropagation()}

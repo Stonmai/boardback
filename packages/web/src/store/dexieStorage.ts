@@ -16,6 +16,7 @@ class BoardBackDB extends Dexie {
 
 let _db: BoardBackDB | null = null;
 let _hydrated = false;
+let _writeTimer: ReturnType<typeof setTimeout> | null = null;
 
 const getDB = (): BoardBackDB => {
   if (!_db) _db = new BoardBackDB();
@@ -27,11 +28,14 @@ export const dexieStorage = {
     const entry = await getDB().kv.get(name);
     return entry?.value ?? null;
   },
-  setItem: async (name: string, value: string): Promise<void> => {
-    // Block writes until hydration is complete — prevents empty initial state
-    // from overwriting real data before Dexie's async getItem resolves.
-    if (!_hydrated) return;
-    await getDB().kv.put({ key: name, value });
+  setItem: (name: string, value: string): Promise<void> => {
+    if (!_hydrated) return Promise.resolve();
+    if (_writeTimer) clearTimeout(_writeTimer);
+    return new Promise(resolve => {
+      _writeTimer = setTimeout(() => {
+        getDB().kv.put({ key: name, value }).then(resolve).catch(resolve);
+      }, 400);
+    });
   },
   removeItem: async (name: string): Promise<void> => {
     await getDB().kv.delete(name);
