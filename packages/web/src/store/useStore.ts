@@ -304,6 +304,7 @@ export const useStore = create<WhiteboardState>()(
         selected: true,
         parentId: newParent,
         position: isChild ? n.position : { x: n.position.x + dx, y: n.position.y + dy },
+        data: n.type === 'note' ? { ...n.data, title: '' } : n.data,
       };
     });
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;

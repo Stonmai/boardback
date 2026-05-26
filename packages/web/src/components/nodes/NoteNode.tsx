@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useRef, useCallback } from 'react';
 import { Handle, Position, NodeProps, NodeResizer, Node, useReactFlow } from '@xyflow/react';
-import { Trash2, Check, X, Palette, Pencil, Tag, Copy, Scissors } from 'lucide-react';
+import { Trash2, X, Palette, Pencil, Tag, Copy, Scissors } from 'lucide-react';
 import { WhiteboardNode } from '@whiteboard/shared/types';
 import { cn } from '@/utils/cn';
 import { useStore } from '@/store/useStore';
@@ -81,7 +81,6 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const getRect = useCallback(() => nodeRef.current?.getBoundingClientRect() ?? null, []);
   const [isEditing, setIsEditing] = useState(false);
-  const [focusedField, setFocusedField] = useState<'title' | 'content' | null>(null);
   const { updateNode: rfUpdateNode } = useReactFlow();
   const [contextMenuPos, setContextMenuPos] = useState<boolean>(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -90,7 +89,6 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const [content, setContent] = useState(
     Array.isArray(data.content) ? (data.content as string[]).join('\n') : (data.content || '')
   );
-  const [title, setTitle] = useState(data.title || '');
 
   const updateNode = useStore((s) => s.updateNode);
   const deleteNode = useStore((s) => s.deleteNode);
@@ -156,15 +154,14 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const style = COLORS[currentColor] ?? COLORS.purple;
 
   const handleSave = useCallback(() => {
-    updateNode(id, { content, title });
+    updateNode(id, { content, title: '' });
     setIsEditing(false);
-  }, [id, content, title, updateNode]);
+  }, [id, content, updateNode]);
 
   const handleCancel = useCallback(() => {
     setContent(Array.isArray(data.content) ? (data.content as string[]).join('\n') : (data.content || ''));
-    setTitle(data.title || '');
     setIsEditing(false);
-  }, [data.content, data.title]);
+  }, [data.content]);
 
   React.useEffect(() => {
     if (!isEditing) return;
@@ -228,25 +225,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
       <div className="h-full p-3 rounded-[14px] flex flex-col" style={{ color: style.text, overflow: 'hidden' }}>
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           {isEditing ? (
-            <div className="nodrag flex flex-col flex-1 min-h-0 gap-2">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
-                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
-                }}
-                placeholder="Title"
-                className="w-full rounded-lg px-2.5 py-1.5 text-[18px] font-bold outline-none flex-shrink-0"
-                style={{
-                  background: 'rgba(0,0,0,0.15)',
-                  color: style.text,
-                  border: focusedField === 'title' ? '1.5px solid rgba(255,255,255,0.7)' : '1.5px solid rgba(255,255,255,0.25)',
-                }}
-                onFocus={() => setFocusedField('title')}
-                onBlur={() => setFocusedField(null)}
-              />
+            <div className="nodrag flex flex-col flex-1 min-h-0">
               <textarea
                 ref={contentRef}
                 value={content}
@@ -256,48 +235,25 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Start typing..."
-                className="w-full rounded-lg px-2.5 py-1.5 text-[18px] outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
+                className="w-full text-[18px] outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
                 style={{
-                  background: 'rgba(0,0,0,0.15)',
+                  background: 'transparent',
                   color: style.text,
-                  border: focusedField === 'content' ? '1.5px solid rgba(255,255,255,0.7)' : '1.5px solid rgba(255,255,255,0.25)',
+                  border: 'none',
+                  padding: 0,
                 }}
-                onFocus={() => setFocusedField('content')}
-                onBlur={() => setFocusedField(null)}
               />
-              <div className="flex justify-end gap-2 flex-shrink-0">
-                <button
-                  onClick={handleCancel}
-                  className="p-2 rounded-xl transition-colors"
-                  style={{ background: 'rgba(0,0,0,0.2)', color: style.text }}
-                >
-                  <X size={15} />
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="p-2 rounded-xl transition-colors"
-                  style={{ background: 'rgba(0,0,0,0.25)', color: style.text }}
-                >
-                  <Check size={15} />
-                </button>
-              </div>
             </div>
           ) : (
             <div
               className="cursor-text flex-1 min-h-0 wrap-break-word overflow-hidden"
               onDoubleClick={() => enterEditing()}
             >
-              <h3
-                className="font-bold text-[18px] mb-1.5 wrap-break-word leading-tight"
-                style={{ color: style.text, textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-              >
-                {title || 'New Note 🔖'}
-              </h3>
               <p
                 className="text-[18px] whitespace-pre-wrap leading-relaxed wrap-break-word font-medium"
-                style={{ color: style.text, opacity: 0.88 }}
+                style={{ color: style.text, opacity: content ? 0.88 : 0.45 }}
               >
-                {content || 'Click to add content…'}
+                {content || 'Click to write…'}
               </p>
             </div>
           )}

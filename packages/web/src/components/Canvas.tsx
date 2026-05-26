@@ -249,8 +249,6 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
         fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata); });
       } else {
         // No URLs — paste as a note
-        const firstLine = lines[0] || 'New Note 🔖';
-        const title = firstLine.length > 60 ? firstLine.slice(0, 60) + '…' : firstLine;
         const noteLines = text.split('\n');
         const estimatedHeight = 40 + 46 + noteLines.length * 36;
         const noteWidth = Math.min(700, Math.max(360, Math.round(estimatedHeight * 1.6)));
@@ -261,7 +259,7 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
           position: { x: centerX + (Math.random() - 0.5) * 80, y: centerY + (Math.random() - 0.5) * 80 },
           width: noteWidth,
           height: noteHeight,
-          data: { title, content: text, tags: ['pasted note'] },
+          data: { title: '', content: text, tags: ['pasted note'] },
           createdAt: new Date().toISOString(),
         });
       }
