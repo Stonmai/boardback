@@ -118,6 +118,7 @@ interface WhiteboardState {
   createGroup: (group: GroupFrame) => void;
   deleteGroup: (id: string) => void;
   removeGroup: (id: string) => void;
+  ungroupNode: (id: string) => void;
   addTag: (tag: Tag) => void;
   removeTag: (id: string) => void;
   setSelectedNodes: (ids: string[]) => void;
@@ -545,6 +546,31 @@ export const useStore = create<WhiteboardState>()(
             },
           };
         }),
+    });
+  },
+
+  ungroupNode: (id: string) => {
+    const { nodes, edges, _past, _getParentId } = get();
+    const node = nodes.find((n: Node) => n.id === id);
+    if (!node) return;
+    const parentId = _getParentId(node);
+    if (!parentId) return;
+    const parent = nodes.find((n: Node) => n.id === parentId);
+    if (!parent) return;
+    set({
+      _past: [..._past.slice(-49), { nodes, edges }],
+      _future: [],
+      nodes: nodes.map((n: Node) =>
+        n.id !== id ? n : {
+          ...n,
+          parentId: undefined,
+          extent: undefined,
+          position: {
+            x: parent.position.x + n.position.x,
+            y: parent.position.y + n.position.y,
+          },
+        }
+      ),
     });
   },
 

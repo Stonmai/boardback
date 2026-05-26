@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useRef, useCallback } from 'react';
 import { Handle, Position, NodeProps, NodeResizer, Node } from '@xyflow/react';
-import { ExternalLink, Trash2, Palette, Check, X, Pencil, Tag, Copy, Scissors } from 'lucide-react';
+import { ExternalLink, FolderOpen, Palette, Check, X, Pencil, Tag, Copy, Scissors, Trash2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { WhiteboardNode } from '@whiteboard/shared/types';
 import { cn } from '@/utils/cn';
@@ -36,6 +36,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
   const [tempDescription, setTempDescription] = React.useState(data.description || '');
 
   const deleteNode = useStore((s) => s.deleteNode);
+  const ungroupNode = useStore((s) => s.ungroupNode);
   const updateNode = useStore((s) => s.updateNode);
   const editingNodeId = useStore((s) => s.editingNodeId);
   const setEditingNodeId = useStore((s) => s.setEditingNodeId);
@@ -501,10 +502,10 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
           </button>
         )}
         <button
-          className="p-2 hover:bg-red-500/20 rounded-xl text-white hover:text-red-400 transition-colors"
-          onClick={(e) => { e.stopPropagation(); deleteNode(id); }}
+          className="p-2 hover:bg-white/10 rounded-xl text-white transition-colors"
+          onClick={(e) => { e.stopPropagation(); ungroupNode(id); }}
         >
-          <Trash2 size={15} />
+          <FolderOpen size={15} />
         </button>
       </div>
     </div>

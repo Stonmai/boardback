@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import {
   ReactFlow,
   Background,
-  Controls,
   BackgroundVariant,
   Node,
   NodeChange,
@@ -23,6 +22,7 @@ import IntroModal from './IntroModal';
 import CursorEffect from './CursorEffect';
 import NodeContextMenu from './nodes/NodeContextMenu';
 import { Clipboard } from 'lucide-react';
+import { NodeActionBar } from './NodeActionBar';
 
 
 import { v4 as uuidv4 } from 'uuid';
@@ -756,7 +756,6 @@ const Canvas = () => {
           size={1.5}
           color="rgba(255,255,255,0.18)"
         />
-        <Controls position="bottom-left" style={{ marginBottom: 110, marginLeft: 20 }} />
         <Toolbar />
         <PasteHandler addNode={addNode} updateNode={updateNode} />
         <SyncHandler addNode={addNode} updateNode={updateNode} />
@@ -765,6 +764,8 @@ const Canvas = () => {
         <RoomsSyncer />
         <ScreenToFlowBridge />
       </ReactFlow>
+
+      <NodeActionBar />
 
       {paneContextMenu && (
         <PaneContextMenu
