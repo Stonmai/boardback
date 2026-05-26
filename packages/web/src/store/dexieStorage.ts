@@ -31,9 +31,9 @@ export const dexieStorage = {
   setItem: (name: string, value: string): Promise<void> => {
     if (!_hydrated) return Promise.resolve();
     if (_writeTimer) clearTimeout(_writeTimer);
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       _writeTimer = setTimeout(() => {
-        getDB().kv.put({ key: name, value }).then(resolve).catch(resolve);
+        getDB().kv.put({ key: name, value }).then(() => resolve()).catch(() => resolve());
       }, 400);
     });
   },
