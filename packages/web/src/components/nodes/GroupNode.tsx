@@ -107,7 +107,8 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
 
   const handleOpenAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const children = nodes.filter(n => getParentId(n) === id);
+    const allNodes = useStore.getState().nodes;
+    const children = allNodes.filter(n => getParentId(n) === id);
     const bookmarks = children.filter(n => n.type === 'bookmark' || n.type === 'tab');
     
     bookmarks.forEach(bm => {
