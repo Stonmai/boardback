@@ -15,10 +15,11 @@ const NOTE_SWATCHES: Record<string, string> = {
 };
 
 const pillStyle: React.CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.05)',
-  backdropFilter: 'blur(14px)',
-  WebkitBackdropFilter: 'blur(14px)',
+  background: 'rgba(10, 11, 22, 0.72)',
+  backdropFilter: 'blur(28px)',
+  WebkitBackdropFilter: 'blur(28px)',
   border: '1px solid rgba(255,255,255,0.10)',
+  boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
 };
 
 const panelStyle: React.CSSProperties = {
