@@ -353,10 +353,10 @@ const PaneContextMenu = ({ x, y, canvasPos }: { x: number; y: number; canvasPos:
 
 const Canvas = () => {
   const [isMounted, setIsMounted] = React.useState(false);
-  const [isSmallScreen, setIsSmallScreen] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isTouchDevice, setIsTouchDevice] = React.useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
   React.useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const handler = (e: MediaQueryListEvent) => setIsSmallScreen(e.matches);
+    const mq = window.matchMedia('(pointer: coarse)');
+    const handler = (e: MediaQueryListEvent) => setIsTouchDevice(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
@@ -721,13 +721,13 @@ const Canvas = () => {
         snapToGrid={false}
         nodesDraggable={true}
         elevateNodesOnSelect={true}
-        panOnDrag={isSmallScreen ? true : [1, 2]}
+        panOnDrag={isTouchDevice ? true : [1, 2]}
         panActivationKeyCode={["Space", "Meta"]}
         panOnScroll={true}
         zoomOnScroll={false}
         zoomOnDoubleClick={false}
         zoomOnPinch={true}
-        selectionOnDrag={!isSmallScreen}
+        selectionOnDrag={!isTouchDevice}
         selectionKeyCode={null}
         multiSelectionKeyCode={["Meta", "Control"]}
         selectionMode={SelectionMode.Partial}
