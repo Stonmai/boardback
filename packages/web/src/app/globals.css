@@ -43,10 +43,10 @@
   --accent-neutral: #64748b;  /* neutral/grey node accent, visible on light */
 
   /* Cursor trail colors */
-  --cursor-color-1: rgb(88, 28, 235);
-  --cursor-color-2: rgb(147, 51, 234);
-  --cursor-color-3: rgb(99, 120, 255);
-  --cursor-color-4: rgb(210, 200, 255);
+  --cursor-color-1: rgba(88, 28, 235, 1);
+  --cursor-color-2: rgba(147, 51, 234, 1);
+  --cursor-color-3: rgba(99, 120, 255, 1);
+  --cursor-color-4: rgba(210, 200, 255, 1);
 }
 
 /* ── Midnight theme: dark glassmorphism, neon-lime accent ── */
@@ -81,10 +81,10 @@
   --accent-bright: #b0d731;   /* Indigo (swapped with original cursor) */
   --accent-neutral: #d0d6e2;  /* neutral/grey node accent, visible on dark */
 
-  --cursor-color-1: rgb(255, 112, 81);
-  --cursor-color-2: rgb(114, 26, 6);
-  --cursor-color-3: rgb(235, 144, 78);
-  --cursor-color-4: rgb(250, 164, 145);
+  --cursor-color-1: rgba(255, 112, 81, 1);
+  --cursor-color-2: rgba(114, 26, 6, 1);
+  --cursor-color-3: rgba(235, 144, 78, 1);
+  --cursor-color-4: rgba(250, 164, 145, 1);
 }
 
 * {

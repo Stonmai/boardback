@@ -10,6 +10,12 @@ const TRAIL_MS  = 280;
 const MAX_PTS   = 25;
 const SPHERE_MS = 500;
 
+// Per-theme trail/glow palettes (mirrors --cursor-color-* in globals.css)
+const PALETTES = {
+  roadbow:  { c1: 'rgb(88, 28, 235)',  c2: 'rgb(147, 51, 234)', c3: 'rgb(99, 120, 255)', c4: 'rgb(210, 200, 255)' },
+  midnight: { c1: 'rgb(255, 112, 81)', c2: 'rgb(114, 26, 6)',   c3: 'rgb(235, 144, 78)', c4: 'rgb(250, 164, 145)' },
+} as const;
+
 export default function CursorEffect() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const theme = useStore(s => s.theme);
@@ -20,22 +26,23 @@ export default function CursorEffect() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Read colors from CSS variables
-    const style = getComputedStyle(document.documentElement);
-    const colors = {
-      c1: style.getPropertyValue('--cursor-color-1').trim() || 'rgb(88, 28, 235)',
-      c2: style.getPropertyValue('--cursor-color-2').trim() || 'rgb(147, 51, 234)',
-      c3: style.getPropertyValue('--cursor-color-3').trim() || 'rgb(99, 120, 255)',
-      c4: style.getPropertyValue('--cursor-color-4').trim() || 'rgb(210, 200, 255)',
-    };
-
+    const colors = PALETTES[theme] ?? PALETTES.roadbow;
     const toRGBA = (rgb: string, a: number) => rgb.replace('rgb(', 'rgba(').replace(')', `, ${a})`);
 
     const pts: Point[]     = [];
     const spheres: Sphere[] = [];
     let raf = 0;
 
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width  = Math.round(window.innerWidth  * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width  = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      // Setting canvas.width/height resets the context transform to identity,
+      // so re-apply the DPR scale on every resize.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
     resize();
     window.addEventListener('resize', resize);
 
@@ -76,7 +83,7 @@ export default function CursorEffect() {
 
     const drawSphere = (x: number, y: number, alpha: number) => {
       // Outer halo — large, very soft
-      const halo = ctx.createRadialGradient(x, y, 0, x, y, 55);
+      const halo = ctx.createRadialGradient(x, y, 0, x, y, 25);
       halo.addColorStop(0,   toRGBA(colors.c2, 0.28 * alpha));
       halo.addColorStop(0.5, toRGBA(colors.c3, 0.12 * alpha));
       halo.addColorStop(1,   toRGBA(colors.c1, 0));
