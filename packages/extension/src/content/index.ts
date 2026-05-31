@@ -36,6 +36,19 @@ window.addEventListener('BOARDBACK_ROOMS_UPDATE', async (event: any) => {
   }
 });
 
+// Relay theme updates from the web app to extension storage
+window.addEventListener('BOARDBACK_THEME_UPDATE', async (event: any) => {
+  if (contextInvalidated) return;
+  try {
+    const theme = event.detail;
+    await chrome.runtime.sendMessage({ type: 'UPDATE_THEME', theme });
+  } catch (error: any) {
+    if (error?.message?.includes('Extension context invalidated')) {
+      contextInvalidated = true;
+    }
+  }
+});
+
 // Notify the web app that the extension content script is ready.
 // The web app listens for this event to trigger an immediate sync,
 // handling the case where the content script loads after React has already mounted.

@@ -33,6 +33,17 @@ export default function ThemeApplier() {
     try {
       localStorage.setItem('boardback-theme', theme);
     } catch {}
+
+    const syncTheme = () => {
+      window.dispatchEvent(new CustomEvent('BOARDBACK_THEME_UPDATE', { detail: theme }));
+    };
+
+    // Initial push
+    syncTheme();
+
+    // Push again if extension signals it's ready (e.g. after extension reload)
+    window.addEventListener('WHITEBOARD_EXT_READY', syncTheme);
+    return () => window.removeEventListener('WHITEBOARD_EXT_READY', syncTheme);
   }, [theme, hydrated]);
 
   return null;

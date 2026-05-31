@@ -2,9 +2,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
+  /* Midnight theme (default for popup) */
   --bg-deep: #0b0c16;
   --bg-canvas: #0d0e1a;
-  --neon-lime: #c8f135;
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-dim: rgba(255, 255, 255, 0.3);
+  --accent-bright: #c8f135;
+  --accent-soft: rgba(200, 241, 53, 0.15);
+  --accent-border: 2px solid rgba(255, 255, 255, 0.85);
+  --panel-bg: rgba(12, 13, 28, 0.9);
+  --panel-border: 2px solid rgba(255, 255, 255, 0.85);
+  --input-bg: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="roadbow"] {
+  --bg-deep: #faf7ef;
+  --bg-canvas: #fffdf3;
+  --text-primary: #1a1a1a;
+  --text-muted: rgba(0, 0, 0, 0.6);
+  --text-dim: rgba(0, 0, 0, 0.4);
+  --accent-bright: #fee347;
+  --accent-soft: rgba(254, 227, 71, 0.25);
+  --accent-border: 2px solid #000000;
+  --panel-bg: #ffffff;
+  --panel-border: 2px solid #000000;
+  --input-bg: #ffffff;
 }
 
 body {
@@ -12,7 +35,7 @@ body {
   margin: 0;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-canvas);
-  color: #ffffff;
+  color: var(--text-primary);
   overflow-x: hidden;
 }
 

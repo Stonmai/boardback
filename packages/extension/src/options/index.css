@@ -1,0 +1,35 @@
+:root {
+  /* Midnight theme (default) */
+  --bg-deep: #0b0c16;
+  --bg-canvas: #0d0e1a;
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-dim: rgba(255, 255, 255, 0.35);
+  --accent-bright: #c8f135;
+  --surface-bg: rgba(255, 255, 255, 0.05);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --toggle-inactive: rgba(255, 255, 255, 0.15);
+  --toggle-knob-inactive: rgba(255, 255, 255, 0.65);
+  --toggle-knob-active: #0b0c16;
+}
+
+[data-theme="roadbow"] {
+  --bg-deep: #faf7ef;
+  --bg-canvas: #fffdf3;
+  --text-primary: #1a1a1a;
+  --text-muted: rgba(0, 0, 0, 0.4);
+  --text-dim: rgba(0, 0, 0, 0.35);
+  --accent-bright: #fee347;
+  --surface-bg: rgba(0, 0, 0, 0.05);
+  --surface-border: rgba(0, 0, 0, 0.08);
+  --toggle-inactive: rgba(0, 0, 0, 0.15);
+  --toggle-knob-inactive: rgba(0, 0, 0, 0.45);
+  --toggle-knob-active: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+}

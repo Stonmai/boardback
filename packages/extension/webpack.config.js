@@ -72,7 +72,7 @@ module.exports = {
                         return JSON.stringify(manifest, null, 2);
                     },
                 },
-                { from: 'public/icon.png', to: 'icon.png' },
+                { from: 'public/*.png', to: '[name][ext]' },
             ],
         }),
     ],

@@ -21,6 +21,7 @@ const Popup = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [rooms, setRooms] = useState<RoomInfo[]>(DEFAULT_ROOMS);
   const [selectedRoomId, setSelectedRoomId] = useState<string>(DEFAULT_ROOMS[0].id);
+  const [theme, setTheme] = useState<'midnight' | 'roadbow'>('midnight');
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -35,12 +36,34 @@ const Popup = () => {
       }
     });
 
-    chrome.storage.local.get('boardbackRooms', ({ boardbackRooms }) => {
+    chrome.storage.local.get(['boardbackRooms', 'boardbackTheme'], (result) => {
+      const boardbackRooms = result.boardbackRooms;
+      const boardbackTheme = result.boardbackTheme;
+
       if (Array.isArray(boardbackRooms) && boardbackRooms.length > 0) {
         setRooms(boardbackRooms);
         setSelectedRoomId(boardbackRooms[0].id);
       }
+      if (typeof boardbackTheme === 'string') {
+        const t = boardbackTheme as 'midnight' | 'roadbow';
+        setTheme(t);
+        document.body.setAttribute('data-theme', t);
+      }
     });
+
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === 'local' && changes.boardbackTheme) {
+        const nextTheme = changes.boardbackTheme.newValue as 'midnight' | 'roadbow';
+        setTheme(nextTheme);
+        document.body.setAttribute('data-theme', nextTheme);
+      }
+      if (areaName === 'local' && changes.boardbackRooms) {
+        setRooms((changes.boardbackRooms.newValue as RoomInfo[]) || []);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
   const handleCapture = async () => {
@@ -84,23 +107,23 @@ const Popup = () => {
   };
 
   return (
-    <div className="p-4 select-none" style={{ background: '#0d0e1a', color: '#fff' }}>
+    <div className="p-4 select-none">
       {/* Header */}
       <div className="flex items-center gap-2 mb-5">
-        <img src="icon.png" alt="logo" className="w-8 h-8 rounded-lg" />
+        <img src="icon-bg.png" alt="logo" className="w-8 h-8 rounded-lg" />
         <div>
-          <h1 className="text-sm font-bold tracking-tight" style={{ color: '#c8f135' }}>BoardBack</h1>
-          <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>capture to your workspace</p>
+          <h1 className="text-sm font-bold tracking-tight" style={{ color: 'var(--accent-bright)' }}>BoardBack</h1>
+          <p className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>capture to your workspace</p>
         </div>
       </div>
 
       {/* Tab info */}
-      <div className="rounded-xl p-3 mb-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <div className="rounded-xl p-3 mb-4" style={{ background: 'var(--panel-bg)', border: 'var(--panel-border)' }}>
         <div className="flex items-start gap-3">
           {tabInfo.favicon && <img src={tabInfo.favicon} alt="" className="w-4 h-4 mt-0.5 rounded" />}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xs font-semibold truncate leading-tight mb-1" style={{ color: '#fff' }}>{tabInfo.title || 'Loading...'}</h2>
-            <p className="text-[10px] truncate font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{tabInfo.url}</p>
+            <h2 className="text-xs font-semibold truncate leading-tight mb-1" style={{ color: 'var(--text-primary)' }}>{tabInfo.title || 'Loading...'}</h2>
+            <p className="text-[10px] truncate font-mono" style={{ color: 'var(--text-dim)' }}>{tabInfo.url}</p>
           </div>
         </div>
       </div>
@@ -109,7 +132,7 @@ const Popup = () => {
         {/* Workspace selector */}
         {(
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(255,255,255,0.35)' }}>Workspace</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider mb-2 block" style={{ color: 'var(--text-muted)' }}>Workspace</label>
             <div className="flex flex-wrap gap-1.5">
               {rooms.map(room => {
                 const active = selectedRoomId === room.id;
@@ -119,9 +142,9 @@ const Popup = () => {
                     onClick={() => setSelectedRoomId(room.id)}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
                     style={{
-                      background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)',
-                      color: active ? '#c8f135' : 'rgba(255,255,255,0.55)',
-                      border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)',
+                      background: active ? 'var(--accent-soft)' : 'var(--panel-bg)',
+                      color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                      border: active ? 'var(--accent-border)' : 'var(--panel-border)',
                     }}
                   >
                     {room.emoji && <span style={{ fontSize: 13 }}>{room.emoji}</span>}
@@ -135,20 +158,20 @@ const Popup = () => {
 
         {/* Tags */}
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider mb-2 block" style={{ color: 'rgba(255,255,255,0.35)' }}>Tags</label>
+          <label className="text-[10px] font-bold uppercase tracking-wider mb-2 block" style={{ color: 'var(--text-muted)' }}>Tags</label>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {tags.map(t => (
-              <span key={t} className="px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1" style={{ background: 'rgba(200,241,53,0.1)', color: '#c8f135', border: '1px solid rgba(200,241,53,0.2)' }}>
+              <span key={t} className="px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1" style={{ background: 'var(--accent-soft)', color: 'var(--text-primary)', border: 'var(--accent-border)' }}>
                 {t}
-                <button onClick={() => setTags(tags.filter(tag => tag !== t))} style={{ color: '#c8f135' }}>×</button>
+                <button onClick={() => setTags(tags.filter(tag => tag !== t))} style={{ color: 'var(--text-primary)' }}>×</button>
               </span>
             ))}
           </div>
           <input
             type="text"
             placeholder="Add tags (press Enter)..."
-            className="w-full border-none rounded-lg text-xs p-2.5 transition-all outline-none"
-            style={{ background: 'rgba(255,255,255,0.07)', color: '#fff' }}
+            className="w-full rounded-lg text-xs p-2.5 transition-all outline-none"
+            style={{ background: 'var(--panel-bg)', color: 'var(--text-primary)', border: 'var(--panel-border)' }}
             value={tagInput}
             onChange={e => setTagInput(e.target.value)}
             onKeyDown={addTag}
@@ -161,7 +184,7 @@ const Popup = () => {
             disabled={status === 'loading'}
             onClick={handleCapture}
             className="col-span-2 py-3 rounded-xl transition-all font-bold text-sm flex items-center justify-center gap-2"
-            style={{ background: status === 'loading' ? 'rgba(200,241,53,0.4)' : '#c8f135', color: '#0b0c16' }}
+            style={{ background: status === 'loading' ? 'var(--accent-soft)' : 'var(--accent-bright)', color: theme === 'roadbow' ? '#000' : '#0b0c16', border: 'var(--accent-border)' }}
           >
             {status === 'loading' ? (
               <Clock size={16} className="animate-spin" />
@@ -178,14 +201,14 @@ const Popup = () => {
           <button
             onClick={handleCaptureAll}
             className="py-2.5 rounded-xl transition-all font-bold text-[11px] flex items-center justify-center gap-2"
-            style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'var(--panel-bg)', color: 'var(--text-muted)', border: 'var(--panel-border)' }}
           >
             Capture All
           </button>
 
           <button
             className="py-2.5 rounded-xl transition-all font-bold text-[11px] flex items-center justify-center gap-2"
-            style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'var(--panel-bg)', color: 'var(--text-muted)', border: 'var(--panel-border)' }}
             onClick={() => window.open(APP_URL, '_blank')}
           >
             Open App
