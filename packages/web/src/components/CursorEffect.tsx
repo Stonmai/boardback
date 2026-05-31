@@ -23,13 +23,16 @@ export default function CursorEffect() {
     // Read colors from CSS variables
     const style = getComputedStyle(document.documentElement);
     const colors = {
-      c1: style.getPropertyValue('--cursor-color-1').trim() || 'rgb(88, 28, 235)',
-      c2: style.getPropertyValue('--cursor-color-2').trim() || 'rgb(147, 51, 234)',
-      c3: style.getPropertyValue('--cursor-color-3').trim() || 'rgb(99, 120, 255)',
-      c4: style.getPropertyValue('--cursor-color-4').trim() || 'rgb(210, 200, 255)',
+      c1: style.getPropertyValue('--cursor-color-1').trim() || 'rgba(88, 28, 235, 1)',
+      c2: style.getPropertyValue('--cursor-color-2').trim() || 'rgba(147, 51, 234, 1)',
+      c3: style.getPropertyValue('--cursor-color-3').trim() || 'rgba(99, 120, 255, 1)',
+      c4: style.getPropertyValue('--cursor-color-4').trim() || 'rgba(210, 200, 255, 1)',
     };
 
-    const toRGBA = (rgb: string, a: number) => rgb.replace('rgb(', 'rgba(').replace(')', `, ${a})`);
+    const toRGBA = (colorStr: string, a: number) => {
+      // Handles rgba(r, g, b, a) by replacing the alpha component
+      return colorStr.replace(/rgba?\(([^,]+),([^,]+),([^,]+)(?:,[^)]+)?\)/, `rgba($1,$2,$3,${a})`);
+    };
 
     const pts: Point[]     = [];
     const spheres: Sphere[] = [];
@@ -37,12 +40,12 @@ export default function CursorEffect() {
 
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
-      canvas.width  = Math.round(window.innerWidth  * dpr);
-      canvas.height = Math.round(window.innerHeight * dpr);
-      canvas.style.width  = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      // Setting canvas.width/height resets the context transform to identity,
-      // so re-apply the DPR scale on every resize.
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width  = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width  = `${w}px`;
+      canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
@@ -85,7 +88,7 @@ export default function CursorEffect() {
 
     const drawSphere = (x: number, y: number, alpha: number) => {
       // Outer halo — large, very soft
-      const halo = ctx.createRadialGradient(x, y, 0, x, y, 55);
+      const halo = ctx.createRadialGradient(x, y, 0, x, y, 25);
       halo.addColorStop(0,   toRGBA(colors.c2, 0.28 * alpha));
       halo.addColorStop(0.5, toRGBA(colors.c3, 0.12 * alpha));
       halo.addColorStop(1,   toRGBA(colors.c1, 0));
