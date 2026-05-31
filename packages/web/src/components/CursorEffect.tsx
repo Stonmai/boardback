@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useStore } from '@/store/useStore';
 
 interface Point  { x: number; y: number; t: number; }
 interface Sphere { x: number; y: number; t: number; }
@@ -12,7 +11,6 @@ const SPHERE_MS = 500;
 
 export default function CursorEffect() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const theme = useStore(s => s.theme);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -20,34 +18,11 @@ export default function CursorEffect() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Read colors from CSS variables
-    const style = getComputedStyle(document.documentElement);
-    const colors = {
-      c1: style.getPropertyValue('--cursor-color-1').trim() || 'rgba(88, 28, 235, 1)',
-      c2: style.getPropertyValue('--cursor-color-2').trim() || 'rgba(147, 51, 234, 1)',
-      c3: style.getPropertyValue('--cursor-color-3').trim() || 'rgba(99, 120, 255, 1)',
-      c4: style.getPropertyValue('--cursor-color-4').trim() || 'rgba(210, 200, 255, 1)',
-    };
-
-    const toRGBA = (colorStr: string, a: number) => {
-      // Handles rgba(r, g, b, a) by replacing the alpha component
-      return colorStr.replace(/rgba?\(([^,]+),([^,]+),([^,]+)(?:,[^)]+)?\)/, `rgba($1,$2,$3,${a})`);
-    };
-
     const pts: Point[]     = [];
     const spheres: Sphere[] = [];
     let raf = 0;
 
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      canvas.width  = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width  = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     resize();
     window.addEventListener('resize', resize);
 
@@ -80,7 +55,7 @@ export default function CursorEffect() {
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
-        ctx.strokeStyle = toRGBA(color, a);
+        ctx.strokeStyle = color.replace(')', `, ${a})`).replace('rgb(', 'rgba(');
         ctx.stroke();
       }
       ctx.restore();
@@ -89,9 +64,9 @@ export default function CursorEffect() {
     const drawSphere = (x: number, y: number, alpha: number) => {
       // Outer halo — large, very soft
       const halo = ctx.createRadialGradient(x, y, 0, x, y, 25);
-      halo.addColorStop(0,   toRGBA(colors.c2, 0.28 * alpha));
-      halo.addColorStop(0.5, toRGBA(colors.c3, 0.12 * alpha));
-      halo.addColorStop(1,   toRGBA(colors.c1, 0));
+      halo.addColorStop(0,   `rgba(147, 51, 234, ${0.28 * alpha})`);
+      halo.addColorStop(0.5, `rgba(99,  60, 220, ${0.12 * alpha})`);
+      halo.addColorStop(1,   'rgba(88, 28, 235, 0)');
       ctx.beginPath();
       ctx.arc(x, y, 55, 0, Math.PI * 2);
       ctx.fillStyle = halo;
@@ -99,9 +74,9 @@ export default function CursorEffect() {
 
       // Mid glow
       const mid = ctx.createRadialGradient(x, y, 0, x, y, 28);
-      mid.addColorStop(0,   toRGBA(colors.c4, 0.7  * alpha));
-      mid.addColorStop(0.5, toRGBA(colors.c2, 0.35 * alpha));
-      mid.addColorStop(1,   toRGBA(colors.c1, 0));
+      mid.addColorStop(0,   `rgba(167, 139, 250, ${0.7  * alpha})`);
+      mid.addColorStop(0.5, `rgba(147,  51, 234, ${0.35 * alpha})`);
+      mid.addColorStop(1,   'rgba(88, 28, 235, 0)');
       ctx.beginPath();
       ctx.arc(x, y, 28, 0, Math.PI * 2);
       ctx.fillStyle = mid;
@@ -110,8 +85,8 @@ export default function CursorEffect() {
       // Tiny bright core
       const core = ctx.createRadialGradient(x - 0.5, y - 0.5, 0, x, y, 4);
       core.addColorStop(0,   `rgba(255, 255, 255, ${0.95 * alpha})`);
-      core.addColorStop(0.5, toRGBA(colors.c4, 0.8  * alpha));
-      core.addColorStop(1,   toRGBA(colors.c2, 0));
+      core.addColorStop(0.5, `rgba(220, 200, 255, ${0.8  * alpha})`);
+      core.addColorStop(1,   'rgba(147, 51, 234, 0)');
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fillStyle = core;
@@ -124,10 +99,10 @@ export default function CursorEffect() {
 
       // Trail
       while (pts.length > 0 && now - pts[0].t > TRAIL_MS) pts.shift();
-      drawCurve(0.18, 18, 32, colors.c1);
-      drawCurve(0.45,  7, 16, colors.c2);
-      drawCurve(0.85, 2.5, 8, colors.c3);
-      drawCurve(0.65,  1,  0, colors.c4);
+      drawCurve(0.18, 18, 32, 'rgb(88, 28, 235)');
+      drawCurve(0.45,  7, 16, 'rgb(147, 51, 234)');
+      drawCurve(0.85, 2.5, 8, 'rgb(99, 120, 255)');
+      drawCurve(0.65,  1,  0, 'rgb(210, 200, 255)');
 
       // Click spheres
       for (let i = spheres.length - 1; i >= 0; i--) {
@@ -147,7 +122,7 @@ export default function CursorEffect() {
       window.removeEventListener('click', onClick);
       cancelAnimationFrame(raf);
     };
-  }, [theme]);
+  }, []);
 
   return (
     <canvas
