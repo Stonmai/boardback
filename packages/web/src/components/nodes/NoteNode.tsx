@@ -89,6 +89,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const [content, setContent] = useState(
     Array.isArray(data.content) ? (data.content as string[]).join('\n') : (data.content || '')
   );
+  const [nodeWidth, setNodeWidth] = useState(0);
 
   const updateNode = useStore((s) => s.updateNode);
   const deleteNode = useStore((s) => s.deleteNode);
@@ -103,6 +104,17 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const contextMenu = contextMenuNodeId === id && contextMenuPos;
   const closeContextMenu = () => { setContextMenuNodeId(null); setPaneContextMenu(null); };
 
+  // Scale the note text up with the node width; base size acts as the minimum.
+  React.useEffect(() => {
+    const el = nodeRef.current;
+    if (!el) return;
+    const update = () => setNodeWidth(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const contentSize = Math.round(18 * Math.max(1, Math.min(2.2, nodeWidth / 240)));
 
   const enterEditing = useCallback(() => {
     if (nodeRef.current) {
@@ -193,11 +205,11 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
         borderRadius: 20,
         background: style.gradient,
         boxShadow: selected
-          ? `${style.glow}, 0 20px 40px rgba(0,0,0,0.4)`
-          : '0 10px 30px rgba(0,0,0,0.35)',
+          ? style.glow
+          : 'var(--node-shadow)',
         border: selected
           ? `2px solid ${style.ring}`
-          : '2px solid rgba(255,255,255,0.18)',
+          : 'var(--node-border)',
         transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         overflow: 'visible',
         ['--accent-color' as string]: style.swatch,
@@ -210,7 +222,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
       <Handle type="source" position={Position.Left}   id="left" style={{}}/>
       <Handle type="source" position={Position.Right}  id="right" style={{}}/>
 
-      <NodeResizer color="rgba(255,255,255,0.6)" isVisible={selected} minWidth={160} minHeight={80} />
+      <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} />
 
       {/* Card content */}
       <div className="h-full p-3 rounded-[14px] flex flex-col" style={{ color: style.text, overflow: 'hidden' }}>
@@ -226,8 +238,9 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Start typing..."
-                className="w-full text-[18px] outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
+                className="w-full outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
                 style={{
+                  fontSize: contentSize,
                   background: 'transparent',
                   color: style.text,
                   border: 'none',
@@ -241,8 +254,8 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
               onDoubleClick={() => enterEditing()}
             >
               <p
-                className="text-[18px] whitespace-pre-wrap leading-relaxed wrap-break-word font-medium"
-                style={{ color: style.text, opacity: content ? 0.88 : 0.45 }}
+                className="whitespace-pre-wrap leading-relaxed wrap-break-word font-medium"
+                style={{ fontSize: contentSize, color: style.text, opacity: content ? 0.88 : 0.45 }}
               >
                 {content || 'Click to write…'}
               </p>
@@ -260,7 +273,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                 style={{
                   background: 'rgba(0,0,0,0.2)',
                   color: style.text,
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  border: 'var(--border-panel)',
                 }}
               >
                 {tag}
@@ -316,7 +329,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                       height: 22,
                       borderRadius: '50%',
                       background: val.swatch,
-                      border: key === currentColor ? '2px solid #fff' : '2px solid rgba(255,255,255,0.2)',
+                      border: key === currentColor ? '2px solid var(--text-primary)' : 'var(--border-panel)',
                       outline: 'none',
                       cursor: 'pointer',
                     }}
@@ -343,7 +356,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                       <span
                         key={tag}
                         className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase cursor-pointer transition-colors hover:bg-red-500/20 hover:text-red-400"
-                        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        style={{ background: 'var(--surface-inset-bg)', color: 'var(--text-muted)', border: 'var(--border-panel)' }}
                         onClick={() => handleRemoveTag(tag)}
                       >
                         {tag} <X size={8} />
@@ -362,7 +375,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                   placeholder="Add tag & press Enter"
                   autoFocus
                   className="w-full rounded-lg px-2.5 py-1.5 text-[11px] text-white outline-none placeholder:text-white/30"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)' }}
                 />
               </div>
             )}

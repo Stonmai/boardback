@@ -49,7 +49,7 @@ const NodeContextMenu = ({ getRect, items }: NodeContextMenuProps) => {
     >
       {items.map((item, i) => {
         if (isDivider(item)) {
-          return <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '2px 0' }} />;
+          return <div key={i} style={{ height: 1, background: 'var(--surface-inset-bg)', margin: '2px 0' }} />;
         }
         if (item.hidden) return null;
         const Icon = item.icon;

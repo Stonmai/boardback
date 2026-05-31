@@ -731,16 +731,16 @@ const searchEmoji = (q: string, emoji: string, groupTitle: string): boolean => {
 // ── Panel base style ──────────────────────────────────────────────────────────
 const panelStyle: React.CSSProperties = {
   position: 'absolute',
-  bottom: 'calc(100% + 18px)',
+  bottom: 'calc(100% + 25px)',
   left: '50%',
   transform: 'translateX(-50%)',
-  background: 'rgba(10, 11, 22, 0.94)',
-  backdropFilter: 'blur(28px)',
-  WebkitBackdropFilter: 'blur(28px)',
-  border: '1px solid rgba(255,255,255,0.10)',
+  background: 'var(--surface-panel-bg)',
+  backdropFilter: 'var(--surface-blur)',
+  WebkitBackdropFilter: 'var(--surface-blur)',
+  border: 'var(--border-panel)',
   borderRadius: 20,
   padding: 14,
-  boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+  boxShadow: 'var(--shadow-panel)',
   zIndex: 200,
 };
 
@@ -780,14 +780,14 @@ const Toolbar = () => {
           onChange={e => setEmojiSearch(e.target.value)}
           placeholder="Search category…"
           onClick={e => e.stopPropagation()}
-          style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 10px', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+          style={{ width: '100%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 8, padding: '6px 10px', color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
         />
         <div style={{ maxHeight: isInline ? 180 : 230, paddingRight: 4, overflowY: "auto", overflowX: 'hidden' }}>
           {filteredGroups.length === 0 ? (
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '16px 0' }}>No results</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>No results</div>
           ) : filteredGroups.map(group => (
             <div key={group.title} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5, paddingLeft: 2 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 5, paddingLeft: 2 }}>
                 {group.title}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 2 }}>
@@ -797,8 +797,8 @@ const Toolbar = () => {
                     <button
                       key={`${group.title}-${emojiIdx}`}
                       onClick={() => onSelect(emoji)}
-                      style={{ width: 30, height: 30, borderRadius: 7, background: active ? "rgba(200,241,53,0.12)" : "transparent", border: active ? "1px solid rgba(200,241,53,0.3)" : "none", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.1s" }}
-                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+                      style={{ width: 30, height: 30, borderRadius: 7, background: active ? "rgba(var(--accent-rgb),0.12)" : "transparent", border: active ? "1px solid rgba(var(--accent-rgb),0.3)" : "none", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.1s" }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--surface-inset-bg)'; }}
                       onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
                     >
                       {emoji}
@@ -841,6 +841,8 @@ const Toolbar = () => {
   const toggleTagFilter = useStore((s) => s.toggleTagFilter);
   const autoOpenBookmarks = useStore((s) => s.autoOpenBookmarks);
   const setAutoOpenBookmarks = useStore((s) => s.setAutoOpenBookmarks);
+  const theme = useStore((s) => s.theme);
+  const setTheme = useStore((s) => s.setTheme);
   const setPendingNavigation = useStore((s) => s.setPendingNavigation);
   const dossiers = useStore((s) => s.dossiers);
   const currentDossierId = useStore((s) => s.currentDossierId);
@@ -917,12 +919,12 @@ const Toolbar = () => {
     const room = rooms.find(r => r.id === id);
     if (room) {
       const ghost = document.createElement('div');
-      ghost.style.cssText = 'position:fixed;top:-1000px;left:-1000px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 14px;background:rgba(10,11,22,0.92);border:1px solid rgba(255,255,255,0.14);border-radius:14px;pointer-events:none;';
+      ghost.style.cssText = 'position:fixed;top:-1000px;left:-1000px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 14px;background:var(--surface-panel-bg);border:var(--border-panel);border-radius:14px;pointer-events:none;';
       const emoji = document.createElement('div');
       emoji.style.cssText = 'font-size:22px;line-height:1;';
       emoji.textContent = getRoomEmoji(room);
       const name = document.createElement('div');
-      name.style.cssText = 'font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.6);white-space:nowrap;';
+      name.style.cssText = 'font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);white-space:nowrap;';
       name.textContent = room.name.length > 10 ? room.name.slice(0, 9) + '…' : room.name;
       ghost.appendChild(emoji);
       ghost.appendChild(name);
@@ -1306,15 +1308,15 @@ const Toolbar = () => {
 
   // ── Style helpers ─────────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
-    fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.28)',
+    fontSize: 9, fontWeight: 700, color: 'var(--text-muted)',
     textTransform: 'uppercase', letterSpacing: '0.08em', userSelect: 'none', lineHeight: 1,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%',
   };
 
   const mkBtnStyle = (active = false): React.CSSProperties => ({
     width: isMobile ? 34 : 44, height: isMobile ? 32 : 36, borderRadius: 13,
-    background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none',
-    color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer',
+    background: active ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none',
+    color: active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     transition: 'all 0.18s ease', position: 'relative', top: isMobile ? 0 : '-5px',
   });
@@ -1322,15 +1324,15 @@ const Toolbar = () => {
   const onEnter = (e: React.MouseEvent<HTMLButtonElement>, skip = false) => {
     if (skip) return;
     const el = e.currentTarget as HTMLButtonElement;
-    el.style.background = 'rgba(255,255,255,0.07)';
-    el.style.color = '#ffffff';
+    el.style.background = 'var(--surface-inset-bg)';
+    el.style.color = 'var(--text-primary)';
     el.style.transform = 'translateY(-2px)';
   };
   const onLeave = (e: React.MouseEvent<HTMLButtonElement>, skip = false) => {
     if (skip) return;
     const el = e.currentTarget as HTMLButtonElement;
     el.style.background = 'transparent';
-    el.style.color = 'rgba(255,255,255,0.5)';
+    el.style.color = 'var(--text-muted)';
     el.style.transform = 'translateY(0)';
   };
   const onDown = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -1340,14 +1342,14 @@ const Toolbar = () => {
   // ── Add workspace panel (shared) ──────────────────────────────────────────
   const renderAddWsPanel = () => (
     <div ref={addWsRef} style={{ ...panelStyle, minWidth: 230 }}>
-      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
         New board
       </div>
       {/* Emoji selector */}
       <div style={{ marginBottom: 10 }}>
         <button
           onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: emojiPickerFor === 'new' ? 'rgba(200,241,53,0.10)' : 'rgba(255,255,255,0.06)', border: emojiPickerFor === 'new' ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.09)', cursor: 'pointer', transition: 'all 0.15s' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: emojiPickerFor === 'new' ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: emojiPickerFor === 'new' ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
         >
           <span style={{ fontSize: 22, lineHeight: 1 }}>{newWsEmoji}</span>
         </button>
@@ -1368,12 +1370,12 @@ const Toolbar = () => {
           onChange={e => setNewWsName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') setShowAddWs(false); }}
           placeholder="Board name..."
-          style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+          style={{ flex: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '8px 10px', color: 'var(--text-primary)', fontSize: 12, outline: 'none' }}
         />
         <button
           onClick={handleAddWorkspace}
           disabled={!newWsName.trim()}
-          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: newWsName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: newWsName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: newWsName.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: newWsName.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: newWsName.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: newWsName.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: newWsName.trim() ? '#0a0b16' : 'var(--text-muted)', cursor: newWsName.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
         >
           <Check size={15} strokeWidth={2.5} />
         </button>
@@ -1384,7 +1386,7 @@ const Toolbar = () => {
   // ── Shared rooms panel (mobile/compact) ───────────────────────────────────
   const renderRoomsPanel = (width: number) => (
     <div ref={roomsRef} style={{ ...panelStyle, width: Math.min(width, window.innerWidth - 32) }}>
-      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>
         Boards
       </div>
       {!showAddWs ? (
@@ -1401,13 +1403,13 @@ const Toolbar = () => {
                 onDragEnd={handleDragEnd}
               >
                 <button onClick={() => { switchRoom(room.id); setShowRooms(false); }}
-                  style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+                  style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(var(--accent-rgb),0.12)' : 'var(--surface-inset-bg)', border: active ? '1px solid rgba(var(--accent-rgb),0.35)' : 'var(--border-panel)', color: active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
                   <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
                   <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1, maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room.name}</span>
                 </button>
                 {!active && (
                   <button onClick={e => { e.stopPropagation(); setRenamingRoomId(room.id); setRenameValue(room.name); }} title="Edit board"
-                    style={{ position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', background: 'rgba(120,120,130,0.45)', border: '1.5px solid rgba(10,11,22,0.85)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, zIndex: 10 }}>
+                    style={{ position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, zIndex: 10 }}>
                     <ChevronUp size={9} />
                   </button>
                 )}
@@ -1416,7 +1418,7 @@ const Toolbar = () => {
           })}
           {/* Add workspace */}
           <button onClick={() => setShowAddWs(true)}
-            style={{ borderRadius: 14, padding: '12px 8px', background: 'rgba(255,255,255,0.03)', border: '1.5px dashed rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+            style={{ borderRadius: 14, padding: '12px 8px', background: 'var(--surface-inset-bg)', border: '1.5px dashed var(--dot-grid)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
             <span style={{ fontSize: 22 }}>＋</span>
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Add</span>
           </button>
@@ -1427,7 +1429,7 @@ const Toolbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <button
               onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
-              style={{ fontSize: 22, lineHeight: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10, padding: '6px 8px', cursor: 'pointer' }}
+              style={{ fontSize: 22, lineHeight: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '6px 8px', cursor: 'pointer' }}
             >
               {newWsEmoji}
             </button>
@@ -1438,7 +1440,7 @@ const Toolbar = () => {
               onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
               placeholder="Board name..."
               autoFocus
-              style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+              style={{ flex: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '8px 10px', color: 'var(--text-primary)', fontSize: 12, outline: 'none' }}
             />
           </div>
           {emojiPickerFor === 'new' && renderEmojiPicker(
@@ -1448,11 +1450,11 @@ const Toolbar = () => {
           )}
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={handleAddWorkspace} disabled={!newWsName.trim()}
-              style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: newWsName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: newWsName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: newWsName.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: newWsName.trim() ? 'pointer' : 'default', fontSize: 11, fontWeight: 700 }}>
+              style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: newWsName.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: newWsName.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: newWsName.trim() ? '#0a0b16' : 'var(--text-muted)', cursor: newWsName.trim() ? 'pointer' : 'default', fontSize: 11, fontWeight: 700 }}>
               Add
             </button>
             <button onClick={() => { setShowAddWs(false); setEmojiPickerFor(null); }}
-              style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+              style={{ flex: 1, padding: '8px 0', borderRadius: 10, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
               Cancel
             </button>
           </div>
@@ -1465,21 +1467,21 @@ const Toolbar = () => {
   const renderTagsPanel = () => (
     <div ref={tagsRef} style={{ ...panelStyle, minWidth: 200, maxWidth: Math.min(300, window.innerWidth - 32) }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Filter by tag</span>
+        <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Filter by tag</span>
         {hasActiveFilters && (
-          <button onClick={() => { [...activeTagFilters].forEach(t => toggleTagFilter(t)); }} style={{ fontSize: 9, fontWeight: 700, color: 'rgba(200,241,53,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+          <button onClick={() => { [...activeTagFilters].forEach(t => toggleTagFilter(t)); }} style={{ fontSize: 9, fontWeight: 700, color: 'var(--accent-text)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
             <X size={10} /> Clear
           </button>
         )}
       </div>
       {allTags.length === 0 ? (
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '8px 0', margin: 0 }}>No tags yet</p>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0', margin: 0 }}>No tags yet</p>
       ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {allTags.map(tag => {
             const active = activeTagFilters.includes(tag);
             return (
-              <button key={tag} onClick={() => toggleTagFilter(tag)} style={{ padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: active ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.06)', border: active ? '1px solid rgba(200,241,53,0.4)' : '1px solid rgba(255,255,255,0.08)', color: active ? '#c8f135' : 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase' }}>
+              <button key={tag} onClick={() => toggleTagFilter(tag)} style={{ padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: active ? 'rgba(var(--accent-rgb),0.15)' : 'var(--surface-inset-bg)', border: active ? '1px solid rgba(var(--accent-rgb),0.4)' : 'var(--border-panel)', color: active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s', textTransform: 'uppercase' }}>
                 {tag}
               </button>
             );
@@ -1491,55 +1493,85 @@ const Toolbar = () => {
 
   const renderSettingsPanel = () => (
     <div ref={settingsRef} style={{ ...panelStyle, minWidth: 260 }}>
-      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Settings</div>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>Settings</div>
 
       {/* Dossier menu row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', marginBottom: 8 }}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface-inset-bg)', padding: '10px 12px', borderRadius: 12, border: 'var(--border-panel)', cursor: 'pointer', marginBottom: 8 }}
         onClick={() => { setShowDossierModal(true); setShowSettings(false); }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <FolderOpen size={16} color="rgba(255,255,255,0.3)" />
+          <FolderOpen size={16} color="var(--text-muted)" />
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Dossier</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 1 }}>Dossier</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 500 }}>
               {(() => { const d = dossiers.find((d: Dossier) => d.id === currentDossierId); return d ? `${d.name}` : 'Manage dossiers'; })()}
             </div>
           </div>
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
       {/* Share row — opens export modal */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', marginBottom: 8 }}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface-inset-bg)', padding: '10px 12px', borderRadius: 12, border: 'var(--border-panel)', cursor: 'pointer', marginBottom: 8 }}
         onClick={() => { const d = dossiers.find((d: Dossier) => d.id === currentDossierId); setExportNameValue(d?.name || 'Default'); setShowExportModal(true); }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Download size={16} color="rgba(255,255,255,0.3)" />
+          <Download size={16} color="var(--text-muted)" />
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Export</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Download dossier as .boardback file</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 1 }}>Export</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 500 }}>Download dossier as .boardback file</div>
           </div>
         </div>
       </div>
 
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginBottom: 8 }} />
-      
-      <div 
-        style={{ 
+      <div style={{ height: 1, background: 'var(--surface-inset-bg)', marginBottom: 8 }} />
+
+      {/* Theme selector */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface-inset-bg)', padding: '10px 12px', borderRadius: 12, border: 'var(--border-panel)', marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>Theme</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {([
+            { id: 'roadbow', label: 'Light', chip: '#ffffff', dot: '#fee347' },
+            { id: 'midnight', label: 'Dark', chip: '#0d0e1a', dot: '#c8f135' },
+          ] as const).map((t) => {
+            const isActive = theme === t.id;
+            return (
+              <button
+                key={t.id}
+                title={t.label}
+                onClick={() => setTheme(t.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '5px 9px', borderRadius: 9,
+                  background: t.chip,
+                  border: isActive ? `2px solid ${t.dot}` : '2px solid var(--dot-grid)',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  boxShadow: isActive ? `0 0 0 3px ${t.dot}55` : 'none',
+                }}
+              >
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: t.dot, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: t.id === 'roadbow' ? '#1a1a1a' : '#ffffff' }}>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div
+        style={{
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          background: 'rgba(255,255,255,0.05)',
+          background: 'var(--surface-inset-bg)',
           padding: '10px 12px',
           borderRadius: 12,
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: 'var(--border-panel)',
           cursor: 'pointer'
         }}
         onClick={() => setAutoOpenBookmarks(!autoOpenBookmarks)}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ExternalLink size={16} color={autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.3)'} />
+          <ExternalLink size={16} color={autoOpenBookmarks ? 'var(--accent)' : 'var(--text-muted)'} />
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Open bookmark in new tab</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Click a preview to open it in a new browser tab</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 1 }}>Open bookmark in new tab</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 500 }}>Click a preview to open it in a new browser tab</div>
           </div>
         </div>
         <div 
@@ -1547,8 +1579,8 @@ const Toolbar = () => {
             width: 40, 
             height: 18, 
             borderRadius: 20, 
-            background: autoOpenBookmarks ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.1)',
-            border: autoOpenBookmarks ? '1px solid rgba(200,241,53,0.5)' : '1px solid rgba(255,255,255,0.15)',
+            background: autoOpenBookmarks ? 'rgba(var(--accent-rgb),0.3)' : 'var(--surface-inset-bg)',
+            border: autoOpenBookmarks ? '1px solid rgba(var(--accent-rgb),0.5)' : 'var(--border-panel)',
             position: 'relative',
             transition: 'all 0.2s',
             flexShrink: 0
@@ -1562,7 +1594,7 @@ const Toolbar = () => {
               width: 12,
               height: 12,
               borderRadius: '50%',
-              background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.4)',
+              background: autoOpenBookmarks ? 'var(--accent)' : 'var(--text-muted)',
               transition: 'all 0.2s'
             }} 
           />
@@ -1574,10 +1606,10 @@ const Toolbar = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: 'rgba(255,255,255,0.05)',
+          background: 'var(--surface-inset-bg)',
           padding: '10px 12px',
           borderRadius: 12,
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: 'var(--border-panel)',
           cursor: extensionInstalled ? 'pointer' : 'default',
           marginTop: 8,
           opacity: extensionInstalled ? 1 : 0.45,
@@ -1585,10 +1617,10 @@ const Toolbar = () => {
         onClick={extensionInstalled ? handleNewTabToggle : undefined}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.3)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={newTabEnabled ? 'var(--accent)' : 'var(--text-muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 1 }}>Set as default new tab</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 1 }}>Set as default new tab</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 500 }}>
               {extensionInstalled ? 'Replace new tab page with your board' : 'Requires the BoardBack extension'}
             </div>
             {newTabEnabled && /Vivaldi/i.test(navigator.userAgent) && (
@@ -1603,8 +1635,8 @@ const Toolbar = () => {
             width: 40,
             height: 18,
             borderRadius: 20,
-            background: newTabEnabled ? 'rgba(200,241,53,0.3)' : 'rgba(255,255,255,0.1)',
-            border: newTabEnabled ? '1px solid rgba(200,241,53,0.5)' : '1px solid rgba(255,255,255,0.15)',
+            background: newTabEnabled ? 'rgba(var(--accent-rgb),0.3)' : 'var(--surface-inset-bg)',
+            border: newTabEnabled ? '1px solid rgba(var(--accent-rgb),0.5)' : 'var(--border-panel)',
             position: 'relative',
             transition: 'all 0.2s',
             flexShrink: 0,
@@ -1618,7 +1650,7 @@ const Toolbar = () => {
               width: 12,
               height: 12,
               borderRadius: '50%',
-              background: newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.4)',
+              background: newTabEnabled ? 'var(--accent)' : 'var(--text-muted)',
               transition: 'all 0.2s'
             }}
           />
@@ -1629,7 +1661,7 @@ const Toolbar = () => {
 
   const renderSearchPanel = () => (
     <div ref={searchRef} style={{ ...panelStyle, width: Math.min(320, window.innerWidth - 32) }}>
-      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Search</div>
+      <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Search</div>
       <input
         ref={searchInputRef}
         value={searchQuery}
@@ -1637,29 +1669,29 @@ const Toolbar = () => {
         onKeyDown={e => { if (e.key === 'Escape') { setShowSearch(false); setSearchQuery(''); } }}
         placeholder="Search bookmarks, notes, groups..."
         autoFocus
-        style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: searchQuery.trim() ? 8 : 0 }}
+        style={{ width: '100%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '8px 10px', color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: searchQuery.trim() ? 8 : 0 }}
       />
       {searchQuery.trim() && (
         <div style={{ maxHeight: 280, overflowY: 'auto' }}>
           {searchResults.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 12, padding: '16px 0' }}>No results found</div>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, padding: '16px 0' }}>No results found</div>
           ) : (
             searchResults.map(result => (
               <button key={`${result.id}-${result.roomId}`} onClick={() => handleSearchResultClick(result)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', marginBottom: 4, transition: 'all 0.15s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: 'var(--surface-inset-bg)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', marginBottom: 4, transition: 'all 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--surface-inset-bg)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; }}
               >
                 <div style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: result.type === 'bookmark' ? 'rgba(59,130,246,0.15)' : result.type === 'note' ? 'rgba(168,85,247,0.15)' : 'rgba(34,197,94,0.15)' }}>
                   {result.type === 'bookmark' ? <ExternalLink size={13} color="#3b82f6" /> : result.type === 'note' ? <StickyNote size={13} color="#a855f7" /> : <Group size={13} color="#22c55e" />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{result.title || 'Untitled'}</div>
-                  {result.subtitle && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{result.subtitle}</div>}
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{result.title || 'Untitled'}</div>
+                  {result.subtitle && <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{result.subtitle}</div>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
                   <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: result.type === 'bookmark' ? 'rgba(59,130,246,0.7)' : result.type === 'note' ? 'rgba(168,85,247,0.7)' : 'rgba(34,197,94,0.7)' }}>{result.type}</span>
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>{result.roomEmoji} {result.roomName}</span>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{result.roomEmoji} {result.roomName}</span>
                 </div>
               </button>
             ))
@@ -1677,19 +1709,19 @@ const Toolbar = () => {
       onMouseDown={e => e.stopPropagation()}
       onClick={e => e.stopPropagation()}
       onContextMenu={e => e.preventDefault()}
-      style={{ position: 'fixed', bottom: `calc(100vh - ${roomMenuPos.y}px + 24px)`, left: roomMenuPos.x, transform: 'translateX(-50%)', zIndex: 99999, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', overflow: 'hidden', minWidth: 140 }}
+      style={{ position: 'fixed', bottom: `calc(100vh - ${roomMenuPos.y}px + 25px)`, left: roomMenuPos.x, transform: 'translateX(-50%)', zIndex: 99999, border: 'var(--border-panel)', borderRadius: 16, boxShadow: 'var(--shadow-popover)', overflow: 'hidden', minWidth: 140 }}
     >
       {([
         { label: 'Edit', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { startRenaming(roomCtxRoom); setRoomMenuPos(null); setShowOverflow(false); }, danger: false, disabled: false },
         { divider: true },
         { label: 'Delete', icon: <Trash2 size={13} />, action: () => { setDeleteConfirm({ id: roomCtxRoom.id, name: roomCtxRoom.name }); setRoomMenuPos(null); }, danger: true, disabled: rooms.length <= 1 },
       ] as any[]).map((item: any, i: number) => {
-        if (item.divider) return <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '2px 0' }} />;
+        if (item.divider) return <div key={i} style={{ height: 1, background: 'var(--surface-inset-bg)', margin: '2px 0' }} />;
         return (
           <button key={item.label} onClick={item.action} disabled={item.disabled}
             className={item.danger ? 'text-red-400' : 'text-white/80'}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'transparent', border: 'none', fontSize: 13, cursor: item.disabled ? 'default' : 'pointer', opacity: item.disabled ? 0.3 : 1, textAlign: 'left', transition: 'background 0.15s' }}
-            onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.08)'; }}
+            onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(239,68,68,0.15)' : 'var(--surface-inset-bg)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
             {item.icon}{item.label}
           </button>
@@ -1703,18 +1735,18 @@ const Toolbar = () => {
   const deleteModal = deleteConfirm && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
       onClick={() => setDeleteConfirm(null)}>
-      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: '24px', width: 300, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 20, padding: '24px', width: 300, boxShadow: 'var(--shadow-panel)' }}
         onClick={e => e.stopPropagation()}>
         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,100,100,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete board?</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.5 }}>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteConfirm.name}"</span> and all its content will be permanently removed.
+        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>Delete board?</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.5 }}>
+          <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>"{deleteConfirm.name}"</span> and all its content will be permanently removed.
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setDeleteConfirm(null)}
-            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={() => { deleteRoom(deleteConfirm.id); setDeleteConfirm(null); }}
@@ -1729,14 +1761,14 @@ const Toolbar = () => {
   const dossierModal = showDossierModal && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
       onClick={() => { setDossierMenuId(null); setFocusedDossierId(null); setRenamingDossierId(null); setRenameDossierValue(''); if (showAddDossier) { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } }}>
-      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 24, padding: '28px', width: 720, maxWidth: 'calc(100vw - 32px)', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 24, padding: '28px', width: 720, maxWidth: 'calc(100vw - 32px)', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-panel)' }}
         onClick={e => { e.stopPropagation(); setFocusedDossierId(null); setDossierMenuId(null); setRenamingDossierId(null); setRenameDossierValue(''); if (showAddDossier) { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 25 }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>Dossiers</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>Dossiers</div>
           <button onClick={() => { setShowDossierModal(false); setShowAddDossier(false); setNewDossierName(''); setEmojiPickerFor(null); setFocusedDossierId(null); setDossierMenuId(null); setRenamingDossierId(null); setRenameDossierValue(''); }}
-            style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={14} />
           </button>
         </div>
@@ -1755,14 +1787,14 @@ const Toolbar = () => {
                 onMouseLeave={e => { const btn = (e.currentTarget as HTMLDivElement).querySelector('.menu-btn') as HTMLElement; if (btn && !menuOpen) btn.style.opacity = '0'; }}>
                 {/* Card */}
                 {renamingDossierId === d.id ? (
-                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, height: 108, borderRadius: 16, background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.28)', padding: '0 8px', boxSizing: 'border-box', overflow: 'hidden' }}>
+                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, height: 108, borderRadius: 16, background: 'var(--surface-inset-bg)', border: '1px dashed var(--dot-grid)', padding: '0 8px', boxSizing: 'border-box', overflow: 'hidden' }}>
                     <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>✏️</span>
                     <input
                       value={renameDossierValue}
                       onChange={e => setRenameDossierValue(e.target.value)}
                       autoFocus
                       onKeyDown={e => { if (e.key === 'Enter' && renameDossierValue.trim()) { updateDossierName(renamingDossierId, renameDossierValue.trim()); setRenamingDossierId(null); setRenameDossierValue(''); } if (e.key === 'Escape') { setRenamingDossierId(null); setRenameDossierValue(''); } }}
-                      style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 7, padding: '4px 7px', color: '#fff', fontSize: 11, fontWeight: 600, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }}
+                      style={{ width: '100%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 7, padding: '4px 7px', color: 'var(--text-primary)', fontSize: 11, fontWeight: 600, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }}
                     />
                   </div>
                 ) : (
@@ -1772,15 +1804,15 @@ const Toolbar = () => {
                     onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setDossierMenuId(menuOpen ? null : d.id); }}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, height: 108, borderRadius: 16,
-                      background: isActive ? 'rgba(200,241,53,0.10)' : isFocused ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${isActive ? 'rgba(200,241,53,0.35)' : isFocused ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.07)'}`,
-                      boxShadow: isFocused ? '0 0 0 3px rgba(255,255,255,0.06)' : 'none',
+                      background: isActive ? 'rgba(var(--accent-rgb),0.10)' : isFocused ? 'var(--surface-inset-bg)' : 'var(--surface-inset-bg)',
+                      border: `1px solid ${isActive ? 'rgba(var(--accent-rgb),0.35)' : isFocused ? 'var(--text-muted)' : 'var(--surface-inset-bg)'}`,
+                      boxShadow: isFocused ? '0 0 0 3px var(--accent-soft)' : 'none',
                       cursor: isActive ? 'default' : 'pointer', transition: 'all 0.15s', padding: '0 10px', boxSizing: 'border-box', overflow: 'hidden', userSelect: 'none',
                     }}
-                    onMouseEnter={e => { if (!isActive && !isFocused) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.07)'; }}
-                    onMouseLeave={e => { if (!isActive && !isFocused) (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)'; }}>
+                    onMouseEnter={e => { if (!isActive && !isFocused) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-inset-bg)'; }}
+                    onMouseLeave={e => { if (!isActive && !isFocused) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-inset-bg)'; }}>
                     <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>{isActive || isFocused ? '📂' : '📁'}</span>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: isActive ? '#c8f135' : isFocused ? '#fff' : 'rgba(255,255,255,0.75)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{d.name}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: isActive ? 'var(--accent)' : isFocused ? 'var(--text-primary)' : 'var(--text-muted)', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{d.name}</div>
                   </div>
                 )}
 
@@ -1788,11 +1820,11 @@ const Toolbar = () => {
                 <div style={{ position: 'absolute', top: 6, right: 6 }}>
                   <button className="menu-btn"
                     onClick={e => { e.stopPropagation(); setDossierMenuId(menuOpen ? null : d.id); }}
-                    style={{ width: 22, height: 22, borderRadius: 6, background: menuOpen ? 'rgba(255,255,255,0.12)' : 'rgba(20,20,30,0.7)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, opacity: menuOpen ? 1 : 0, transition: 'opacity 0.15s' }}>
+                    style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, opacity: menuOpen ? 1 : 0, transition: 'opacity 0.15s' }}>
                     <MoreHorizontal size={12} />
                   </button>
                   {menuOpen && (
-                    <div onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} className="glass-dark" style={{ position: 'absolute', top: 26, ...(isLastCol ? { right: 0 } : { left: 0 }), zIndex: 10, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', overflow: 'hidden', minWidth: 140 }}>
+                    <div onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} className="glass-dark" style={{ position: 'absolute', top: 26, ...(isLastCol ? { right: 0 } : { left: 0 }), zIndex: 10, border: 'var(--border-panel)', borderRadius: 16, boxShadow: 'var(--shadow-popover)', overflow: 'hidden', minWidth: 140 }}>
                       {[
                         { label: 'Open', icon: <FolderOpen size={13} />, action: () => { if (!isActive) { switchDossier(d.id); } setShowDossierModal(false); setDossierMenuId(null); }, disabled: false },
                         { label: 'Rename', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>, action: () => { setRenamingDossierId(d.id); setRenameDossierValue(d.name); setDossierMenuId(null); } },
@@ -1801,12 +1833,12 @@ const Toolbar = () => {
                         { divider: true },
                         { label: 'Delete', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>, action: () => { setDeleteDossierConfirm({ id: d.id, name: d.name }); setDossierMenuId(null); }, danger: true, disabled: dossiers.length <= 1 },
                       ].map((item, i) => {
-                        if ('divider' in item) return <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '2px 0' }} />;
+                        if ('divider' in item) return <div key={i} style={{ height: 1, background: 'var(--surface-inset-bg)', margin: '2px 0' }} />;
                         return (
                           <button key={item.label} onClick={item.action} disabled={item.disabled}
                             className={item.danger ? 'text-red-400' : 'text-white/80'}
                             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'transparent', border: 'none', fontSize: 13, cursor: item.disabled ? 'default' : 'pointer', opacity: item.disabled ? 0.3 : 1, textAlign: 'left', transition: 'background 0.15s' }}
-                            onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.08)'; }}
+                            onMouseEnter={e => { if (!item.disabled) (e.currentTarget as HTMLButtonElement).style.background = item.danger ? 'rgba(239,68,68,0.15)' : 'var(--surface-inset-bg)'; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
                             {item.icon}{item.label}
                           </button>
@@ -1821,7 +1853,7 @@ const Toolbar = () => {
           {/* New dossier inline card */}
           {showAddDossier && (
             <div onClick={e => e.stopPropagation()} style={{ position: 'relative', minWidth: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, height: 108, borderRadius: 16, background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.28)', padding: '0 8px', boxSizing: 'border-box', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, height: 108, borderRadius: 16, background: 'var(--surface-inset-bg)', border: '1px dashed var(--dot-grid)', padding: '0 8px', boxSizing: 'border-box', overflow: 'hidden' }}>
                 <span style={{ fontSize: 40, lineHeight: 1, flexShrink: 0 }}>📁</span>
                 <input
                   value={newDossierName}
@@ -1829,7 +1861,7 @@ const Toolbar = () => {
                   autoFocus
                   onFocus={e => e.target.select()}
                   onKeyDown={e => { if (e.key === 'Enter') { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } if (e.key === 'Escape') { setShowAddDossier(false); setNewDossierName(''); } }}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 7, padding: '4px 7px', color: '#fff', fontSize: 11, fontWeight: 600, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }}
+                  style={{ width: '100%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 7, padding: '4px 7px', color: 'var(--text-primary)', fontSize: 11, fontWeight: 600, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }}
                 />
               </div>
             </div>
@@ -1841,15 +1873,15 @@ const Toolbar = () => {
         {/* New and Import buttons */}
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={e => { e.stopPropagation(); setShowAddDossier(true); setNewDossierName('New Dossier'); }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px 0', borderRadius: 12, background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.65)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)'; }}>
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px 0', borderRadius: 12, background: 'transparent', border: '1px dashed var(--dot-grid)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}>
             <Plus size={14} strokeWidth={2} /> New Dossier
           </button>
           <button onClick={e => { e.stopPropagation(); importDossierRef.current?.click(); }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px 0', borderRadius: 12, background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.65)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)'; }}>
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '10px 0', borderRadius: 12, background: 'transparent', border: '1px dashed var(--dot-grid)', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}>
             <FolderDown size={14} strokeWidth={2} /> Import .boardback
           </button>
         </div>
@@ -1861,18 +1893,18 @@ const Toolbar = () => {
   const deleteDossierModal = deleteDossierConfirm && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
       onClick={() => setDeleteDossierConfirm(null)}>
-      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: '24px', width: 300, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 20, padding: '24px', width: 300, boxShadow: 'var(--shadow-panel)' }}
         onClick={e => e.stopPropagation()}>
         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,60,60,0.12)', border: '1px solid rgba(255,60,60,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
           <FolderOpen size={18} color="rgba(255,100,100,0.9)" />
         </div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Delete Dossier?</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.5 }}>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>"{deleteDossierConfirm.name}"</span> and all its boards will be permanently removed.
+        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>Delete Dossier?</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.5 }}>
+          <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>"{deleteDossierConfirm.name}"</span> and all its boards will be permanently removed.
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setDeleteDossierConfirm(null)}
-            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            style={{ flex: 1, padding: '9px 0', borderRadius: 12, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={() => { deleteDossier(deleteDossierConfirm.id); setDeleteDossierConfirm(null); }}
@@ -1887,11 +1919,11 @@ const Toolbar = () => {
   const exportModal = showExportModal && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.80)', backdropFilter: 'blur(12px)' }}
       onClick={() => setShowExportModal(false)}>
-      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: 'var(--shadow-panel)' }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Export Dossier</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.6 }}>
-          Set a name for the exported dossier. The file will be downloaded as a <span style={{ color: 'rgba(200,241,53,0.8)', fontWeight: 600 }}>.boardback</span> file.
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>Export Dossier</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+          Set a name for the exported dossier. The file will be downloaded as a <span style={{ color: 'var(--accent-text)', fontWeight: 600 }}>.boardback</span> file.
         </div>
         <input
           value={exportNameValue}
@@ -1899,13 +1931,13 @@ const Toolbar = () => {
           placeholder="Dossier name…"
           autoFocus
           onKeyDown={e => { if (e.key === 'Enter' && exportNameValue.trim()) { exportDossier(exportNameValue.trim()); setShowExportModal(false); } if (e.key === 'Escape') setShowExportModal(false); }}
-          style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
+          style={{ width: '100%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '9px 12px', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
         />
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setShowExportModal(false)}
-            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
           <button disabled={!exportNameValue.trim()} onClick={() => { if (exportNameValue.trim()) { exportDossier(exportNameValue.trim()); setShowExportModal(false); } }}
-            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: exportNameValue.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: exportNameValue.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: exportNameValue.trim() ? '#c8f135' : 'rgba(255,255,255,0.25)', fontSize: 12, fontWeight: 700, cursor: exportNameValue.trim() ? 'pointer' : 'default' }}>Export</button>
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: exportNameValue.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: exportNameValue.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: exportNameValue.trim() ? '#0a0b16' : 'var(--text-muted)', fontSize: 12, fontWeight: 700, cursor: exportNameValue.trim() ? 'pointer' : 'default' }}>Export</button>
         </div>
       </div>
     </div>
@@ -1914,10 +1946,10 @@ const Toolbar = () => {
   const importModal = pendingImportDossier && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.80)', backdropFilter: 'blur(12px)' }}
       onClick={() => setPendingImportDossier(null)}>
-      <div style={{ background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: 'var(--shadow-panel)' }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Import Dossier</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>Import Dossier</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
           Set a name for the imported dossier.
         </div>
         <input
@@ -1926,13 +1958,13 @@ const Toolbar = () => {
           placeholder="Dossier name…"
           autoFocus
           onKeyDown={e => { if (e.key === 'Enter' && pendingImportName.trim()) { commitImportDossier(pendingImportDossier, pendingImportName.trim()); setPendingImportDossier(null); } if (e.key === 'Escape') setPendingImportDossier(null); }}
-          style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
+          style={{ width: '100%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '9px 12px', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
         />
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setPendingImportDossier(null)}
-            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
           <button disabled={!pendingImportName.trim()} onClick={() => { if (pendingImportName.trim()) { commitImportDossier(pendingImportDossier!, pendingImportName.trim()); setPendingImportDossier(null); } }}
-            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: pendingImportName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: pendingImportName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: pendingImportName.trim() ? '#c8f135' : 'rgba(255,255,255,0.25)', fontSize: 12, fontWeight: 700, cursor: pendingImportName.trim() ? 'pointer' : 'default' }}>Import</button>
+            style={{ flex: 1, padding: '9px 0', borderRadius: 10, background: pendingImportName.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: pendingImportName.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: pendingImportName.trim() ? '#0a0b16' : 'var(--text-muted)', fontSize: 12, fontWeight: 700, cursor: pendingImportName.trim() ? 'pointer' : 'default' }}>Import</button>
         </div>
       </div>
     </div>
@@ -1968,7 +2000,7 @@ const Toolbar = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {menuItems.map((item) => (
                   <button key={item.label} onClick={item.action}
-                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s' }}>
+                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(var(--accent-rgb),0.12)' : 'var(--surface-inset-bg)', border: item.active ? '1px solid rgba(var(--accent-rgb),0.35)' : 'var(--border-panel)', color: item.active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s' }}>
                     {item.icon}
                     <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>{item.label}</span>
                   </button>
@@ -1976,29 +2008,29 @@ const Toolbar = () => {
               </div>
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 10px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 10px', background: 'var(--surface-pill-bg)', backdropFilter: 'var(--surface-blur)', WebkitBackdropFilter: 'var(--surface-blur)', border: 'var(--border-panel)', borderRadius: 40, boxShadow: 'var(--shadow-pill)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
             <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); setShowSettings(false); }}
-              style={{ width: 34, height: 34, borderRadius: 12, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', fontSize: 20 }}>
+              style={{ width: 34, height: 34, borderRadius: 12, background: showRooms ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: showRooms ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', fontSize: 20 }}>
               {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
             </button>
             <button onClick={undo} disabled={!canUndo}
-              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canUndo ? 'var(--text-muted)' : 'var(--surface-inset-bg)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Undo2 size={16} strokeWidth={2} />
             </button>
             <button onClick={redo} disabled={!canRedo}
-              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'transparent', border: 'none', color: canRedo ? 'var(--text-muted)' : 'var(--surface-inset-bg)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Redo2 size={16} strokeWidth={2} />
             </button>
-            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: 28, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
             <button onClick={handleAddBookmark}
-              style={{ width: 40, height: 40, borderRadius: 14, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
+              style={{ width: 40, height: 40, borderRadius: 14, background: 'var(--accent-bright)', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-fab)', border: 'var(--border-panel)', cursor: 'pointer', flexShrink: 0 }}>
               <Plus size={20} strokeWidth={2.5} />
             </button>
-            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: 28, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
             <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); setShowSearch(false); setSearchQuery(''); }} onMouseDown={e => e.stopPropagation()}
-              style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              style={{ width: 34, height: 34, borderRadius: 12, background: showMenu ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: showMenu ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={18} strokeWidth={2} />
-              {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
+              {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
             </button>
           </div>
         </div>
@@ -2037,7 +2069,7 @@ const Toolbar = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
                 {mobileMenuItems.map((item) => (
                   <button key={item.label} onClick={item.action}
-                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.05)', border: item.active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: item.active ? '#c8f135' : 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s' }}>
+                    style={{ borderRadius: 14, padding: '10px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: item.active ? 'rgba(var(--accent-rgb),0.12)' : 'var(--surface-inset-bg)', border: item.active ? '1px solid rgba(var(--accent-rgb),0.35)' : 'var(--border-panel)', color: item.active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s' }}>
                     {item.icon}
                     <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>{item.label}</span>
                   </button>
@@ -2045,30 +2077,30 @@ const Toolbar = () => {
               </div>
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 40, boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px', background: 'var(--surface-pill-bg)', backdropFilter: 'var(--surface-blur)', WebkitBackdropFilter: 'var(--surface-blur)', border: 'var(--border-panel)', borderRadius: 40, boxShadow: 'var(--shadow-pill)', height: 60, animation: 'pillFloat 5s ease-in-out infinite' }}>
             <button ref={roomsBtnRef} onClick={() => { setShowRooms(v => !v); setShowMenu(false); setShowTags(false); setShowAddWs(false); setEmojiPickerFor(null); setShowSettings(false); }}
-              style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+              style={{ width: 36, height: 36, borderRadius: 13, background: showRooms ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: showRooms ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
               {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
             </button>
-            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: 28, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
             <button onClick={undo} disabled={!canUndo}
-              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canUndo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canUndo ? 'var(--text-muted)' : 'var(--surface-inset-bg)', cursor: canUndo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Undo2 size={18} strokeWidth={2} />
             </button>
             <button onClick={redo} disabled={!canRedo}
-              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canRedo ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ width: 34, height: 34, borderRadius: 11, background: 'transparent', border: 'none', color: canRedo ? 'var(--text-muted)' : 'var(--surface-inset-bg)', cursor: canRedo ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Redo2 size={18} strokeWidth={2} />
             </button>
-            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: 28, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
             <button onClick={handleAddBookmark}
-              style={{ width: 44, height: 44, borderRadius: 16, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(200,241,53,0.5)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
+              style={{ width: 44, height: 44, borderRadius: 16, background: 'var(--accent-bright)', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-fab)', border: 'var(--border-panel)', cursor: 'pointer', flexShrink: 0 }}>
               <Plus size={22} strokeWidth={2.5} />
             </button>
-            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: 28, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
             <button onClick={() => { setShowMenu(v => !v); setShowRooms(false); setShowTags(false); setShowSettings(false); setShowSearch(false); setSearchQuery(''); }} onMouseDown={e => e.stopPropagation()}
-              style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showMenu ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              style={{ width: 38, height: 38, borderRadius: 13, background: showMenu ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: showMenu ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
               <Menu size={20} strokeWidth={2} />
-              {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
+              {hasActiveFilters && <span style={{ position: 'absolute', top: 4, right: 4, width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
             </button>
           </div>
         </div>
@@ -2088,7 +2120,7 @@ const Toolbar = () => {
     {importModal}
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-100" style={{ maxWidth: 'calc(100vw - 2rem)', userSelect: 'none' }}>
       <div className="flex items-center"
-        style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'rgba(10, 11, 22, 0.72)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '40px', boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)', height: 76 }}>
+        style={{ gap: 8, padding: '0 16px', animation: 'pillFloat 5s ease-in-out infinite', background: 'var(--surface-pill-bg)', backdropFilter: 'var(--surface-blur)', WebkitBackdropFilter: 'var(--surface-blur)', border: 'var(--border-panel)', borderRadius: '40px', boxShadow: 'var(--shadow-pill)', height: 76 }}>
 
         {/* ── Boards ─────────────────────────────────────────────────── */}
         {maxInlineRooms === 0 ? (
@@ -2096,7 +2128,7 @@ const Toolbar = () => {
           <div className="relative" ref={roomsRef}>
             {showRooms && (
               <div style={{ ...panelStyle, width: Math.min(230, window.innerWidth - 32) }}>
-                <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Boards</div>
+                <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Boards</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                   {rooms.map(room => {
                     const active = room.id === currentRoomId;
@@ -2110,7 +2142,7 @@ const Toolbar = () => {
                         onDragEnd={handleDragEnd}
                       >
                         <button onClick={() => { switchRoom(room.id); setShowRooms(false); }}
-                          style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.04)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.07)', color: active ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
+                          style={{ width: '100%', borderRadius: 14, padding: '12px 8px', background: active ? 'rgba(var(--accent-rgb),0.12)' : 'var(--surface-inset-bg)', border: active ? '1px solid rgba(var(--accent-rgb),0.35)' : 'var(--border-panel)', color: active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, transition: 'all 0.15s' }}>
                           <span style={{ fontSize: 22 }}>{getRoomEmoji(room)}</span>
                           <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>{room.name}</span>
                         </button>
@@ -2121,21 +2153,21 @@ const Toolbar = () => {
                 {/* Add workspace inline */}
                 {!showAddWs ? (
                   <button onClick={() => setShowAddWs(true)}
-                    style={{ width: '100%', padding: '9px 0', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1.5px dashed rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, transition: 'all 0.15s' }}>
+                    style={{ width: '100%', padding: '9px 0', borderRadius: 12, background: 'var(--surface-inset-bg)', border: '1.5px dashed var(--dot-grid)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, transition: 'all 0.15s' }}>
                     <LayersPlus size={14} strokeWidth={2} /> New
                   </button>
                 ) : (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <button onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
-                        style={{ fontSize: 22, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10, padding: '5px 7px', cursor: 'pointer', lineHeight: 1 }}>
+                        style={{ fontSize: 22, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '5px 7px', cursor: 'pointer', lineHeight: 1 }}>
                         {newWsEmoji}
                       </button>
                       <input ref={wsInputRef} value={newWsName} onChange={e => setNewWsName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
                         placeholder="Board name..."
                         autoFocus
-                        style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '7px 9px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+                        style={{ flex: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '7px 9px', color: 'var(--text-primary)', fontSize: 12, outline: 'none' }}
                       />
                     </div>
                     {emojiPickerFor === 'new' && renderEmojiPicker(
@@ -2145,9 +2177,9 @@ const Toolbar = () => {
                     )}
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={handleAddWorkspace} disabled={!newWsName.trim()}
-                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, background: newWsName.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: newWsName.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: newWsName.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: newWsName.trim() ? 'pointer' : 'default', fontSize: 11, fontWeight: 700 }}>Add</button>
+                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, background: newWsName.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: newWsName.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: newWsName.trim() ? '#0a0b16' : 'var(--text-muted)', cursor: newWsName.trim() ? 'pointer' : 'default', fontSize: 11, fontWeight: 700 }}>Add</button>
                       <button onClick={() => { setShowAddWs(false); setEmojiPickerFor(null); }}
-                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>Cancel</button>
+                        style={{ flex: 1, padding: '7px 0', borderRadius: 9, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>Cancel</button>
                     </div>
                   </div>
                 )}
@@ -2155,10 +2187,10 @@ const Toolbar = () => {
             )}
             <div className="flex flex-col items-center justify-center" style={{ margin: '0 12px' }}>
               <button ref={roomsBtnRef} onClick={() => setShowRooms(v => !v)}
-                style={{ width: 44, height: 36, borderRadius: 13, background: showRooms ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showRooms ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, position: 'relative', top: '-5px' }}>
+                style={{ width: 44, height: 36, borderRadius: 13, background: showRooms ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: showRooms ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, position: 'relative', top: '-5px' }}>
                 {currentRoom ? getRoomEmoji(currentRoom) : '📌'}
               </button>
-              <span style={{ fontSize: 9, fontWeight: 700, color: showRooms ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.08em', userSelect: 'none', lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: showRooms ? 'var(--accent-text)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', userSelect: 'none', lineHeight: 1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
                 {currentRoom?.name}
               </span>
             </div>
@@ -2197,14 +2229,14 @@ const Toolbar = () => {
                   {/* Edit-room panel — rename + emoji change */}
                   {renamingRoomId === room.id && (
                     <div style={{ ...panelStyle, minWidth: 230 }}>
-                      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
                         Edit board
                       </div>
                       {/* Emoji selector */}
                       <div style={{ marginBottom: 10 }}>
                         <button
                           onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(200,241,53,0.10)' : 'rgba(255,255,255,0.06)', border: pickerOpen ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.09)', cursor: 'pointer', transition: 'all 0.15s' }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: pickerOpen ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
                         >
                           <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
                         </button>
@@ -2225,12 +2257,12 @@ const Toolbar = () => {
                             if (e.key === 'Escape') { setRenamingRoomId(null); setRenameValue(''); setEmojiPickerFor(null); }
                           }}
                           placeholder="Board name..."
-                          style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+                          style={{ flex: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '8px 10px', color: 'var(--text-primary)', fontSize: 12, outline: 'none' }}
                         />
                         <button
                           onClick={() => { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }}
                           disabled={!renameValue.trim()}
-                          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: renameValue.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: renameValue.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: renameValue.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: renameValue.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: renameValue.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: renameValue.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: renameValue.trim() ? '#0a0b16' : 'var(--text-muted)', cursor: renameValue.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                         >
                           <Check size={15} strokeWidth={2.5} />
                         </button>
@@ -2270,8 +2302,8 @@ const Toolbar = () => {
                         }
                       }}
                       title={active ? 'Edit board' : room.name}
-                      style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
-                      onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; } }}
+                      style={{ width: 44, height: 36, borderRadius: 13, background: active ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: active ? 22 : 20, transition: 'all 0.18s', position: 'relative', top: '-5px', filter: active ? 'none' : 'grayscale(0.2) opacity(0.7)' }}
+                      onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'none'; (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; } }}
                       onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.filter = 'grayscale(0.2) opacity(0.7)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
                     >
                       {getRoomEmoji(room)}
@@ -2282,13 +2314,13 @@ const Toolbar = () => {
                         onMouseDown={e => e.stopPropagation()}
                         onClick={e => { e.stopPropagation(); if (renamingRoomId === room.id) return; const tabEl = (e.currentTarget as HTMLButtonElement).closest('[data-room-wrapper]') as HTMLElement; const r = (tabEl || (e.currentTarget as HTMLButtonElement).parentElement!.parentElement!).getBoundingClientRect(); setRoomMenuPos(p => p?.roomId === room.id ? null : { x: r.left + r.width / 2, y: r.top, roomId: room.id }); }}
                         title="Board options"
-                        style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, borderRadius: '50%', background: 'rgba(120,120,130,0.45)', border: '1.5px solid rgba(10,11,22,0.9)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
+                        style={{ position: 'absolute', top: -5, right: -5, width: 16, height: 16, borderRadius: '50%', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
                       >
                         {roomMenuPos?.roomId === room.id ? <ChevronDown size={8} /> : <ChevronUp size={8} />}
                       </button>
                     )}
                   </div>
-                  <span style={{ ...labelStyle, color: active ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)', maxWidth: 72 }}>
+                  <span style={{ ...labelStyle, color: active ? 'var(--accent-text)' : 'var(--text-muted)', maxWidth: 72 }}>
                     {room.name.length > 11 ? room.name.slice(0, 10) + '…' : room.name}
                   </span>
 
@@ -2308,14 +2340,14 @@ const Toolbar = () => {
                   const pickerOpen = emojiPickerFor === room.id;
                   return (
                     <div style={{ ...panelStyle, minWidth: 230 }}>
-                      <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
                         Edit board
                       </div>
                       {/* Emoji selector */}
                       <div style={{ marginBottom: 10 }}>
                         <button
                           onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(200,241,53,0.10)' : 'rgba(255,255,255,0.06)', border: pickerOpen ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.09)', cursor: 'pointer', transition: 'all 0.15s' }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: pickerOpen ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
                         >
                           <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
                         </button>
@@ -2336,12 +2368,12 @@ const Toolbar = () => {
                             if (e.key === 'Escape') { setRenamingRoomId(null); setRenameValue(''); setEmojiPickerFor(null); }
                           }}
                           placeholder="Board name..."
-                          style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '8px 10px', color: '#ffffff', fontSize: 12, outline: 'none' }}
+                          style={{ flex: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '8px 10px', color: 'var(--text-primary)', fontSize: 12, outline: 'none' }}
                         />
                         <button
                           onClick={() => { commitRename(); setEmojiPickerFor(null); setRenamingRoomId(null); }}
                           disabled={!renameValue.trim()}
-                          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: renameValue.trim() ? 'rgba(200,241,53,0.15)' : 'rgba(255,255,255,0.04)', border: renameValue.trim() ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.08)', color: renameValue.trim() ? '#c8f135' : 'rgba(255,255,255,0.3)', cursor: renameValue.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                          style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: renameValue.trim() ? 'var(--accent-bright)' : 'var(--surface-inset-bg)', border: renameValue.trim() ? 'var(--border-panel)' : 'var(--border-panel)', color: renameValue.trim() ? '#0a0b16' : 'var(--text-muted)', cursor: renameValue.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                         >
                           <Check size={15} strokeWidth={2.5} />
                         </button>
@@ -2363,7 +2395,7 @@ const Toolbar = () => {
                 })()}
                 {showOverflow && (
                   <div style={{ ...panelStyle, minWidth: 190 }}>
-                    <div style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Other boards</div>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, paddingLeft: 2 }}>Other boards</div>
                     {overflowRooms.map(room => {
                       const active = room.id === currentRoomId;
                       return (
@@ -2384,9 +2416,9 @@ const Toolbar = () => {
                           onDragEnd={handleDragEnd}
                         >
                           <button onClick={() => { switchRoom(room.id); setShowOverflow(false); }}
-                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(200,241,53,0.12)' : 'rgba(255,255,255,0.03)', border: active ? '1px solid rgba(200,241,53,0.35)' : '1px solid transparent', color: active ? '#c8f135' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, textAlign: 'left' }}
-                            onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
-                            onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.6)'; } }}
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(var(--accent-rgb),0.12)' : 'var(--surface-inset-bg)', border: active ? '1px solid rgba(var(--accent-rgb),0.35)' : '1px solid transparent', color: active ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, textAlign: 'left' }}
+                            onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; } }}
+                            onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; } }}
                           >
                             <span style={{ fontSize: 18 }}>{getRoomEmoji(room)}</span>
                             {room.name}
@@ -2395,9 +2427,9 @@ const Toolbar = () => {
                           <button
                             onClick={e => { e.stopPropagation(); if (overflowCloseTimer.current) clearTimeout(overflowCloseTimer.current); const r = (e.currentTarget as HTMLButtonElement).getBoundingClientRect(); setRoomMenuPos(p => p?.roomId === room.id ? null : { x: r.right, y: r.top, roomId: room.id }); }}
                             title="Board options"
-                            style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; }}
+                            style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 7, background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
                           >
                             <MoreHorizontal size={13} strokeWidth={2} />
                           </button>
@@ -2416,13 +2448,13 @@ const Toolbar = () => {
                     }
                     setShowOverflow(v => !v);
                   }}
-                    style={{ width: 44, height: 36, borderRadius: 13, background: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? '#c8f135' : 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(200,241,53,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = '#c8f135'; }}
-                    onMouseLeave={e => { const isActive = showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId)); (e.currentTarget as HTMLButtonElement).style.background = isActive ? 'rgba(200,241,53,0.12)' : 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = isActive ? '#c8f135' : 'rgba(255,255,255,0.5)'; }}
+                    style={{ width: 44, height: 36, borderRadius: 13, background: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--accent-rgb),0.12)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent)'; }}
+                    onMouseLeave={e => { const isActive = showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId)); (e.currentTarget as HTMLButtonElement).style.background = isActive ? 'rgba(var(--accent-rgb),0.12)' : 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = isActive ? 'var(--accent)' : 'var(--text-muted)'; }}
                   >
                     {(() => { const activeOverflow = overflowRooms.find(r => r.id === currentRoomId); return activeOverflow ? <span style={{ fontSize: 20, lineHeight: 1 }}>{getRoomEmoji(activeOverflow)}</span> : <MoreHorizontal size={18} strokeWidth={2} />; })()}
                   </button>
-                  <span style={{ ...labelStyle, color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>More</span>
+                  <span style={{ ...labelStyle, color: (showOverflow || overflowRooms.some(r => r.id === currentRoomId) || (renamingRoomId != null && overflowRooms.some(r => r.id === renamingRoomId))) ? 'var(--accent-text)' : 'var(--text-muted)' }}>More</span>
                 </div>
               </div>
             )}
@@ -2434,9 +2466,9 @@ const Toolbar = () => {
                 <button
                   ref={addWsBtnRef}
                   onClick={() => { setShowAddWs(v => !v); setEmojiPickerFor(null); }}
-                  style={{ width: 44, height: 36, borderRadius: 13, background: showAddWs ? 'rgba(200,241,53,0.12)' : 'transparent', border: 'none', color: showAddWs ? '#c8f135' : 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
-                  onMouseEnter={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; } }}
-                  onMouseLeave={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; } }}
+                  style={{ width: 44, height: 36, borderRadius: 13, background: showAddWs ? 'rgba(var(--accent-rgb),0.12)' : 'transparent', border: 'none', color: showAddWs ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.18s', position: 'relative', top: '-5px' }}
+                  onMouseEnter={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; } }}
+                  onMouseLeave={e => { if (!showAddWs) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; } }}
                 >
                   <LayersPlus size={16} strokeWidth={2.5} />
                 </button>
@@ -2446,7 +2478,7 @@ const Toolbar = () => {
           </div>
         )}
 
-        <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 36, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
 
         {/* Undo / Redo */}
         {[
@@ -2454,28 +2486,28 @@ const Toolbar = () => {
           { icon: <Redo2 size={18} strokeWidth={2} />, action: redo, enabled: canRedo, label: '⌘⇧Z' },
         ].map((item) => (
           <button key={item.label} onClick={item.action} disabled={!item.enabled} title={item.label}
-            style={{ width: 36, height: 36, borderRadius: 10, background: 'transparent', border: 'none', color: item.enabled ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)', cursor: item.enabled ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-            onMouseEnter={e => { if (!item.enabled) return; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.color = '#ffffff'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = item.enabled ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.18)'; }}
+            style={{ width: 36, height: 36, borderRadius: 10, background: 'transparent', border: 'none', color: item.enabled ? 'var(--text-muted)' : 'var(--surface-inset-bg)', cursor: item.enabled ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+            onMouseEnter={e => { if (!item.enabled) return; (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-inset-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = item.enabled ? 'var(--text-muted)' : 'var(--surface-inset-bg)'; }}
           >
             {item.icon}
           </button>
         ))}
 
-        <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 36, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
 
         {/* Primary + bookmark */}
         <button onClick={handleAddBookmark}
-          style={{ width: 52, height: 52, borderRadius: 18, background: '#c8f135', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(200,241,53,0.5), 0 0 8px rgba(200,241,53,0.3)', border: 'none', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 36px rgba(200,241,53,0.7), 0 0 12px rgba(200,241,53,0.4)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(200,241,53,0.5), 0 0 8px rgba(200,241,53,0.3)'; }}
+          style={{ width: 52, height: 52, borderRadius: 18, background: 'var(--accent-bright)', color: '#0a0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-fab)', border: 'var(--border-panel)', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s cubic-bezier(.34,1.56,.64,1)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'var(--shadow-fab)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'var(--shadow-fab)'; }}
           onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.94)'; }}
           onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.12)'; }}
         >
           <Plus size={26} strokeWidth={2.5} />
         </button>
 
-        <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+        <div style={{ width: 1, height: 36, background: 'var(--surface-inset-bg)', flexShrink: 0 }} />
 
         {/* Sticker */}
         <div className="flex flex-col items-center justify-center">
@@ -2504,9 +2536,9 @@ const Toolbar = () => {
             onMouseDown={onDown}
           >
             <Tag size={20} strokeWidth={2} />
-            {hasActiveFilters && <span style={{ position: 'absolute', top: 2, right: 2, width: 7, height: 7, borderRadius: '50%', background: '#c8f135', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
+            {hasActiveFilters && <span style={{ position: 'absolute', top: 2, right: 2, width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', border: '1.5px solid rgba(10,11,22,0.9)' }} />}
           </button>
-          <span style={{ ...labelStyle, color: hasActiveFilters ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Tags</span>
+          <span style={{ ...labelStyle, color: hasActiveFilters ? 'var(--accent-text)' : 'var(--text-muted)' }}>Tags</span>
         </div>
 
         {/* Arrange */}
@@ -2528,7 +2560,7 @@ const Toolbar = () => {
           >
             <Search size={20} strokeWidth={2} />
           </button>
-          <span style={{ ...labelStyle, color: showSearch ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Search</span>
+          <span style={{ ...labelStyle, color: showSearch ? 'var(--accent-text)' : 'var(--text-muted)' }}>Search</span>
         </div>
 
         <div className="relative flex flex-col items-center justify-center"
@@ -2546,7 +2578,7 @@ const Toolbar = () => {
           >
             <Settings size={20} strokeWidth={2} />
           </button>
-          <span style={{ ...labelStyle, color: showSettings ? 'rgba(200,241,53,0.7)' : 'rgba(255,255,255,0.28)' }}>Settings</span>
+          <span style={{ ...labelStyle, color: showSettings ? 'var(--accent-text)' : 'var(--text-muted)' }}>Settings</span>
         </div>
       </div>
     </div>

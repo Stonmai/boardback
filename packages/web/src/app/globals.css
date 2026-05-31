@@ -7,12 +7,72 @@
 }
 
 :root {
-  --bg-deep: #0b0c16;
-  --bg-canvas: #0d0e1a;
   --neon-lime: #c8f135;
   --neon-cyan: #00f5ff;
   --neon-purple: #a855f7;
   --neon-pink: #f472b6;
+
+  /* ── Semantic theme tokens — Light (Roadbow) is the default ── */
+  --bg-deep: #faf7ef;
+  --bg-canvas: #fffdf3;
+  --text-primary: #1a1a1a;
+  --text-muted: rgba(0, 0, 0, 0.622);
+  --canvas-bg: #fffdf3;
+  --dot-grid: rgba(0, 0, 0, 0.75);
+
+  --surface-pill-bg: rgba(255, 255, 255, 0.75);
+  --surface-panel-bg: rgba(255, 255, 255, 0.99);
+  --surface-inset-bg: rgba(0, 0, 0, 0.1);
+  --surface-blur: blur(28px);
+  --border-panel: 2px solid #000000;     /* neo-brutalist black outline */
+  --shadow-panel: none;                  /* no shadows in light theme */
+  --shadow-pill: none;
+  --shadow-popover: none;
+  --shadow-fab: none;
+
+  --node-bg: rgba(255, 255, 255, 0.78);
+  --node-blur: blur(20px);
+  --node-border: 2px solid #000000;
+  --node-shadow: none;
+
+  --accent: #91a8ed;          /* active color — tabs, modal actives, toggles */
+  --accent-rgb: 145, 168, 237;
+  --accent-soft: rgba(145, 168, 237, 0.22);
+  --accent-text: #6580d2;     /* darker active variant — readable label text */
+  --accent-bright: #fee347;   /* signature yellow — FAB, dots, swatches */
+  --accent-neutral: #64748b;  /* neutral/grey node accent, visible on light */
+}
+
+/* ── Midnight theme: dark glassmorphism, neon-lime accent ── */
+[data-theme="midnight"] {
+  --bg-deep: #0b0c16;
+  --bg-canvas: #0d0e1a;
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.499);
+  --canvas-bg: #0d0e1a;
+  --dot-grid: rgba(255, 255, 255, 0.40);
+
+  --surface-pill-bg: rgba(20, 21, 31, 0.85);
+  --surface-panel-bg: rgba(20, 21, 31, 0.99);
+  --surface-inset-bg: rgba(255, 255, 255, 0.1);
+  --surface-blur: blur(28px);
+  --border-panel: 2px solid rgba(255, 255, 255, 0.85);   /* neo-brutalist white outline */
+  --shadow-panel: none;
+  --shadow-pill: none;
+  --shadow-popover: none;
+  --shadow-fab: none;
+
+  --node-bg: rgba(12, 13, 28, 0.75);
+  --node-blur: blur(20px);
+  --node-border: 2px solid rgba(255, 255, 255, 0.85);
+  --node-shadow: none;
+
+  --accent: #ff7051;          /* active color — tabs, modal actives, toggles */
+  --accent-rgb: 255, 112, 81;
+  --accent-soft: rgba(255, 112, 81, 0.35);
+  --accent-text: #ff7051;     /* active label text (already readable on dark) */
+  --accent-bright: #c8f135;   /* signature lime — FAB, dots, swatches */
+  --accent-neutral: #d0d6e2;  /* neutral/grey node accent, visible on dark */
 }
 
 * {
@@ -20,7 +80,7 @@
 }
 
 body {
-  color: #ffffff;
+  color: var(--text-primary);
   background: var(--bg-deep);
   margin: 0;
   padding: 0;
@@ -34,12 +94,16 @@ body {
     background: transparent !important;
 }
 
-.react-flow__attribution a::after {
+a[aria-label="React Flow attribution"] {
+  display: none;
+}
+
+/* .react-flow__attribution a::after {
   content: "🙏";
   margin-left: 4px;
   font-size: 12px;
-  /*color: #888;*/
-}
+  color: #888;
+} */
 
 .react-flow__pane {
   background-color: transparent !important;
@@ -52,7 +116,7 @@ body {
 
 /* Subtle dot grid like the reference */
 .react-flow__background pattern circle {
-  fill: rgba(255, 255, 255, 0.15) !important;
+  fill: var(--dot-grid) !important;
 }
 
 /* Layer ordering: groups behind edges, edges behind regular nodes */
@@ -68,27 +132,59 @@ body {
   z-index: 2 !important;
 }
 
+/* ── Light theme: keep text readable on light cards & popovers ── */
+:root:not([data-theme="midnight"]) :is(.react-flow__node-bookmark, .react-flow__node-tab, .react-flow__node-note, .react-flow__node-group, .glass, .glass-dark, .node-action-bar) .text-white {
+  color: #1a1a1a !important;
+}
+:root:not([data-theme="midnight"]) :is(.react-flow__node-bookmark, .react-flow__node-tab, .react-flow__node-note, .react-flow__node-group, .glass, .glass-dark, .node-action-bar) :is(.text-white\/90, .text-white\/80, .text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50) {
+  color: rgba(0, 0, 0, 0.72) !important;
+}
+:root:not([data-theme="midnight"]) :is(.react-flow__node-bookmark, .react-flow__node-tab, .react-flow__node-note, .react-flow__node-group, .glass, .glass-dark, .node-action-bar) :is(.text-white\/40, .text-white\/35, .text-white\/30, .text-white\/25) {
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+:root:not([data-theme="midnight"]) .glass-dark.border-white\/20,
+:root:not([data-theme="midnight"]) .glass-dark .border-white\/20 {
+  border-color: #000000 !important;
+}
+/* Node action bar: hover uses the accent color (blue in light, coral in dark) */
+.node-action-bar .hover\:bg-white\/10:hover {
+  background-color: var(--accent-soft) !important;
+}
+.node-action-bar .hover\:text-white:hover {
+  color: var(--accent) !important;
+}
+/* Light theme: static white tints (divider + active button) need a visible dark tint */
+:root:not([data-theme="midnight"]) .node-action-bar .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* No drop shadows on popovers/menus/toolbars in either theme (keep blur + outlines) */
+.glass,
+.glass-dark {
+  box-shadow: none !important;
+}
+
 /* Controls styling */
 .react-flow__controls {
-  background: rgba(13, 14, 26, 0.7) !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: var(--surface-panel-bg) !important;
+  backdrop-filter: var(--surface-blur);
+  border: var(--border-panel) !important;
   border-radius: 14px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+  box-shadow: var(--shadow-panel) !important;
   overflow: hidden;
 }
 
 .react-flow__controls-button {
   background: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-  color: rgba(255,255,255,0.5) !important;
+  border-bottom: var(--border-panel) !important;
+  color: var(--text-muted) !important;
   transition: all 0.2s !important;
 }
 
 .react-flow__controls-button:hover {
-  background: rgba(255,255,255,0.06) !important;
-  color: #fff !important;
+  background: var(--surface-inset-bg) !important;
+  color: var(--text-primary) !important;
 }
 
 .react-flow__controls-button:last-child {
@@ -127,17 +223,17 @@ body {
 
 /* ── Glassmorphism utils ── */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-panel-bg);
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+  border: var(--border-panel);
 }
 
 .glass-dark {
-  background: rgba(8, 8, 20, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-panel-bg);
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+  border: var(--border-panel);
 }
 
 /* ── Glow effects ── */
@@ -183,7 +279,7 @@ body {
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--dot-grid); border-radius: 2px; }
 
 /* ── Connection Handles ── */
 .react-flow__handle {
@@ -202,7 +298,7 @@ body {
 .group:hover .react-flow__handle,
 .react-flow__handle:hover {
   opacity: 1 !important;
-  box-shadow: 0 0 0 3px var(--accent-glow, rgba(200, 241, 53, 0.35)) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow, var(--accent-soft)) !important;
 }
 
 /* Scale per-direction, preserving ReactFlow's centering translate */
@@ -214,15 +310,15 @@ body {
 /* Active (connecting) state */
 .react-flow__handle.connecting {
   opacity: 1 !important;
-  background: var(--accent-color, #c8f135) !important;
-  box-shadow: 0 0 0 4px var(--accent-glow, rgba(200, 241, 53, 0.4)) !important;
+  background: var(--accent-color, var(--accent)) !important;
+  box-shadow: 0 0 0 4px var(--accent-glow, var(--accent-soft)) !important;
 }
 
 /* Valid drop target during connection */
 .react-flow__handle.valid {
   opacity: 1 !important;
-  background: var(--accent-color, #c8f135) !important;
-  box-shadow: 0 0 0 5px var(--accent-glow, rgba(200, 241, 53, 0.5)) !important;
+  background: var(--accent-color, var(--accent)) !important;
+  box-shadow: 0 0 0 5px var(--accent-glow, var(--accent-soft)) !important;
   transform: scale(1.4) !important;
 }
 

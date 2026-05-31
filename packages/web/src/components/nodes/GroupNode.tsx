@@ -128,26 +128,24 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
       style={{
         borderRadius: 20,
         border: isDropTarget
-          ? '2px dashed rgba(200, 241, 53, 0.85)'
+          ? '2px dashed var(--accent)'
           : selected
-          ? '2px solid rgba(255,255,255,0.35)'
-          : '2px dashed rgba(255,255,255,0.15)',
+          ? '2px solid var(--text-muted)'
+          : '2px dashed var(--dot-grid)',
         background: isDropTarget
-          ? 'rgba(200, 241, 53, 0.06)'
-          : selected
-          ? 'rgba(255,255,255,0.04)'
-          : 'rgba(255,255,255,0.025)',
+          ? 'var(--accent-soft)'
+          : 'var(--surface-inset-bg)',
         backdropFilter: 'blur(4px)',
         transition: 'border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease',
         boxShadow: isDropTarget
-          ? '0 0 0 2px rgba(200,241,53,0.2), inset 0 0 40px rgba(200,241,53,0.04)'
+          ? '0 0 0 2px var(--accent-soft), inset 0 0 40px var(--accent-soft)'
           : selected
-          ? '0 0 0 2px rgba(255,255,255,0.1)'
+          ? '0 0 0 2px var(--surface-inset-bg)'
           : 'none',
       }}
     >
       <NodeResizer
-        color="rgba(255,255,255,0.4)"
+        color="var(--text-muted)"
         isVisible={selected}
         minWidth={200}
         minHeight={150}
@@ -172,8 +170,8 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
               placeholder="NEW GROUP"
               className="rounded-lg px-2 py-0.5 text-[25px] font-bold tracking-widest uppercase text-white outline-none placeholder:text-white/30"
               style={{
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'var(--surface-inset-bg)',
+                border: 'var(--border-panel)',
                 width: 240,
               }}
               autoFocus
@@ -202,9 +200,9 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
               fontWeight: 700,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              background: isDropTarget ? 'rgba(200,241,53,0.18)' : 'rgba(255,255,255,0.08)',
-              color: isDropTarget ? '#c8f135' : 'rgba(255,255,255,0.55)',
-              border: isDropTarget ? '1px solid rgba(200,241,53,0.35)' : '1px solid rgba(255,255,255,0.1)',
+              background: isDropTarget ? 'var(--accent-soft)' : 'var(--surface-inset-bg)',
+              color: isDropTarget ? 'var(--accent)' : 'var(--text-muted)',
+              border: isDropTarget ? '1px solid rgba(var(--accent-rgb),0.35)' : 'var(--border-panel)',
               backdropFilter: 'blur(8px)',
               transition: 'all 0.15s ease',
               cursor: 'text',
@@ -265,7 +263,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
                     <span
                       key={tag}
                       className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase cursor-pointer transition-colors hover:bg-red-500/20 hover:text-red-400"
-                      style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      style={{ background: 'var(--surface-inset-bg)', color: 'var(--text-muted)', border: 'var(--border-panel)' }}
                       onClick={() => handleRemoveTag(tag)}
                     >
                       {tag} <X size={8} />
@@ -284,7 +282,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
                 placeholder="Add tag & press Enter"
                 autoFocus
                 className="w-full rounded-lg px-2.5 py-1.5 text-[11px] text-white outline-none placeholder:text-white/30"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)' }}
               />
             </div>
           )}
@@ -304,7 +302,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
           <FolderX size={15} />
         </button>
         {(data as any).count !== undefined && (
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 600, padding: '0 6px' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, padding: '0 6px' }}>
             {(data as any).count} items
           </span>
         )}
@@ -319,7 +317,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
             pointerEvents: 'none',
           }}
         >
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(200,241,53,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(var(--accent-rgb),0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Drop to add
           </span>
         </div>
@@ -329,7 +327,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
       {(data.tags as string[] | undefined) && (data.tags as string[]).length > 0 && (
         <div style={{ position: 'absolute', bottom: 10, left: 12, display: 'flex', flexWrap: 'wrap', gap: 4, pointerEvents: 'none' }}>
           {(data.tags as string[]).map((tag, idx) => (
-            <span key={idx} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span key={idx} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', background: 'var(--surface-inset-bg)', color: 'var(--text-muted)', border: 'var(--border-panel)' }}>
               {tag}
             </span>
           ))}

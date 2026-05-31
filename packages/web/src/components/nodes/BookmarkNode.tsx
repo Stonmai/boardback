@@ -14,7 +14,7 @@ const COLORS: Record<
   string,
   { accent: string; glow: string; ring: string; swatch: string }
 > = {
-  white: { accent: '#ffffffce', glow: '0 0 28px rgba(255,255,255,0.4)', ring: 'rgba(255,255,255,0.7)', swatch: '#d0d6e2' },
+  white: { accent: 'var(--accent-neutral)', glow: '0 0 28px rgba(148,163,184,0.4)', ring: 'var(--accent-neutral)', swatch: '#d0d6e2' },
   purple: { accent: '#a855f7', glow: '0 0 28px rgba(168,85,247,0.4)', ring: 'rgba(168,85,247,0.7)', swatch: '#a855f7' },
   blue: { accent: '#3b82f6', glow: '0 0 28px rgba(59,130,246,0.4)', ring: 'rgba(59,130,246,0.7)', swatch: '#3b82f6' },
   yellow:  { accent: '#f5d70b', glow: '0 0 28px rgba(225,175,69,0.4)', ring: 'rgba(225,175,69,0.7)', swatch: '#f5d70b' },
@@ -34,6 +34,15 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
   const [tempTitle, setTempTitle] = React.useState(data.title || '');
   const [tempUrl, setTempUrl] = React.useState(data.url || '');
   const [tempDescription, setTempDescription] = React.useState(data.description || '');
+  const [nodeHeight, setNodeHeight] = React.useState(0);
+  const [nodeWidth, setNodeWidth] = React.useState(0);
+  const titleTaRef = useRef<HTMLTextAreaElement>(null);
+  const urlTaRef = useRef<HTMLTextAreaElement>(null);
+  const autosize = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
 
   const deleteNode = useStore((s) => s.deleteNode);
   const ungroupNode = useStore((s) => s.ungroupNode);
@@ -57,8 +66,35 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
     }
   }, [editingNodeId, id, setEditingNodeId]);
 
+  // Track node size so the title can clamp and fonts can scale with it.
+  React.useEffect(() => {
+    const el = nodeRef.current;
+    if (!el) return;
+    const update = () => { setNodeHeight(el.clientHeight); setNodeWidth(el.clientWidth); };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const currentColor = (data.color as string) || 'white';
   const style = COLORS[currentColor] ?? COLORS.white;
+
+  // More node height → more title lines (1–6). Wider node → larger fonts (base = min).
+  const titleMaxLines = Math.max(1, Math.min(6, Math.floor(nodeHeight / 110)));
+  const fontScale = Math.max(1, Math.min(2.2, nodeWidth / 280));
+  const titleSize = Math.round(25 * fontScale);
+  const urlSize = Math.round(15 * fontScale);
+  const descSize = Math.round(18 * fontScale);
+  // Editing fields share one consistent, modestly-scaled size.
+  const editSize = Math.round(16 * Math.max(1, Math.min(1.5, nodeWidth / 280)));
+
+  // Grow the title/URL fields to fit their (wrapped) text and the node size.
+  React.useLayoutEffect(() => {
+    if (!isEditing) return;
+    autosize(titleTaRef.current);
+    autosize(urlTaRef.current);
+  }, [isEditing, tempTitle, tempUrl, editSize, nodeWidth]);
 
   const handleColorChange = (color: string) => {
     updateNode(id, { color });
@@ -143,15 +179,15 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       onClick={() => closeContextMenu()}
       style={{
         borderRadius: 18,
-        background: 'rgba(12, 13, 28, 0.75)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: 'var(--node-bg)',
+        backdropFilter: 'var(--node-blur)',
+        WebkitBackdropFilter: 'var(--node-blur)',
         border: selected
           ? `2px solid ${style.ring}`
-          : '1.5px solid rgba(255,255,255,0.10)',
+          : 'var(--node-border)',
         boxShadow: selected
-          ? `${style.glow}, 0 20px 40px rgba(0,0,0,0.5)`
-          : '0 12px 32px rgba(0,0,0,0.4)',
+          ? style.glow
+          : 'var(--node-shadow)',
         overflow: 'visible',
         transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         ['--accent-color' as string]: style.swatch,
@@ -178,7 +214,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       <Handle type="source" position={Position.Left}   id="left"   />
       <Handle type="source" position={Position.Right}  id="right"  />
 
-      <NodeResizer color="rgba(255,255,255,0.5)" isVisible={selected} minWidth={160} minHeight={80} />
+      <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} />
 
       {/* Card body */}
       <div
@@ -188,54 +224,58 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
         <div className="p-3 pl-4 flex flex-col flex-1 min-h-0">
           {isEditing ? (
             <div className="nodrag flex flex-col flex-1 min-h-0 gap-2">
-              <input
-                type="text"
-                value={tempTitle}
-                onChange={(e) => setTempTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
-                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
-                }}
-                placeholder="Title"
-                className="w-full rounded-lg px-2.5 py-1 text-[25px] font-bold text-white outline-none focus:ring-2 focus:ring-white/30 flex-shrink-0"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
-                autoFocus
-              />
-              <input
-                type="text"
-                value={tempUrl}
-                onChange={(e) => setTempUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
-                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
-                }}
-                placeholder="URL"
-                className="w-full rounded-lg px-2.5 py-1 text-[15px] text-white/70 outline-none focus:ring-2 focus:ring-white/20 flex-shrink-0"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-              />
-              <textarea
-                value={tempDescription}
-                onChange={(e) => setTempDescription(e.target.value)}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); handleSave(); }
-                  if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
-                }}
-                placeholder="Description (optional)"
-                className="w-full rounded-lg px-2.5 py-1 text-[18px] text-white/80 outline-none resize-none focus:ring-2 focus:ring-white/20 flex-1 min-h-0 nowheel overflow-y-auto"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-              />
+              <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto nowheel">
+                <textarea
+                  ref={titleTaRef}
+                  rows={1}
+                  value={tempTitle}
+                  onChange={(e) => { setTempTitle(e.target.value); autosize(e.target); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                    if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                  }}
+                  placeholder="Title"
+                  className="w-full rounded-lg px-3 py-2 font-bold text-white outline-none resize-none overflow-hidden focus:ring-2 focus:ring-white/30 flex-shrink-0"
+                  style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', fontSize: editSize, lineHeight: 1.3, overflowWrap: 'anywhere' }}
+                  autoFocus
+                />
+                <textarea
+                  ref={urlTaRef}
+                  rows={1}
+                  value={tempUrl}
+                  onChange={(e) => { setTempUrl(e.target.value); autosize(e.target); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                    if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                  }}
+                  placeholder="URL"
+                  className="w-full rounded-lg px-3 py-2 text-white/70 outline-none resize-none overflow-hidden focus:ring-2 focus:ring-white/20 flex-shrink-0"
+                  style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', fontSize: editSize, lineHeight: 1.3, wordBreak: 'break-all' }}
+                />
+                <textarea
+                  value={tempDescription}
+                  onChange={(e) => setTempDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); handleSave(); }
+                    if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
+                  }}
+                  placeholder="Description (optional)"
+                  className="w-full rounded-lg px-3 py-2 text-white/80 outline-none resize-none focus:ring-2 focus:ring-white/20 flex-1 min-h-[72px] nowheel overflow-y-auto"
+                  style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', fontSize: editSize, lineHeight: 1.4 }}
+                />
+              </div>
               <div className="flex justify-end gap-2 flex-shrink-0">
                 <button
                   onClick={handleCancel}
                   className="p-2 rounded-xl transition-colors"
-                  style={{ background: 'rgba(0,0,0,0.2)', color: 'white' }}
+                  style={{ background: 'var(--surface-inset-bg)', color: 'var(--text-primary)' }}
                 >
                   <X size={15} />
                 </button>
                 <button
                   onClick={handleSave}
                   className="p-2 rounded-xl transition-colors"
-                  style={{ background: 'rgba(0,0,0,0.25)', color: 'white' }}
+                  style={{ background: 'var(--surface-inset-bg)', color: 'var(--text-primary)' }}
                 >
                   <Check size={15} />
                 </button>
@@ -243,23 +283,35 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
             </div>
           ) : (
             <>
+              {/* Text region shrinks/clips so the preview below stays fully visible */}
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <div
-                className="flex items-start gap-3 mb-2"
+                className="flex items-start gap-3 mb-2 shrink-0"
               >
                 {data.favicon && (
                   <img
                     src={data.favicon as string}
                     alt=""
                     className="w-12 h-11 mt-0.5 rounded shrink-0"
-                    style={{ background: 'rgba(255,255,255,0.08)', padding: 1 }}
+                    style={{ background: 'var(--surface-inset-bg)', padding: 1 }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[25px] font-bold text-white leading-tight wrap-break-word mb-0.5">
+                  <h3
+                    className="font-bold text-white leading-tight mb-0.5"
+                    style={{
+                      fontSize: titleSize,
+                      display: '-webkit-box',
+                      WebkitBoxOrient: 'vertical',
+                      WebkitLineClamp: `${titleMaxLines}`,
+                      overflow: 'hidden',
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
                     {data.title || 'Untitled Bookmark 🔗'}
                   </h3>
-                  <p className="text-[15px] text-white/35 break-all font-mono line-clamp-3">
+                  <p className="text-white/35 break-all font-mono line-clamp-3" style={{ fontSize: urlSize }}>
                     {data.url as string}
                   </p>
                 </div>
@@ -267,16 +319,18 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
 
               {data.description && (
                 <p
-                  className="text-[18px] text-white/65 mb-2 leading-relaxed line-clamp-2 font-medium"
+                  className="text-white/65 mb-2 leading-relaxed line-clamp-2 font-medium shrink-0"
+                  style={{ fontSize: descSize }}
                 >
                   {data.description as string}
                 </p>
               )}
+              </div>
 
               {data.url && (
                 <div
-                  className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer transition-transform hover:scale-[1.02] relative"
-                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                  className="w-full aspect-video rounded-lg overflow-hidden mb-2 cursor-pointer transition-transform hover:scale-[1.02] relative shrink-0"
+                  style={{ border: 'var(--border-panel)' }}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!data.url || isEditing) return;
@@ -372,9 +426,9 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                   key={idx}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold tracking-wider uppercase"
                   style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.65)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--surface-inset-bg)',
+                    color: 'var(--text-muted)',
+                    border: 'var(--border-panel)',
                   }}
                 >
                   {tag}
@@ -433,7 +487,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                     height: 22,
                     borderRadius: '50%',
                     background: val.swatch,
-                    border: key === currentColor ? '2px solid #fff' : '2px solid rgba(255,255,255,0.2)',
+                    border: key === currentColor ? '2px solid var(--text-primary)' : 'var(--border-panel)',
                     outline: 'none',
                     cursor: 'pointer',
                   }}
@@ -460,7 +514,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                     <span
                       key={tag}
                       className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase cursor-pointer transition-colors hover:bg-red-500/20 hover:text-red-400"
-                      style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      style={{ background: 'var(--surface-inset-bg)', color: 'var(--text-muted)', border: 'var(--border-panel)' }}
                       onClick={() => handleRemoveTag(tag)}
                     >
                       {tag} <X size={8} />
@@ -479,7 +533,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
                 placeholder="Add tag & press Enter"
                 autoFocus
                 className="w-full rounded-lg px-2.5 py-1.5 text-[11px] text-white outline-none placeholder:text-white/30"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)' }}
               />
             </div>
           )}

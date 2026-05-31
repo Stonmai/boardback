@@ -76,6 +76,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === 'UPDATE_THEME') {
+    chrome.storage.local.set({ boardbackTheme: message.theme }).then(() => sendResponse({ ok: true }));
+    return true;
+  }
+
   if (message.type === 'GET_ROOMS') {
     chrome.storage.local.get('boardbackRooms').then(({ boardbackRooms }) => {
       sendResponse(boardbackRooms || []);

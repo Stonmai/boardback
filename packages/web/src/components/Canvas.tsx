@@ -699,10 +699,10 @@ const Canvas = () => {
     return () => window.removeEventListener('cut', handleCut);
   }, []);
 
-  if (!isMounted) return null;
+  if (!isMounted) return <div className="w-full h-screen overflow-hidden relative" style={{ background: 'var(--canvas-bg)' }} />;
 
   return (
-    <div className="w-full h-screen overflow-hidden relative" style={{ background: '#0d0e1a' }}>
+    <div className="w-full h-screen overflow-hidden relative" style={{ background: 'var(--canvas-bg)' }}>
       <ReactFlow
         key={currentRoomId}
         nodes={nodes as unknown as Node[]}
@@ -752,8 +752,8 @@ const Canvas = () => {
       >
         <Background
           variant={BackgroundVariant.Dots}
-          gap={28}
-          size={1.5}
+          gap={100}
+          size={5}
           color="rgba(255,255,255,0.18)"
         />
         <Toolbar />

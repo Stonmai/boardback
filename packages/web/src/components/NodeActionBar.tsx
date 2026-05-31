@@ -15,18 +15,18 @@ const NOTE_SWATCHES: Record<string, string> = {
 };
 
 const pillStyle: React.CSSProperties = {
-  background: 'rgba(10, 11, 22, 0.72)',
-  backdropFilter: 'blur(28px)',
-  WebkitBackdropFilter: 'blur(28px)',
-  border: '1px solid rgba(255,255,255,0.10)',
-  boxShadow: '0 24px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
+  background: 'var(--surface-pill-bg)',
+  backdropFilter: 'var(--surface-blur)',
+  WebkitBackdropFilter: 'var(--surface-blur)',
+  border: 'var(--border-panel)',
+  boxShadow: 'var(--shadow-pill)',
 };
 
 const panelStyle: React.CSSProperties = {
-  background: 'rgba(8, 8, 20, 0.6)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--surface-panel-bg)',
+  backdropFilter: 'var(--surface-blur)',
+  WebkitBackdropFilter: 'var(--surface-blur)',
+  border: 'var(--border-panel)',
 };
 
 export const NodeActionBar = () => {
@@ -79,7 +79,7 @@ export const NodeActionBar = () => {
   return (
     <div
       ref={containerRef}
-      className="absolute left-5 top-2/3 -translate-y-1/2 z-50 flex items-center gap-2 pointer-events-auto"
+      className="node-action-bar absolute left-5 top-3/4 -translate-y-1/2 z-50 flex items-center gap-2 pointer-events-auto"
       onPointerDown={e => e.stopPropagation()}
     >
       {/* Vertical pill */}
@@ -164,7 +164,7 @@ export const NodeActionBar = () => {
               style={{
                 width: 20, height: 20, borderRadius: '50%', cursor: 'pointer',
                 background: swatch,
-                border: key === currentColor ? '2px solid #fff' : '2px solid rgba(255,255,255,0.15)',
+                border: key === currentColor ? '2px solid var(--text-primary)' : 'var(--border-panel)',
                 transition: 'transform 0.1s',
               }}
               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.25)')}
@@ -183,7 +183,7 @@ export const NodeActionBar = () => {
                 <span
                   key={tag}
                   className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase cursor-pointer hover:bg-red-500/20 hover:text-red-400 transition-colors"
-                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  style={{ background: 'var(--surface-inset-bg)', color: 'var(--text-muted)', border: 'var(--border-panel)' }}
                   onClick={() => {
                     const existing = (node.data.tags as string[]) || [];
                     updateNode(node.id, { tags: existing.filter(t => t !== tag) });
@@ -213,7 +213,7 @@ export const NodeActionBar = () => {
             placeholder="Add tag & press Enter"
             autoFocus
             className="w-full rounded-lg px-2.5 py-1.5 text-[11px] text-white outline-none placeholder:text-white/30"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+            style={{ background: 'var(--surface-inset-bg)', border: 'var(--border-panel)' }}
           />
         </div>
       )}

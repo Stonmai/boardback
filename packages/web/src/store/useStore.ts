@@ -99,6 +99,7 @@ interface WhiteboardState {
   hasSeenIntro: boolean;
   activeTagFilters: string[];
   autoOpenBookmarks: boolean;
+  theme: 'midnight' | 'roadbow';
   pendingNavigation: { x: number; y: number } | null;
 
   // Actions
@@ -149,6 +150,7 @@ interface WhiteboardState {
   dismissIntro: () => void;
   toggleTagFilter: (tag: string) => void;
   setAutoOpenBookmarks: (val: boolean) => void;
+  setTheme: (theme: 'midnight' | 'roadbow') => void;
   setPendingNavigation: (nav: { x: number; y: number } | null) => void;
   _getParentId: (n: Node) => string | undefined;
 }
@@ -184,6 +186,7 @@ export const useStore = create<WhiteboardState>()(
   hasSeenIntro: false,
   activeTagFilters: [],
   autoOpenBookmarks: true,
+  theme: 'roadbow' as 'midnight' | 'roadbow',
   pendingNavigation: null,
 
   dismissIntro: () => set({ hasSeenIntro: true }),
@@ -197,6 +200,7 @@ export const useStore = create<WhiteboardState>()(
     });
   },
   setAutoOpenBookmarks: (val: boolean) => set({ autoOpenBookmarks: val }),
+  setTheme: (theme: 'midnight' | 'roadbow') => set({ theme }),
 
   // ReactFlow 11 uses `parentNode`; v12+ uses `parentId`. Read both.
   _getParentId: (n: Node): string | undefined => (n as any).parentId || (n as any).parentNode,
@@ -1057,6 +1061,7 @@ export const useStore = create<WhiteboardState>()(
     tags: state.tags,
     hasSeenIntro: state.hasSeenIntro,
     autoOpenBookmarks: state.autoOpenBookmarks,
+    theme: state.theme,
     dossiers: state.dossiers,
     currentDossierId: state.currentDossierId,
   }),

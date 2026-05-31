@@ -40,6 +40,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Set the theme before first paint to avoid a light→dark flash on load. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('boardback-theme');document.documentElement.setAttribute('data-theme',t==='midnight'?'midnight':'roadbow');}catch(e){}",
+          }}
+        />
+      </head>
       <body className={`${inter.className} antialiased`}>
         {children}
       </body>
