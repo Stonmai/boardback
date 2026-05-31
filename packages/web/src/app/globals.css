@@ -41,6 +41,12 @@
   --accent-text: #6580d2;     /* darker active variant — readable label text */
   --accent-bright: #fee347;   /* signature yellow — FAB, dots, swatches */
   --accent-neutral: #64748b;  /* neutral/grey node accent, visible on light */
+
+  /* Cursor trail colors */
+  --cursor-color-1: rgb(88, 28, 235);
+  --cursor-color-2: rgb(147, 51, 234);
+  --cursor-color-3: rgb(99, 120, 255);
+  --cursor-color-4: rgb(210, 200, 255);
 }
 
 /* ── Midnight theme: dark glassmorphism, neon-lime accent ── */
@@ -67,12 +73,18 @@
   --node-border: 2px solid rgba(195 195 195 / 0.85);
   --node-shadow: none;
 
-  --accent: #ff7051;          /* active color — tabs, modal actives, toggles */
-  --accent-rgb: 255, 112, 81;
-  --accent-soft: rgba(255, 112, 81, 0.35);
-  --accent-text: #ff7051;     /* active label text (already readable on dark) */
-  --accent-bright: #c8f135;   /* signature lime — FAB, dots, swatches */
+  /* SWAP: Cursor gets Lime/Coral, Accent gets Purple/Indigo */
+  --accent: #fe90e8;          /* Pink */
+  --accent-rgb: 254, 144, 232;
+  --accent-soft: rgba(254, 144, 232, 0.35);
+  --accent-text: #fe90e8;
+  --accent-bright: #b0d731;   /* Indigo (swapped with original cursor) */
   --accent-neutral: #d0d6e2;  /* neutral/grey node accent, visible on dark */
+
+  --cursor-color-1: rgb(255, 112, 81);
+  --cursor-color-2: rgb(114, 26, 6);
+  --cursor-color-3: rgb(235, 144, 78);
+  --cursor-color-4: rgb(250, 164, 145);
 }
 
 * {

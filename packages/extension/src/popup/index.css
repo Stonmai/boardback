@@ -9,10 +9,10 @@
   --text-muted: rgba(255, 255, 255, 0.499);
   --text-dim: rgba(255, 255, 255, 0.3);
 
-  --accent: #ff7051;                       /* active states — coral */
-  --accent-soft: rgba(255, 112, 81, 0.35);
-  --accent-text: #ff7051;
-  --accent-bright: #c8f135;                /* signature lime — capture FAB */
+  --accent: #fe90e8;          /* Pink */
+  --accent-soft: rgba(254, 144, 232, 0.35);
+  --accent-text: #fe90e8;
+  --accent-bright: #b0d731;               /* signature lime — capture FAB */
   --accent-border: 2px solid rgba(195, 195, 195, 0.85);
 
   --panel-bg: rgba(23, 24, 28, 0.99);
