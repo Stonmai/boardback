@@ -129,13 +129,41 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
   return null;
 };
 
-// Syncs workspace list to Chrome extension storage so the popup can show a workspace picker
-const RoomsSyncer = () => {
+// Syncs full dossier data to Chrome extension storage
+const DataSyncer = () => {
+  const dossiers = useStore(s => s.dossiers);
+  const currentDossierId = useStore(s => s.currentDossierId);
   const rooms = useStore(s => s.rooms);
+  const currentRoomId = useStore(s => s.currentRoomId);
+  const nodes = useStore(s => s.nodes);
+  const edges = useStore(s => s.edges);
+  const groups = useStore(s => s.groups);
+  const tags = useStore(s => s.tags);
+
   useEffect(() => {
-    const roomData = rooms.map(r => ({ id: r.id, name: r.name, emoji: r.emoji }));
-    window.dispatchEvent(new CustomEvent('BOARDBACK_ROOMS_UPDATE', { detail: roomData }));
-  }, [rooms]);
+    // We send the full state of dossiers. To ensure the active dossier's live room 
+    // is up to date, we "flush" the current live nodes/edges/groups into the 
+    // relevant dossier/room before sending.
+    const syncData = () => {
+      const flushedDossiers = dossiers.map(d => {
+        if (d.id !== currentDossierId) return d;
+        const updatedRooms = rooms.map(r => {
+          if (r.id !== currentRoomId) return r;
+          return { ...r, nodes, edges, groups };
+        });
+        return { ...d, rooms: updatedRooms, tags, currentRoomId };
+      });
+
+      window.dispatchEvent(new CustomEvent('BOARDBACK_DATA_UPDATE', { 
+        detail: { dossiers: flushedDossiers, currentDossierId } 
+      }));
+    };
+
+    syncData();
+    window.addEventListener('WHITEBOARD_EXT_READY', syncData);
+    return () => window.removeEventListener('WHITEBOARD_EXT_READY', syncData);
+  }, [dossiers, currentDossierId, rooms, currentRoomId, nodes, edges, groups, tags]);
+
   return null;
 };
 
@@ -761,7 +789,7 @@ const Canvas = () => {
         <SyncHandler addNode={addNode} updateNode={updateNode} />
         <ZoomHandler />
         <NavigationHandler />
-        <RoomsSyncer />
+        <DataSyncer />
         <ScreenToFlowBridge />
       </ReactFlow>
 

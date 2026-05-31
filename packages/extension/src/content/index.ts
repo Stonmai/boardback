@@ -21,13 +21,13 @@ async function sendPendingCaptures() {
 // Custom event listener for the web app to trigger a sync
 window.addEventListener('WHITEBOARD_SYNC_REQUEST', sendPendingCaptures);
 
-// Relay workspace list updates from the web app to extension storage
-window.addEventListener('BOARDBACK_ROOMS_UPDATE', async (event: any) => {
+// Relay full data updates from the web app to extension storage
+window.addEventListener('BOARDBACK_DATA_UPDATE', async (event: any) => {
   if (contextInvalidated) return;
   try {
-    const rooms = event.detail;
-    if (Array.isArray(rooms)) {
-      await chrome.runtime.sendMessage({ type: 'UPDATE_ROOMS', rooms });
+    const data = event.detail;
+    if (data && typeof data === 'object') {
+      await chrome.runtime.sendMessage({ type: 'UPDATE_DATA', data });
     }
   } catch (error: any) {
     if (error?.message?.includes('Extension context invalidated')) {

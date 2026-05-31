@@ -76,6 +76,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === 'UPDATE_DATA') {
+    chrome.storage.local.set({ boardbackData: message.data }).then(() => sendResponse({ ok: true }));
+    return true;
+  }
+
   if (message.type === 'UPDATE_THEME') {
     chrome.storage.local.set({ boardbackTheme: message.theme }).then(() => sendResponse({ ok: true }));
     return true;

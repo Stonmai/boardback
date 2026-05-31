@@ -46,17 +46,17 @@
 /* ── Midnight theme: dark glassmorphism, neon-lime accent ── */
 [data-theme="midnight"] {
   --bg-deep: #0b0c16;
-  --bg-canvas: #0d0e1a;
+  --bg-canvas: #141415;
   --text-primary: #ffffff;
   --text-muted: rgba(255, 255, 255, 0.499);
-  --canvas-bg: #0d0e1a;
+  --canvas-bg: #141415;
   --dot-grid: rgba(255, 255, 255, 0.40);
 
-  --surface-pill-bg: rgba(20, 21, 31, 0.85);
-  --surface-panel-bg: rgba(20, 21, 31, 0.99);
+  --surface-pill-bg: rgba(33 33 35 / 0.75);
+  --surface-panel-bg: rgba(23 24 28 / 0.95);
   --surface-inset-bg: rgba(255, 255, 255, 0.1);
   --surface-blur: blur(28px);
-  --border-panel: 2px solid rgba(255, 255, 255, 0.85);   /* neo-brutalist white outline */
+  --border-panel: 2px solid rgba(195 195 195 / 0.85);   /* neo-brutalist white outline */
   --shadow-panel: none;
   --shadow-pill: none;
   --shadow-popover: none;
@@ -64,7 +64,7 @@
 
   --node-bg: rgba(12, 13, 28, 0.75);
   --node-blur: blur(20px);
-  --node-border: 2px solid rgba(255, 255, 255, 0.85);
+  --node-border: 2px solid rgba(195 195 195 / 0.85);
   --node-shadow: none;
 
   --accent: #ff7051;          /* active color — tabs, modal actives, toggles */

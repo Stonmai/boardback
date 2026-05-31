@@ -201,7 +201,7 @@ const WelcomePage = () => (
   <div>
     {/* Logo */}
     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-      <div style={{ width: 148, height: 148, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px rgba(200,241,53,0.12)' }}>
+      <div style={{ width: 148, height: 148, borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px rgba(145,168,237,0.18)' }}>
         <img src="/icon.png" alt="BoardBack" style={{ width: 128, height: 128, objectFit: 'contain' }} />
       </div>
     </div>
@@ -209,10 +209,10 @@ const WelcomePage = () => (
     {/* Wordmark + tagline */}
     <div style={{ textAlign: 'center', marginBottom: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 30, fontWeight: 900, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>Board</span>
-        <span style={{ fontSize: 30, fontWeight: 900, color: '#c8f135', letterSpacing: '-0.04em', lineHeight: 1 }}>Back</span>
+        <span style={{ fontSize: 30, fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.04em', lineHeight: 1 }}>Board</span>
+        <span style={{ fontSize: 30, fontWeight: 900, color: '#6580d2', letterSpacing: '-0.04em', lineHeight: 1 }}>Back</span>
       </div>
-      <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.01em', lineHeight: 1.5 }}>
+      <p style={{ margin: 0, fontSize: 14, color: 'rgba(0,0,0,0.55)', letterSpacing: '0.01em', lineHeight: 1.5 }}>
         Your bookmark. Your browser. Your board.
       </p>
     </div>
@@ -224,10 +224,10 @@ const WelcomePage = () => (
         { icon: '🚫', label: 'No Account',        sub: 'zero sign-up required'  },
         { icon: '⚡', label: 'Easy Capture',   sub: 'one-click from browser' },
       ].map((p, i) => (
-        <div key={i} style={{ flex: '1 1 0', minWidth: 110, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '10px 12px', textAlign: 'center' }}>
+        <div key={i} style={{ flex: '1 1 0', minWidth: 110, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 14, padding: '10px 12px', textAlign: 'center' }}>
           {/*<div style={{ fontSize: 18, marginBottom: 4 }}>{p.icon}</div>*/}
-          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{p.label}</div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', lineHeight: 1.4 }}>{p.sub}</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a', marginBottom: 2 }}>{p.label}</div>
+          <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.4)', lineHeight: 1.4 }}>{p.sub}</div>
         </div>
       ))}
     </div>
@@ -245,10 +245,10 @@ const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks, newT
   return (
   <div>
     <div style={{ marginBottom: 20, textAlign: 'center' }}>
-      <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(200,241,53,0.7)', background: 'rgba(200,241,53,0.08)', border: '1px solid rgba(200,241,53,0.18)', borderRadius: 20, padding: '3px 10px', marginBottom: 12 }}>
+      <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6580d2', background: 'rgba(145,168,237,0.12)', border: '1px solid rgba(145,168,237,0.3)', borderRadius: 20, padding: '3px 10px', marginBottom: 12 }}>
         Get Started
       </span>
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.2, margin: 0 }}>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1a1a1a', letterSpacing: '-0.03em', lineHeight: 1.2, margin: 0 }}>
         Set up in three steps
       </h2>
     </div>
@@ -279,33 +279,33 @@ const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks, newT
           copyUrl: 'https://boardback-web.vercel.app',
         },
       ].map((step, i) => (
-        <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px' }}>
-          <div style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, background: step.done ? 'rgba(200,241,53,0.14)' : 'rgba(255,255,255,0.05)', border: step.done ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.1)', color: step.done ? '#c8f135' : 'rgba(255,255,255,0.45)' }}>
+        <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, padding: '12px 14px' }}>
+          <div style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, background: step.done ? 'rgba(145,168,237,0.16)' : 'rgba(0,0,0,0.05)', border: step.done ? '1px solid rgba(145,168,237,0.4)' : '1px solid rgba(0,0,0,0.12)', color: step.done ? '#6580d2' : 'rgba(0,0,0,0.45)' }}>
             {step.done ? <CheckIcon /> : step.num}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{step.title}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{step.title}</span>
               {step.tag && (
-                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: step.tagOk ? 'rgba(200,241,53,0.1)' : 'rgba(255,100,100,0.1)', color: step.tagOk ? '#c8f135' : '#ff6b6b', border: `1px solid ${step.tagOk ? 'rgba(200,241,53,0.25)' : 'rgba(255,100,100,0.25)'}` }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: step.tagOk ? 'rgba(145,168,237,0.14)' : 'rgba(220,38,38,0.1)', color: step.tagOk ? '#6580d2' : '#dc2626', border: `1px solid ${step.tagOk ? 'rgba(145,168,237,0.35)' : 'rgba(220,38,38,0.3)'}` }}>
                   {step.tag}
                 </span>
               )}
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.38)' }}>{step.body}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 11, lineHeight: 1.6, color: 'rgba(0,0,0,0.55)' }}>{step.body}</p>
             {(step as any).link && (
-              <a href={(step as any).link.href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 11, fontWeight: 700, color: '#c8f135', textDecoration: 'none' }}>
+              <a href={(step as any).link.href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 6, fontSize: 11, fontWeight: 700, color: '#6580d2', textDecoration: 'none' }}>
                 {(step as any).link.label}
               </a>
             )}
             {(step as any).copyUrl && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
-                <code style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 8px', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <code style={{ fontSize: 10, color: 'rgba(0,0,0,0.6)', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 6, padding: '3px 8px', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {(step as any).copyUrl}
                 </code>
                 <button
                   onClick={() => handleCopy((step as any).copyUrl)}
-                  style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, color: copied ? '#c8f135' : 'rgba(255,255,255,0.55)', background: copied ? 'rgba(200,241,53,0.1)' : 'rgba(255,255,255,0.06)', border: copied ? '1px solid rgba(200,241,53,0.3)' : '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                  style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, color: copied ? '#6580d2' : 'rgba(0,0,0,0.6)', background: copied ? 'rgba(145,168,237,0.14)' : 'rgba(0,0,0,0.05)', border: copied ? '1px solid rgba(145,168,237,0.4)' : '1px solid rgba(0,0,0,0.12)', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
                 >
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
@@ -318,38 +318,38 @@ const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks, newT
 
     {/* Preferences */}
     <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Open bookmarks in new tab</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>Click a preview to open it in a new browser tab</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Open bookmarks in new tab</div>
+          <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 2 }}>Click a preview to open it in a new browser tab</div>
         </div>
         <button
           onClick={() => setAutoOpenBookmarks(!autoOpenBookmarks)}
-          style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', transition: 'background 0.2s ease', background: autoOpenBookmarks ? '#c8f135' : 'rgba(255,255,255,0.12)', position: 'relative', padding: 0 }}
+          style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', transition: 'background 0.2s ease', background: autoOpenBookmarks ? '#fee347' : 'rgba(0,0,0,0.15)', position: 'relative', padding: 0 }}
         >
-          <span style={{ position: 'absolute', top: 3, left: autoOpenBookmarks ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: autoOpenBookmarks ? '#0b0c16' : 'rgba(255,255,255,0.55)', transition: 'left 0.2s ease', display: 'block' }} />
+          <span style={{ position: 'absolute', top: 3, left: autoOpenBookmarks ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: autoOpenBookmarks ? '#1a1a1a' : '#ffffff', transition: 'left 0.2s ease', display: 'block' }} />
         </button>
       </div>
       <div
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: extInstalled ? 1 : 0.45, cursor: extInstalled ? 'pointer' : 'default' }}
+        style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: extInstalled ? 1 : 0.45, cursor: extInstalled ? 'pointer' : 'default' }}
         onClick={extInstalled ? onNewTabToggle : undefined}
       >
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Set as default new tab</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', marginTop: 2 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>Set as default new tab</div>
+          <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 2 }}>
             {extInstalled ? 'Replace new tab page with your workspace' : 'Requires the BoardBack extension'}
           </div>
           {newTabEnabled && /Vivaldi/i.test(navigator.userAgent) && (
-            <div style={{ fontSize: 11, color: 'rgba(255,190,0,0.8)', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: '#b45309', marginTop: 4 }}>
               Vivaldi: enable "Allow extensions to redirect New Tab" in Settings → Tabs
             </div>
           )}
         </div>
         <button
           disabled={!extInstalled}
-          style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: extInstalled ? 'pointer' : 'default', transition: 'background 0.2s ease', background: newTabEnabled ? '#c8f135' : 'rgba(255,255,255,0.12)', position: 'relative', padding: 0 }}
+          style={{ flexShrink: 0, width: 40, height: 22, borderRadius: 11, border: 'none', cursor: extInstalled ? 'pointer' : 'default', transition: 'background 0.2s ease', background: newTabEnabled ? '#fee347' : 'rgba(0,0,0,0.15)', position: 'relative', padding: 0 }}
         >
-          <span style={{ position: 'absolute', top: 3, left: newTabEnabled ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: newTabEnabled ? '#0b0c16' : 'rgba(255,255,255,0.55)', transition: 'left 0.2s ease', display: 'block' }} />
+          <span style={{ position: 'absolute', top: 3, left: newTabEnabled ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: newTabEnabled ? '#1a1a1a' : '#ffffff', transition: 'left 0.2s ease', display: 'block' }} />
         </button>
       </div>
     </div>
@@ -451,7 +451,7 @@ const IntroModal = () => {
   const current = !isWelcome && !isSetup ? FEATURE_PAGES[page - 1] : null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(9,10,20,0.88)', backdropFilter: 'blur(16px)' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(16px)' }}>
       <style>{`
         @keyframes introFadeUp {
           from { opacity: 0; transform: translateY(10px); }
@@ -461,11 +461,11 @@ const IntroModal = () => {
       `}</style>
 
       <div
-        style={{ position: 'relative', width: '100%', maxWidth: 480, maxHeight: 'calc(100dvh - 32px)', borderRadius: 28, overflow: 'hidden', background: '#11121d', border: '1px solid rgba(255,255,255,0.09)', boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(200,241,53,0.04)', display: 'flex', flexDirection: 'column' }}
+        style={{ position: 'relative', width: '100%', maxWidth: 480, maxHeight: 'calc(100dvh - 32px)', borderRadius: 28, overflow: 'hidden', background: '#fffdf3', border: '2px solid #000000', boxShadow: '0 32px 80px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Top accent line */}
-        <div style={{ flexShrink: 0, height: 2, background: 'linear-gradient(90deg, transparent 0%, #c8f135 50%, transparent 100%)' }} />
+        <div style={{ flexShrink: 0, height: 2, background: 'linear-gradient(90deg, transparent 0%, #fee347 50%, transparent 100%)' }} />
 
         {/* Page content — scrollable on small screens */}
         <div key={animKey} className="intro-page" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '24px 24px 0' }}>
@@ -476,24 +476,24 @@ const IntroModal = () => {
           ) : current ? (
             <>
               {/* Illustration */}
-              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', marginBottom: 22, lineHeight: 0 }}>
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.12)', marginBottom: 22, lineHeight: 0 }}>
                 <current.Illustration />
               </div>
 
               {/* Badge */}
               <div style={{ marginBottom: 10 }}>
-                <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(200,241,53,0.7)', background: 'rgba(200,241,53,0.08)', border: '1px solid rgba(200,241,53,0.18)', borderRadius: 20, padding: '3px 10px' }}>
+                <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6580d2', background: 'rgba(145,168,237,0.12)', border: '1px solid rgba(145,168,237,0.3)', borderRadius: 20, padding: '3px 10px' }}>
                   {current.badge}
                 </span>
               </div>
 
               {/* Title */}
-              <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.2, margin: '0 0 10px', whiteSpace: 'pre-line' }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1a1a1a', letterSpacing: '-0.03em', lineHeight: 1.2, margin: '0 0 10px', whiteSpace: 'pre-line' }}>
                 {current.title}
               </h2>
 
               {/* Description */}
-              <p style={{ fontSize: 13, lineHeight: 1.65, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+              <p style={{ fontSize: 13, lineHeight: 1.65, color: 'rgba(0,0,0,0.55)', margin: 0 }}>
                 {current.description}
               </p>
             </>
@@ -508,7 +508,7 @@ const IntroModal = () => {
               <button
                 key={i}
                 onClick={() => go(i)}
-                style={{ width: i === page ? 20 : 7, height: 7, borderRadius: 4, border: 'none', cursor: 'pointer', transition: 'all 0.25s ease', background: i === page ? '#c8f135' : 'rgba(255,255,255,0.15)', padding: 0 }}
+                style={{ width: i === page ? 20 : 7, height: 7, borderRadius: 4, border: 'none', cursor: 'pointer', transition: 'all 0.25s ease', background: i === page ? '#91a8ed' : 'rgba(0,0,0,0.18)', padding: 0 }}
               />
             ))}
           </div>
@@ -518,14 +518,14 @@ const IntroModal = () => {
             {!isFirst && (
               <button
                 onClick={goPrev}
-                style={{ height: 38, padding: '0 18px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s ease' }}
+                style={{ height: 38, padding: '0 18px', borderRadius: 12, background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.12)', color: 'rgba(0,0,0,0.6)', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s ease' }}
               >
                 Back
               </button>
             )}
             <button
               onClick={goNext}
-              style={{ height: 38, padding: '0 22px', borderRadius: 12, background: isLast ? '#c8f135' : isWelcome ? '#c8f135' : 'rgba(200,241,53,0.14)', border: (isLast || isWelcome) ? 'none' : '1px solid rgba(200,241,53,0.3)', color: (isLast || isWelcome) ? '#0b0c16' : '#c8f135', fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 0.15s ease', letterSpacing: '0.01em' }}
+              style={{ height: 38, padding: '0 22px', borderRadius: 12, background: isLast ? '#fee347' : isWelcome ? '#fee347' : 'rgba(145,168,237,0.14)', border: (isLast || isWelcome) ? 'none' : '1px solid rgba(145,168,237,0.4)', color: (isLast || isWelcome) ? '#1a1a1a' : '#6580d2', fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 0.15s ease', letterSpacing: '0.01em' }}
             >
               {isLast ? 'Get Started →' : isWelcome ? 'See what\'s inside →' : 'Next →'}
             </button>

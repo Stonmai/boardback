@@ -19,6 +19,24 @@ export interface WhiteboardNode {
   createdAt: string;
 }
 
+export interface RoomData {
+  id: string;
+  name: string;
+  emoji?: string;
+  nodes: WhiteboardNode[];
+  edges: any[];
+  groups: GroupFrame[];
+}
+
+export interface Dossier {
+  id: string;
+  name: string;
+  emoji: string;
+  rooms: RoomData[];
+  tags: Tag[];
+  currentRoomId: string;
+}
+
 export interface GroupFrame {
   id: string;
   title: string;

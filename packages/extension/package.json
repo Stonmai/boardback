@@ -1,6 +1,6 @@
 {
   "name": "@whiteboard/extension",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "webpack --mode development --watch",
@@ -9,7 +9,8 @@
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "lucide-react": "^0.577.0"
+    "lucide-react": "^0.577.0",
+    "@whiteboard/shared": "*"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.37",
