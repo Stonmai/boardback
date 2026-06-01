@@ -23,9 +23,10 @@ BoardBack is a **local-first visual workspace** for your browser tabs and bookma
 
 Open a new tab, capture it in one click, and drag it onto your personal canvas. Draw connections between ideas, group related research, and see the whole picture at a glance.
 
-<img width="1533" height="855" alt="BoardBack canvas" src="https://github.com/user-attachments/assets/cf9da281-94fd-4089-9c71-347f9d2dee22" />
+<img width="320" height="200" alt="Screenshot 2569-05-31 at 6 22 54 PM" src="https://github.com/user-attachments/assets/ada0b2cb-56a5-4b71-87dd-d0a0d12b2397" />
 
-<img width="358" height="505" alt="BoardBack extension popup" src="https://github.com/user-attachments/assets/458f604f-c8da-4d5e-b8a2-37ebb29d6b0c" />
+<img width="320" height="200" alt="Screenshot 2569-05-31 at 6 34 15 PM" src="https://github.com/user-attachments/assets/8244e176-0ac8-4ec6-9a0e-9affc534d2bd" />
+
 
 ---
 
