@@ -27,7 +27,7 @@ Open a new tab, capture it in one click, and drag it onto your personal canvas. 
 
 <img width="320" height="200" alt="Screenshot 2569-05-31 at 6 34 36 PM" src="https://github.com/user-attachments/assets/ccaa0c57-998c-45d1-b6d2-ee9578ba1376" />
 
-<img width="588" height="472" alt="Screenshot 2569-06-02 at 12 01 54 AM" src="https://github.com/user-attachments/assets/0bf36ec0-57a8-40a7-afee-8472bf2889e0" />
+<img width="264" height="200" alt="Screenshot 2569-06-02 at 12 05 10 AM" src="https://github.com/user-attachments/assets/2eec85ca-1190-4043-921c-ccbc92da01f2" />
 
 <img width="320" height="200" alt="Screenshot 2569-05-31 at 6 22 54 PM" src="https://github.com/user-attachments/assets/ada0b2cb-56a5-4b71-87dd-d0a0d12b2397" />
 
