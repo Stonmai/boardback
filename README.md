@@ -8,10 +8,12 @@
 
 Capture anything from the web, arrange it on an infinite canvas, and map your thinking — all stored privately on your device.
 
-<img width="575" height="400" alt="BoardBack intro screen" src="https://github.com/user-attachments/assets/ef6357af-fbbd-4518-8004-d2af2ffad8f7" />
+<img width="576" height="484" alt="Screenshot 2569-06-02 at 12 03 45 AM" src="https://github.com/user-attachments/assets/e943fa4c-91d9-417d-97f2-ab7c90687762" />
 
 [![Web App](https://img.shields.io/badge/Open_App-open--boardback.com-black?style=for-the-badge&logo=vercel)](https://open-boardback.com)
 [![Chrome Extension](https://img.shields.io/badge/Chrome_Extension-Install_Free-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/boardback-capture-tool/cnopkpkjbkbccgikjggidpojcjchclpe)
+
+
 
 </div>
 
@@ -23,9 +25,13 @@ BoardBack is a **local-first visual workspace** for your browser tabs and bookma
 
 Open a new tab, capture it in one click, and drag it onto your personal canvas. Draw connections between ideas, group related research, and see the whole picture at a glance.
 
+<img width="320" height="200" alt="Screenshot 2569-05-31 at 6 34 36 PM" src="https://github.com/user-attachments/assets/ccaa0c57-998c-45d1-b6d2-ee9578ba1376" />
+
+<img width="588" height="472" alt="Screenshot 2569-06-02 at 12 01 54 AM" src="https://github.com/user-attachments/assets/0bf36ec0-57a8-40a7-afee-8472bf2889e0" />
+
 <img width="320" height="200" alt="Screenshot 2569-05-31 at 6 22 54 PM" src="https://github.com/user-attachments/assets/ada0b2cb-56a5-4b71-87dd-d0a0d12b2397" />
 
-<img width="320" height="200" alt="Screenshot 2569-05-31 at 6 34 15 PM" src="https://github.com/user-attachments/assets/8244e176-0ac8-4ec6-9a0e-9affc534d2bd" />
+
 
 
 ---
