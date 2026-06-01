@@ -1761,7 +1761,7 @@ const Toolbar = () => {
   const dossierModal = showDossierModal && (
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(9,10,20,0.75)', backdropFilter: 'blur(12px)' }}
       onClick={() => { setDossierMenuId(null); setFocusedDossierId(null); setRenamingDossierId(null); setRenameDossierValue(''); if (showAddDossier) { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } }}>
-      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 24, padding: '28px', width: 720, maxWidth: 'calc(100vw - 32px)', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-panel)' }}
+      <div style={{ background: 'var(--surface-panel-bg)', border: 'var(--border-panel)', borderRadius: 24, padding: '28px 28px 36px', width: 720, maxWidth: 'calc(100vw - 32px)', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-panel)' }}
         onClick={e => { e.stopPropagation(); setFocusedDossierId(null); setDossierMenuId(null); setRenamingDossierId(null); setRenameDossierValue(''); if (showAddDossier) { if (newDossierName.trim()) addDossier(newDossierName.trim(), '📁'); setShowAddDossier(false); setNewDossierName(''); } }}>
 
         {/* Header */}
@@ -1774,7 +1774,7 @@ const Toolbar = () => {
         </div>
 
         {/* File grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isCompact ? 2 : isMobile ? 3 : 5}, 1fr)`, gap: 16, marginBottom: 35 }} onClick={() => { setDossierMenuId(null); setFocusedDossierId(null); setRenamingDossierId(null); setRenameDossierValue(''); }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isCompact ? 2 : isMobile ? 3 : 5}, 1fr)`, gap: 16, marginBottom: 45 }} onClick={() => { setDossierMenuId(null); setFocusedDossierId(null); setRenamingDossierId(null); setRenameDossierValue(''); }}>
           {dossiers.map((d: Dossier, idx: number) => {
             const cols = isCompact ? 2 : isMobile ? 3 : 5;
             const isLastCol = (idx + 1) % cols === 0;
