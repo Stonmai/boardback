@@ -276,7 +276,7 @@ const SetupPage = ({ extInstalled, autoOpenBookmarks, setAutoOpenBookmarks, newT
           done: false,
           title: 'Set as your browser start page',
           body: 'Your browser: Settings → On startup → Open a specific page, then add the URL below.',
-          copyUrl: 'https://boardback-web.vercel.app',
+          copyUrl: 'https://open-boardback.com',
         },
       ].map((step, i) => (
         <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, padding: '12px 14px' }}>
