@@ -145,17 +145,29 @@ const DataSyncer = () => {
     // is up to date, we "flush" the current live nodes/edges/groups into the 
     // relevant dossier/room before sending.
     const syncData = () => {
+      // The extension popup only reads title/url/favicon from this mirror. Strip the heavy
+      // base64 blobs (screenshot/ogImage/content) so we don't blow chrome.storage.local's quota.
+      const slimNode = (node: any) => {
+        if (!node?.data) return node;
+        const { screenshot, ogImage, content, ...data } = node.data;
+        return { ...node, data };
+      };
+      const slimNodes = (ns: any[]) => Array.isArray(ns) ? ns.map(slimNode) : ns;
+
       const flushedDossiers = dossiers.map(d => {
-        if (d.id !== currentDossierId) return d;
-        const updatedRooms = rooms.map(r => {
-          if (r.id !== currentRoomId) return r;
-          return { ...r, nodes, edges, groups };
+        const updatedRooms = (d.id === currentDossierId ? rooms : d.rooms).map(r => {
+          if (d.id === currentDossierId && r.id === currentRoomId) {
+            return { ...r, nodes: slimNodes(nodes), edges, groups };
+          }
+          return { ...r, nodes: slimNodes(r.nodes) };
         });
-        return { ...d, rooms: updatedRooms, tags, currentRoomId };
+        return d.id === currentDossierId
+          ? { ...d, rooms: updatedRooms, tags, currentRoomId }
+          : { ...d, rooms: updatedRooms };
       });
 
-      window.dispatchEvent(new CustomEvent('BOARDBACK_DATA_UPDATE', { 
-        detail: { dossiers: flushedDossiers, currentDossierId } 
+      window.dispatchEvent(new CustomEvent('BOARDBACK_DATA_UPDATE', {
+        detail: { dossiers: flushedDossiers, currentDossierId }
       }));
     };
 
