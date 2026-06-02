@@ -238,7 +238,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
                   if (e.key === 'Escape') { e.preventDefault(); handleCancel(); }
                 }}
                 placeholder="Start typing..."
-                className="w-full outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto"
+                className="w-full outline-none resize-none flex-1 min-h-0 nowheel overflow-y-auto whitespace-pre-wrap leading-relaxed wrap-break-word font-medium"
                 style={{
                   fontSize: contentSize,
                   background: 'transparent',
