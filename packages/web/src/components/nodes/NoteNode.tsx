@@ -114,7 +114,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const contentSize = Math.round(18 * Math.max(1, Math.min(2.2, nodeWidth / 240)));
+  const contentSize = Math.round(12 * Math.max(1, Math.min(2, nodeWidth / 240)));
 
   const enterEditing = useCallback(() => {
     if (nodeRef.current) {
