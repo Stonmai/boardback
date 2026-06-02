@@ -149,6 +149,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']
         isVisible={selected}
         minWidth={200}
         minHeight={150}
+        onResizeStart={() => useStore.getState().snapshot()}
         onResize={(_, { x, y, width, height }) => updateGroupSize(id, x, y, width, height)}
         onResizeEnd={(_, { x, y, width, height }) => updateGroupSize(id, x, y, width, height)}
       />

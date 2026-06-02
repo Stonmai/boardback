@@ -104,6 +104,13 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const contextMenu = contextMenuNodeId === id && contextMenuPos;
   const closeContextMenu = () => { setContextMenuNodeId(null); setPaneContextMenu(null); };
 
+  // Keep local content in sync with store (e.g. after undo/redo), but only when not editing.
+  React.useEffect(() => {
+    if (isEditing) return;
+    const storeContent = Array.isArray(data.content) ? (data.content as string[]).join('\n') : (data.content || '');
+    setContent(storeContent);
+  }, [data.content, isEditing]);
+
   // Scale the note text up with the node width; base size acts as the minimum.
   React.useEffect(() => {
     const el = nodeRef.current;
@@ -145,9 +152,10 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
   const style = COLORS[currentColor] ?? COLORS.purple;
 
   const handleSave = useCallback(() => {
-    updateNode(id, { content, title: '' });
+    const existing = Array.isArray(data.content) ? (data.content as string[]).join('\n') : (data.content || '');
+    if (content !== existing) updateNode(id, { content, title: '' });
     setIsEditing(false);
-  }, [id, content, updateNode]);
+  }, [id, content, data.content, updateNode]);
 
   const handleCancel = useCallback(() => {
     setContent(Array.isArray(data.content) ? (data.content as string[]).join('\n') : (data.content || ''));
@@ -222,7 +230,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
       <Handle type="source" position={Position.Left}   id="left" style={{}}/>
       <Handle type="source" position={Position.Right}  id="right" style={{}}/>
 
-      <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} />
+      <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} onResizeStart={() => useStore.getState().snapshot()} />
 
       {/* Card content */}
       <div className="h-full p-8 rounded-[14px] flex flex-col" style={{ color: style.text, overflow: 'hidden' }}>

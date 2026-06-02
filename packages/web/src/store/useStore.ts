@@ -109,7 +109,7 @@ interface WhiteboardState {
   addNode: (node: WhiteboardNode) => void;
   addNodeToRoom: (roomId: string, node: WhiteboardNode) => void;
   deleteNode: (id: string) => void;
-  updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => void;
+  updateNode: (id: string, data: Partial<WhiteboardNode['data']>, opts?: { history?: boolean }) => void;
   updateGroupSize: (id: string, x: number, y: number, width: number, height: number) => void;
   copyNodes: () => void;
   cutNodes: () => void;
@@ -492,7 +492,11 @@ export const useStore = create<WhiteboardState>()(
     });
   },
 
-  updateNode: (id: string, data: Partial<WhiteboardNode['data']>) => {
+  updateNode: (id: string, data: Partial<WhiteboardNode['data']>, opts?: { history?: boolean }) => {
+    if (opts?.history !== false) {
+      const { nodes, edges, _past } = get();
+      set({ _past: [..._past.slice(-49), { nodes, edges }], _future: [] });
+    }
     set({
       nodes: get().nodes.map((node: Node) => {
         if (node.id === id) {
