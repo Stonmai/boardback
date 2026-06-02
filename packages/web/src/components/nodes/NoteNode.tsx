@@ -225,7 +225,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
       <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} />
 
       {/* Card content */}
-      <div className="h-full p-3 rounded-[14px] flex flex-col" style={{ color: style.text, overflow: 'hidden' }}>
+      <div className="h-full p-8 rounded-[14px] flex flex-col" style={{ color: style.text, overflow: 'hidden' }}>
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           {isEditing ? (
             <div className="nodrag flex flex-col flex-1 min-h-0">
