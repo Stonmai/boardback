@@ -49,7 +49,7 @@ const ScreenToFlowBridge = () => {
 
 type HandlerProps = {
   addNode: (node: any) => void;
-  updateNode: (id: string, data: any) => void;
+  updateNode: (id: string, data: any, opts?: { history?: boolean }) => void;
 };
 
 const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
@@ -96,7 +96,7 @@ const SyncHandler = ({ addNode, updateNode }: HandlerProps) => {
           currentRoomIds.push(nodeId);
         }
         if (!capture.screenshot && capture.url) {
-          fetchMetadata(capture.url).then((metadata: any) => { updateNode(nodeId, metadata); });
+          fetchMetadata(capture.url).then((metadata: any) => { updateNode(nodeId, metadata, { history: false }); });
         }
       });
 
@@ -272,7 +272,7 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
             data: { title, url, tags: ['pasted url'] },
             createdAt: new Date().toISOString(),
           });
-          fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata); });
+          fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata, { history: false }); });
         });
       } else if (entries.length === 1) {
         // Single URL
@@ -286,7 +286,7 @@ const PasteHandler = ({ addNode, updateNode }: PasteHandlerProps) => {
           data: { title, url, tags: ['pasted url'] },
           createdAt: new Date().toISOString(),
         });
-        fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata); });
+        fetchMetadata(url).then(metadata => { updateNode(nodeId, metadata, { history: false }); });
       } else {
         // No URLs — paste as a note
         const noteLines = text.split('\n');
@@ -679,10 +679,15 @@ const Canvas = () => {
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      const isField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
       const store = useStore.getState();
-      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); store.undo(); }
-      if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); store.redo(); }
+      // Undo/redo work everywhere, even while a note/title is being edited (focus kept
+      // in a field). Blur the field first so its editing session ends and the restored
+      // node data is what stays.
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); if (isField) target.blur(); store.undo(); return; }
+      if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); if (isField) target.blur(); store.redo(); return; }
+      // copy/cut must not hijack typing inside a field
+      if (isField) return;
       // For 'c': call copyNodes() here so clipboard is ready before the copy event fires.
       // Do NOT preventDefault — let the native copy event fire so we can use setData() synchronously.
       if (e.key === 'c') {

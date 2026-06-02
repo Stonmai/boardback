@@ -118,8 +118,8 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
     const urlChanged = tempUrl !== data.url;
     updateNode(id, { title: tempTitle, url: tempUrl, description: tempDescription });
     if (urlChanged && tempUrl) {
-      updateNode(id, { screenshot: '', favicon: '' });
-      fetchMetadata(tempUrl).then(metadata => updateNode(id, metadata));
+      updateNode(id, { screenshot: '', favicon: '' }, { history: false });
+      fetchMetadata(tempUrl).then(metadata => updateNode(id, metadata, { history: false }));
     }
     setIsEditing(false);
   }, [id, tempTitle, tempUrl, tempDescription, data.url, updateNode]);
@@ -214,7 +214,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
       <Handle type="source" position={Position.Left}   id="left"   />
       <Handle type="source" position={Position.Right}  id="right"  />
 
-      <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} />
+      <NodeResizer color="var(--text-muted)" isVisible={selected} minWidth={160} minHeight={80} onResizeStart={() => useStore.getState().snapshot()} />
 
       {/* Card body */}
       <div
