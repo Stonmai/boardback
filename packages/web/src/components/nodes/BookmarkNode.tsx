@@ -420,7 +420,7 @@ const BookmarkNode = ({ data, selected, id }: NodeProps<Node<WhiteboardNode['dat
           )}
 
           {!isEditing && data.tags && (data.tags as string[]).length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-auto pt-2">
+            <div className="flex flex-wrap gap-1 absolute bottom-4 left-4 right-4">
               {(data.tags as string[]).map((tag, idx) => (
                 <span
                   key={idx}
