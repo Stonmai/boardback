@@ -273,7 +273,7 @@ const NoteNode = ({ id, data, selected }: NodeProps<Node<WhiteboardNode['data']>
         </div>
 
         {data.tags && data.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-2 mt-auto">
+          <div className="flex flex-wrap gap-1 absolute bottom-4 left-4 right-4">
             {(data.tags as string[]).map((tag, idx) => (
               <span
                 key={idx}
