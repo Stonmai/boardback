@@ -753,6 +753,42 @@ const emojiPickerStyle: React.CSSProperties = {
 
 // ── Toolbar ───────────────────────────────────────────────────────────────────
 const Toolbar = () => {
+  // ── Custom emoji input helper ─────────────────────────────────────────────
+  /**
+   * Renders a compact text input + Add button that lets the user type or
+   * paste any emoji, extracting the first grapheme cluster so multi-codepoint
+   * emoji (flags, ZWJ sequences, skin tones) survive intact.
+   */
+  const renderCustomEmojiField = (onSelect: (e: string) => void) => {
+    const apply = () => {
+      const trimmed = customEmojiInput.trim();
+      if (!trimmed) return;
+      const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+      const first = segmenter.segment(trimmed)[Symbol.iterator]().next().value;
+      if (first) onSelect(first.segment);
+      setCustomEmojiInput('');
+    };
+    return (
+      <>
+        <input
+          value={customEmojiInput}
+          onChange={e => setCustomEmojiInput(e.target.value)}
+          onClick={e => e.stopPropagation()}
+          onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); apply(); } }}
+          placeholder="😍"
+          style={{ width: 44, height: 44, minWidth: 0, flexShrink: 0, textAlign: 'center', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 12, padding: 0, color: 'var(--text-primary)', fontSize: 22, outline: 'none', boxSizing: 'border-box' }}
+        />
+        <button
+          onClick={e => { e.stopPropagation(); apply(); }}
+          title="Use custom emoji"
+          style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Check size={17} strokeWidth={2.5} />
+        </button>
+      </>
+    );
+  };
+
   // ── Emoji picker helper ───────────────────────────────────────────────────
   /**
    * Renders the categorized emoji picker content.
@@ -894,7 +930,8 @@ const Toolbar = () => {
   // ID of the room whose emoji is being edited; 'new' for add-workspace panel
   const [emojiPickerFor, setEmojiPickerFor] = React.useState<string | null>(null);
   const [emojiSearch, setEmojiSearch] = React.useState('');
-  React.useEffect(() => { setEmojiSearch(''); }, [emojiPickerFor]);
+  const [customEmojiInput, setCustomEmojiInput] = React.useState('');
+  React.useEffect(() => { setEmojiSearch(''); setCustomEmojiInput(''); }, [emojiPickerFor]);
   // ID of room being renamed (inline edit panel)
   const [renamingRoomId, setRenamingRoomId] = React.useState<string | null>(null);
   const [renameValue, setRenameValue] = React.useState('');
@@ -1347,12 +1384,15 @@ const Toolbar = () => {
       </div>
       {/* Emoji selector */}
       <div style={{ marginBottom: 10 }}>
-        <button
-          onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: emojiPickerFor === 'new' ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: emojiPickerFor === 'new' ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
-        >
-          <span style={{ fontSize: 22, lineHeight: 1 }}>{newWsEmoji}</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
+            style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: emojiPickerFor === 'new' ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: emojiPickerFor === 'new' ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
+          >
+            <span style={{ fontSize: 22, lineHeight: 1 }}>{newWsEmoji}</span>
+          </button>
+          {emojiPickerFor === 'new' && renderCustomEmojiField((emoji) => setNewWsEmoji(emoji))}
+        </div>
         {emojiPickerFor === 'new' && renderEmojiPicker(
           (emoji) => {
             setNewWsEmoji(emoji);
@@ -1429,10 +1469,11 @@ const Toolbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <button
               onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
-              style={{ fontSize: 22, lineHeight: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '6px 8px', cursor: 'pointer' }}
+              style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, lineHeight: 1, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, cursor: 'pointer' }}
             >
               {newWsEmoji}
             </button>
+            {emojiPickerFor === 'new' && renderCustomEmojiField((emoji) => setNewWsEmoji(emoji))}
             <input
               ref={wsInputRef}
               value={newWsName}
@@ -1589,14 +1630,15 @@ const Toolbar = () => {
           <div
             style={{
               position: 'absolute',
-              top: 2,
+              top: '50%',
+              marginTop: -6,
               left: autoOpenBookmarks ? 24 : 2,
               width: 12,
               height: 12,
               borderRadius: '50%',
               background: autoOpenBookmarks ? 'var(--accent)' : 'var(--text-muted)',
               transition: 'all 0.2s'
-            }} 
+            }}
           />
         </div>
       </div>
@@ -1645,7 +1687,8 @@ const Toolbar = () => {
           <div
             style={{
               position: 'absolute',
-              top: 2,
+              top: '50%',
+              marginTop: -6,
               left: newTabEnabled ? 24 : 2,
               width: 12,
               height: 12,
@@ -2160,9 +2203,10 @@ const Toolbar = () => {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <button onClick={() => setEmojiPickerFor(emojiPickerFor === 'new' ? null : 'new')}
-                        style={{ fontSize: 22, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, padding: '5px 7px', cursor: 'pointer', lineHeight: 1 }}>
+                        style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, cursor: 'pointer', lineHeight: 1 }}>
                         {newWsEmoji}
                       </button>
+                      {emojiPickerFor === 'new' && renderCustomEmojiField((emoji) => setNewWsEmoji(emoji))}
                       <input ref={wsInputRef} value={newWsName} onChange={e => setNewWsName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
                         placeholder="Board name..."
@@ -2234,12 +2278,15 @@ const Toolbar = () => {
                       </div>
                       {/* Emoji selector */}
                       <div style={{ marginBottom: 10 }}>
-                        <button
-                          onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: pickerOpen ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
-                        >
-                          <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button
+                            onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
+                            style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: pickerOpen ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: pickerOpen ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
+                          >
+                            <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
+                          </button>
+                          {pickerOpen && renderCustomEmojiField((emoji) => updateRoomEmoji(room.id, emoji))}
+                        </div>
                         {pickerOpen && renderEmojiPicker(
                           (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
                           getRoomEmoji(room),
@@ -2345,12 +2392,15 @@ const Toolbar = () => {
                       </div>
                       {/* Emoji selector */}
                       <div style={{ marginBottom: 10 }}>
-                        <button
-                          onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 12, background: pickerOpen ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: pickerOpen ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
-                        >
-                          <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button
+                            onClick={() => setEmojiPickerFor(pickerOpen ? null : room.id)}
+                            style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: pickerOpen ? 'rgba(var(--accent-rgb),0.10)' : 'var(--surface-inset-bg)', border: pickerOpen ? '1px solid rgba(var(--accent-rgb),0.3)' : 'var(--border-panel)', cursor: 'pointer', transition: 'all 0.15s' }}
+                          >
+                            <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
+                          </button>
+                          {pickerOpen && renderCustomEmojiField((emoji) => updateRoomEmoji(room.id, emoji))}
+                        </div>
                         {pickerOpen && renderEmojiPicker(
                           (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
                           getRoomEmoji(room),
