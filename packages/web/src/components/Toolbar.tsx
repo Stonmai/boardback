@@ -755,39 +755,33 @@ const emojiPickerStyle: React.CSSProperties = {
 const Toolbar = () => {
   // ── Custom emoji input helper ─────────────────────────────────────────────
   /**
-   * Renders a compact text input + Add button that lets the user type or
-   * paste any emoji, extracting the first grapheme cluster so multi-codepoint
-   * emoji (flags, ZWJ sequences, skin tones) survive intact.
+   * Extracts the first grapheme cluster from the pending custom-emoji input
+   * (so multi-codepoint emoji — flags, ZWJ sequences, skin tones — survive
+   * intact) and clears the input. Returns null if nothing was typed.
    */
-  const renderCustomEmojiField = (onSelect: (e: string) => void) => {
-    const apply = () => {
-      const trimmed = customEmojiInput.trim();
-      if (!trimmed) return;
-      const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
-      const first = segmenter.segment(trimmed)[Symbol.iterator]().next().value;
-      if (first) onSelect(first.segment);
-      setCustomEmojiInput('');
-    };
-    return (
-      <>
-        <input
-          value={customEmojiInput}
-          onChange={e => setCustomEmojiInput(e.target.value)}
-          onClick={e => e.stopPropagation()}
-          onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); apply(); } }}
-          placeholder="😍"
-          style={{ width: 44, height: 44, minWidth: 0, flexShrink: 0, textAlign: 'center', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 12, padding: 0, color: 'var(--text-primary)', fontSize: 22, outline: 'none', boxSizing: 'border-box' }}
-        />
-        <button
-          onClick={e => { e.stopPropagation(); apply(); }}
-          title="Use custom emoji"
-          style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Check size={17} strokeWidth={2.5} />
-        </button>
-      </>
-    );
+  const consumeCustomEmoji = (): string | null => {
+    const trimmed = customEmojiInput.trim();
+    if (!trimmed) return null;
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    const first = segmenter.segment(trimmed)[Symbol.iterator]().next().value;
+    setCustomEmojiInput('');
+    return first ? first.segment : null;
   };
+
+  /**
+   * Renders the compact text input for typing/pasting a custom emoji.
+   * Committed via the panel's existing Save button — Enter also triggers it.
+   */
+  const renderCustomEmojiField = (onCommit: () => void) => (
+    <input
+      value={customEmojiInput}
+      onChange={e => setCustomEmojiInput(e.target.value)}
+      onClick={e => e.stopPropagation()}
+      onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); onCommit(); } }}
+      placeholder="😍"
+      style={{ width: 44, height: 44, minWidth: 0, flexShrink: 0, textAlign: 'center', background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 12, padding: 0, color: 'var(--text-primary)', fontSize: 22, outline: 'none', boxSizing: 'border-box' }}
+    />
+  );
 
   // ── Emoji picker helper ───────────────────────────────────────────────────
   /**
@@ -1256,8 +1250,9 @@ const Toolbar = () => {
   const handleAddWorkspace = () => {
     const name = newWsName.trim();
     if (!name) return;
-    addRoom(name, newWsEmoji);
+    addRoom(name, consumeCustomEmoji() ?? newWsEmoji);
     setShowAddWs(false);
+    setEmojiPickerFor(null);
   };
 
   const startRenaming = (room: { id: string; name: string }) => {
@@ -1267,7 +1262,11 @@ const Toolbar = () => {
   };
 
   const commitRename = () => {
-    if (renamingRoomId) updateRoomName(renamingRoomId, renameValue);
+    if (renamingRoomId) {
+      updateRoomName(renamingRoomId, renameValue);
+      const customEmoji = consumeCustomEmoji();
+      if (customEmoji) updateRoomEmoji(renamingRoomId, customEmoji);
+    }
     setRenamingRoomId(null);
     setRenameValue('');
   };
@@ -1391,7 +1390,7 @@ const Toolbar = () => {
           >
             <span style={{ fontSize: 22, lineHeight: 1 }}>{newWsEmoji}</span>
           </button>
-          {emojiPickerFor === 'new' && renderCustomEmojiField((emoji) => setNewWsEmoji(emoji))}
+          {emojiPickerFor === 'new' && renderCustomEmojiField(handleAddWorkspace)}
         </div>
         {emojiPickerFor === 'new' && renderEmojiPicker(
           (emoji) => {
@@ -1473,7 +1472,7 @@ const Toolbar = () => {
             >
               {newWsEmoji}
             </button>
-            {emojiPickerFor === 'new' && renderCustomEmojiField((emoji) => setNewWsEmoji(emoji))}
+            {emojiPickerFor === 'new' && renderCustomEmojiField(handleAddWorkspace)}
             <input
               ref={wsInputRef}
               value={newWsName}
@@ -2206,7 +2205,7 @@ const Toolbar = () => {
                         style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, background: 'var(--surface-inset-bg)', border: 'var(--border-panel)', borderRadius: 10, cursor: 'pointer', lineHeight: 1 }}>
                         {newWsEmoji}
                       </button>
-                      {emojiPickerFor === 'new' && renderCustomEmojiField((emoji) => setNewWsEmoji(emoji))}
+                      {emojiPickerFor === 'new' && renderCustomEmojiField(handleAddWorkspace)}
                       <input ref={wsInputRef} value={newWsName} onChange={e => setNewWsName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleAddWorkspace(); if (e.key === 'Escape') { setShowAddWs(false); setEmojiPickerFor(null); } }}
                         placeholder="Board name..."
@@ -2285,7 +2284,7 @@ const Toolbar = () => {
                           >
                             <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
                           </button>
-                          {pickerOpen && renderCustomEmojiField((emoji) => updateRoomEmoji(room.id, emoji))}
+                          {pickerOpen && renderCustomEmojiField(() => { commitRename(); setEmojiPickerFor(null); })}
                         </div>
                         {pickerOpen && renderEmojiPicker(
                           (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
@@ -2399,7 +2398,7 @@ const Toolbar = () => {
                           >
                             <span style={{ fontSize: 22, lineHeight: 1 }}>{getRoomEmoji(room)}</span>
                           </button>
-                          {pickerOpen && renderCustomEmojiField((emoji) => updateRoomEmoji(room.id, emoji))}
+                          {pickerOpen && renderCustomEmojiField(() => { commitRename(); setEmojiPickerFor(null); })}
                         </div>
                         {pickerOpen && renderEmojiPicker(
                           (emoji) => { updateRoomEmoji(room.id, emoji); setEmojiPickerFor(null); },
